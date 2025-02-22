@@ -3,12 +3,18 @@ import { motion } from 'framer-motion';
 import { ReactNode } from 'react';
 
 interface Campaign {
-  title: string;
-  platform: string;
-  progress?: number;
-  deadline: string;
-}
-
+    id: number;
+    title: string;
+    platform: string;
+    pendingPayout?: number;
+    progress?: number;
+    deadline?: string; // Optional to accommodate available campaigns
+    requirements?: {
+      totalBudget: number;
+      contentType: string;
+    };
+  }
+  
 interface CampaignCardProps {
   campaign: Campaign;
   onClick: () => void;

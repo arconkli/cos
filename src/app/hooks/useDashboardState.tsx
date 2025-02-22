@@ -4,7 +4,7 @@ import { useState } from 'react';
 export function useDashboardState() {
   const [timeFilter, setTimeFilter] = useState('6M');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [notifications, setNotifications] = useState([
     { id: 1, message: 'New campaign available!', read: false },
