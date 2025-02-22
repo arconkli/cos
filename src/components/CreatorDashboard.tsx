@@ -24,19 +24,19 @@ import {
 } from 'lucide-react';
 
 // Custom hooks and components (assume these are defined elsewhere)
-import { useDashboardState } from './hooks/useDashboardState'; // Manages dashboard state
-import { AnimatedNumber } from './components/shared/AnimatedNumber'; // Animated stat display
-import { CampaignCard } from './components/dashboard/CampaignCard'; // Reusable campaign card
-import { StatCard } from './components/dashboard/StatCard'; // Reusable stat card
-import { ChartContainer } from './components/shared/ChartContainer'; // Reusable chart wrapper
-import { NotificationBell } from './components/dashboard/NotificationBell'; // Notification system
-import { Leaderboard } from './components/dashboard/Leaderboard'; // Top creators display
-import { OnboardingTour } from './components/dashboard/OnboardingTour'; // Guided tour for new users
+import { useDashboardState } from '../app/hooks/useDashboardState'; // Manages dashboard state
+import { AnimatedNumber } from '../components/shared/AnimatedNumber'; // Animated stat display
+import { CampaignCard } from '../components/dashboard/CampaignCard'; // Reusable campaign card
+import { StatCard } from '../components/dashboard/StatCard'; // Reusable stat card
+import { ChartContainer } from '../components/shared/ChartContainer'; // Reusable chart wrapper
+import { NotificationBell } from '../components/dashboard/NotificationBell'; // Notification system
+import { Leaderboard } from '../components/dashboard/Leaderboard'; // Top creators display
+import { OnboardingTour } from '../components/dashboard/OnboardingTour'; // Guided tour for new users
 
 // Lazy-loaded components for performance
-const LazyCampaignDetail = lazy(() => import('./components/dashboard/CampaignDetail'));
-const LazyPaymentHistory = lazy(() => import('./components/dashboard/PaymentHistory'));
-const LazyProfileMenu = lazy(() => import('./components/dashboard/ProfileMenu'));
+const LazyCampaignDetail = lazy(() => import('../components/dashboard/CampaignDetail'));
+const LazyPaymentHistory = lazy(() => import('../components/dashboard/PaymentHistory'));
+const LazyProfileMenu = lazy(() => import('../components/dashboard/ProfileMenu'));
 
 // Sample data (replace with your dynamic data source)
 const viewsData = [
