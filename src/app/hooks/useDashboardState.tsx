@@ -1,5 +1,6 @@
 // hooks/useDashboardState.ts
 import { useState } from 'react';
+import { Campaign } from '../../types/campaign';
 
 export function useDashboardState() {
   const [timeFilter, setTimeFilter] = useState('6M');
