@@ -485,50 +485,118 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
         <div className="grid grid-cols-1 gap-4 md:gap-6 mb-4 md:mb-6">
           <ContentTypeRates campaign={campaign} />
 
-          {/* Campaign Information (for Available Campaigns) */}
-          {'postCount' in campaign.requirements && (
-            <motion.div 
-              className="space-y-4 border p-4 rounded-lg bg-black bg-opacity-50 backdrop-blur-sm relative overflow-hidden"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
+          {/* Unified Campaign Details & Requirements */}
+          <motion.div 
+            className="space-y-5 border p-4 rounded-lg bg-black bg-opacity-50 backdrop-blur-sm relative overflow-hidden"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
+            
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg md:text-xl font-bold">Campaign Requirements</h3>
               
-              <h3 className="text-lg md:text-xl font-bold">Campaign Details</h3>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm opacity-70">Total Budget</p>
-                  <p className="text-lg md:text-xl font-bold">{campaign.requirements.totalBudget}</p>
-                </div>
-                <div>
-                  <p className="text-sm opacity-70">Campaign Deadline</p>
-                  <p className="text-lg md:text-xl font-bold">
-                    {new Date(campaign.endDate).toLocaleDateString('en-US', { 
-                      year: 'numeric', 
-                      month: 'short', 
-                      day: 'numeric' 
-                    })}
-                  </p>
-                </div>
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 opacity-70" />
+                <span className="text-sm">
+                  Due: {new Date(campaign.endDate).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                  })}
+                </span>
+              </div>
+            </div>
+            
+            {!isActiveCampaign(campaign) && (
+              <div className="p-3 border border-yellow-600 bg-yellow-900 bg-opacity-20 rounded-lg">
+                <p className="text-sm opacity-90">
+                  <span className="font-bold">Note:</span> Please review all campaign details before applying. You can only select one content type.
+                </p>
+              </div>
+            )}
+            
+            {/* What You Need To Do */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="h-5 w-5 rounded-full bg-red-500 flex items-center justify-center text-sm font-bold">1</div>
+                <h4 className="font-bold text-base">What You Need To Create</h4>
               </div>
               
-              <div className="mt-4">
-                <p className="text-sm opacity-70">Expected Results</p>
-                <p className="mt-1 text-sm md:text-base">Join this campaign to create engaging content for {campaign.title}. This campaign is expected to reach millions of viewers and build your following while earning based on your performance.</p>
+              <ul className="list-disc pl-8 space-y-2 text-sm md:text-base">
+                {'postCount' in campaign.requirements && (
+                  <li><span className="font-semibold">{campaign.requirements.postCount} posts</span> required</li>
+                )}
+                <li>Content must be published on: <span className="font-semibold">{campaign.requirements.platforms.join(', ')}</span></li>
+                <li>You need at least <span className="font-semibold">{campaign.requirements.minViewsForPayout}</span> views for payment</li>
+                {isActiveCampaign(campaign) ? (
+                  <li>Your content type: <span className="font-semibold">{campaign.contentType === 'both' ? 'Original or Repurposed' : campaign.contentType.charAt(0).toUpperCase() + campaign.contentType.slice(1)}</span></li>
+                ) : null}
+              </ul>
+            </div>
+            
+            {/* Guidelines */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="h-5 w-5 rounded-full bg-red-500 flex items-center justify-center text-sm font-bold">2</div>
+                <h4 className="font-bold text-base">Content Guidelines</h4>
               </div>
               
-              <div className="mt-4">
-                <p className="text-sm opacity-70">Campaign Benefits</p>
-                <ul className="list-disc pl-4 mt-2 space-y-1 text-sm md:text-base">
+              <ul className="list-disc pl-8 space-y-1 text-sm md:text-base">
+                {campaign.requirements.contentGuidelines.map((guideline, i) => (
+                  <li key={i}>{guideline}</li>
+                ))}
+              </ul>
+            </div>
+            
+            {/* Hashtags */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="h-5 w-5 rounded-full bg-red-500 flex items-center justify-center text-sm font-bold">3</div>
+                <h4 className="font-bold text-base">Required Hashtags</h4>
+              </div>
+              
+              <div className="flex flex-wrap gap-2 ml-8">
+                {campaign.requirements.hashtags?.map((hashtag, index) => (
+                  <span 
+                    key={hashtag} 
+                    className="border px-2 py-1 rounded text-sm bg-white bg-opacity-5"
+                  >
+                    {hashtag}
+                  </span>
+                ))}
+              </div>
+            </div>
+            
+            {/* Campaign Benefits */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="h-5 w-5 rounded-full bg-red-500 flex items-center justify-center text-sm font-bold">4</div>
+                <h4 className="font-bold text-base">Campaign Benefits</h4>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pl-8">
+                <ul className="list-disc space-y-1 text-sm md:text-base">
                   <li>Exposure to brand's audience</li>
                   <li>Performance-based payouts</li>
                   <li>Creative freedom within guidelines</li>
                   <li>Potential for recurring partnerships</li>
                 </ul>
+                
+                {/* Only show budget for "pot" campaigns - I'm simulating this with campaign ID #4 */}
+                {campaign.id === 4 && (
+                  <div className="border border-yellow-600 bg-yellow-900 bg-opacity-10 p-3 rounded-lg">
+                    <p className="font-semibold mb-1">Pot Campaign</p>
+                    <p className="text-sm">Total Budget: {campaign.requirements.totalBudget}</p>
+                    <p className="text-xs opacity-70 mt-1">Earnings are distributed based on your portion of the total views.</p>
+                  </div>
+                )}
               </div>
-              
+            </div>
+            
+            {/* Apply Button - Only for Available Campaigns */}
+            {'postCount' in campaign.requirements && (
               <motion.button
                 className="mt-4 w-full border p-2 rounded bg-gradient-to-r from-red-500 to-red-700 border-none text-white font-bold"
                 whileHover={{ scale: 1.02, boxShadow: "0 0 10px rgba(255,68,68,0.5)" }}
@@ -536,91 +604,6 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
               >
                 Apply For This Campaign
               </motion.button>
-            </motion.div>
-          )}
-
-          <motion.div 
-            className="space-y-4"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <h3 className="text-lg md:text-xl font-bold">Campaign Requirements</h3>
-
-            <div>
-              <p className="font-bold mb-2 text-sm md:text-base">Required Hashtags:</p>
-              <div className="flex flex-wrap gap-2">
-                {campaign.requirements.hashtags?.map((hashtag, index) => (
-                  <motion.span 
-                    key={hashtag} 
-                    className="border px-2 py-1 rounded text-xs md:text-sm"
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.05 * index }}
-                    whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)" }}
-                  >
-                    {hashtag}
-                  </motion.span>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <p className="font-bold mb-2 text-sm md:text-base">Platforms:</p>
-              <div className="flex flex-wrap gap-2">
-                {campaign.requirements.platforms.map((platform, index) => (
-                  <motion.span 
-                    key={platform} 
-                    className="border px-2 py-1 rounded text-xs md:text-sm"
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.05 * index }}
-                    whileHover={{ 
-                      scale: 1.05, 
-                      borderColor: getColorForPlatform(platform),
-                      backgroundColor: "rgba(255,255,255,0.1)"
-                    }}
-                  >
-                    {platform}
-                  </motion.span>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <p className="font-bold mb-2 text-sm md:text-base">Content Guidelines:</p>
-              <ul className="list-disc pl-4 space-y-1 text-sm md:text-base">
-                {campaign.requirements.contentGuidelines.map((guideline, i) => (
-                  <motion.li 
-                    key={i}
-                    initial={{ opacity: 0, x: -5 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.05 * i }}
-                  >
-                    {guideline}
-                  </motion.li>
-                ))}
-              </ul>
-            </div>
-            
-            {'postCount' in campaign.requirements && (
-              <div>
-                <p className="font-bold mb-2 text-sm md:text-base">Campaign Requirements:</p>
-                <ul className="list-disc pl-4 space-y-1 text-sm md:text-base">
-                  <motion.li 
-                    initial={{ opacity: 0, x: -5 }}
-                    animate={{ opacity: 1, x: 0 }}
-                  >
-                    {campaign.requirements.postCount} posts required
-                  </motion.li>
-                  <motion.li 
-                    initial={{ opacity: 0, x: -5 }}
-                    animate={{ opacity: 1, x: 0 }}
-                  >
-                    Minimum {campaign.requirements.minViewsForPayout} views for payout
-                  </motion.li>
-                </ul>
-              </div>
             )}
           </motion.div>
 
