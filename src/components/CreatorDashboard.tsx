@@ -694,9 +694,11 @@ const ContentTypeRates: React.FC<{ campaign: Campaign | AvailableCampaign }> = (
   const isPotCampaign = campaign.id === 4;
   
   // Only show content types that match the campaign's content type for active campaigns
-  const showOriginal = !isActive || campaign.contentType === 'original' || campaign.contentType === 'both';
-  const showRepurposed = !isActive && campaign.requirements.payoutRate.repurposed || 
-                         (isActive && (campaign.contentType === 'repurposed' || campaign.contentType === 'both'));
+  const showOriginal = !isActive || 
+                      (isActive && (campaign.contentType === 'original' || campaign.contentType === 'both') && selectedContentType === 'original');
+  
+  const showRepurposed = (!isActive && campaign.requirements.payoutRate.repurposed) || 
+                         (isActive && (campaign.contentType === 'repurposed' || campaign.contentType === 'both') && selectedContentType === 'repurposed');
   
   return (
     <div className="space-y-4 border rounded-lg p-4 bg-black bg-opacity-50 backdrop-blur-sm relative overflow-hidden">
