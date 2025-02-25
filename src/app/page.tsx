@@ -1,11 +1,12 @@
 // page.tsx
 'use client';
 
+import React, { useState, useEffect, memo, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
 import { 
   XIcon, ArrowUpRight, Zap, Eye, DollarSign, 
-  Building, Calendar, ChevronDown, Users, TrendingUp 
+  Building, Calendar, ChevronDown, Users, TrendingUp, 
+  Twitter, Youtube, Instagram, Clock
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
@@ -523,7 +524,7 @@ export default function HomePage() {
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.2 + 0.3 }}
                 >
-                  {i < 2 && (
+                  {i < 3 && (
                     <div className="text-gray-400">
                       <ArrowUpRight className="h-4 w-4" />
                     </div>
@@ -550,38 +551,86 @@ export default function HomePage() {
               <motion.div
                 key={i}
                 className="border p-6 rounded-lg cursor-pointer relative overflow-hidden backdrop-blur-sm"
-                whileHover={{ scale: 1.05, borderColor: '#FF4444' }}
+                whileHover={{ scale: 1.05, borderColor: i === 0 ? '#FF4444' : i === 1 ? '#4287f5' : '#31a952' }}
                 onClick={() => setSelectedCampaign(campaign)}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
               >
-                <div className="absolute -right-20 -top-20 w-40 h-40 bg-white opacity-5 rounded-full blur-2xl" />
-                <div className="flex flex-col md:flex-row justify-between items-start mb-4">
-                  <h3 className="text-xl font-bold mb-2 md:mb-0">{campaign.title}</h3>
-                  <span className="border px-3 py-1 rounded text-sm">
+                <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
+                
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h3 className="text-xl font-bold mb-2">{campaign.title}</h3>
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      <span className="px-2 py-0.5 bg-white bg-opacity-10 rounded-full text-xs">
+                        {campaign.type}
+                      </span>
+                      <span className="px-2 py-0.5 bg-white bg-opacity-10 rounded-full text-xs text-green-400">
+                        Active
+                      </span>
+                    </div>
+                  </div>
+                  <span className="border px-3 py-1 rounded text-sm bg-white bg-opacity-5">
                     {campaign.payout}
                   </span>
                 </div>
-                <p className="text-sm mb-2 opacity-70">Minimum views required</p>
-                <p className="text-2xl font-bold mb-4">{campaign.minViews}</p>
-                <div className="flex flex-wrap gap-2">
-                  {campaign.platforms.map((platform, idx) => (
-                    <motion.span 
-                      key={platform} 
-                      className="text-sm border px-2 py-1 rounded"
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.05 * idx + 0.1 * i }}
-                      whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)" }}
-                    >
-                      {platform}
-                    </motion.span>
-                  ))}
+                
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <p className="text-sm opacity-70">Min. Views</p>
+                    <p className="text-2xl font-bold">{campaign.minViews}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm opacity-70">Campaign Brief</p>
+                    <p className="text-sm opacity-90 line-clamp-2">{campaign.description.substring(0, 50)}...</p>
+                  </div>
                 </div>
+                
+                <div>
+                  <p className="text-sm opacity-70 mb-2">Platforms</p>
+                  <div className="flex flex-wrap gap-2">
+                    {campaign.platforms.map((platform, idx) => (
+                      <motion.span 
+                        key={platform} 
+                        className="text-sm border px-2 py-1 rounded"
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.05 * idx + 0.1 * i }}
+                        whileHover={{ 
+                          scale: 1.05, 
+                          backgroundColor: "rgba(255,255,255,0.1)",
+                          borderColor: platform === 'YouTube' ? '#FF0000' : 
+                                      platform === 'Instagram' ? '#E1306C' : 
+                                      platform === 'TikTok' ? '#69C9D0' : '#1DA1F2'
+                        }}
+                      >
+                        {platform}
+                      </motion.span>
+                    ))}
+                  </div>
+                </div>
+                
+                <motion.button
+                  className="w-full mt-4 flex items-center justify-center gap-2 p-2 border-2 border-dashed text-sm"
+                  whileHover={{ borderStyle: "solid", backgroundColor: "rgba(255,255,255,0.05)" }}
+                >
+                  <span>View Details</span>
+                  <ArrowUpRight className="h-4 w-4" />
+                </motion.button>
               </motion.div>
             ))}
+          </div>
+          
+          <div className="text-center mt-8">
+            <motion.button
+              className="px-6 py-3 border rounded-full inline-flex items-center gap-2"
+              whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)" }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Browse All Campaigns <ArrowUpRight className="h-4 w-4" />
+            </motion.button>
           </div>
         </motion.div>
 
@@ -652,120 +701,135 @@ export default function HomePage() {
           </div>
         </motion.div>
 
-        {/* Success Metrics Section (replacing testimonials) */}
+        {/* Creator Spotlight Section (replacing Creator Success) */}
         <motion.div
-          className="mb-8 md:mb-12 border p-8 rounded-lg relative overflow-hidden"
+          className="mb-8 md:mb-12 relative overflow-hidden"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          whileHover={{ borderColor: '#4287f5' }}
         >
-          <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
-          
-          <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 flex items-center gap-2">
-            <Zap className="h-6 w-6 text-yellow-400" />
-            CREATOR SUCCESS_
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-16">
-            <motion.div
-              className="text-center"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-            >
-              <motion.div 
-                className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 mb-2"
-                animate={{ 
-                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-                }}
-                transition={{
-                  duration: 5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                style={{
-                  backgroundSize: '200% 100%'
-                }}
-              >
-                93%
-              </motion.div>
-              <p className="text-xl">of creators earn within their first 30 days</p>
-            </motion.div>
-            
-            <motion.div
-              className="text-center"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-            >
-              <motion.div 
-                className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-teal-500 mb-2"
-                animate={{ 
-                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-                }}
-                transition={{
-                  duration: 5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                style={{
-                  backgroundSize: '200% 100%'
-                }}
-              >
-                $2,400
-              </motion.div>
-              <p className="text-xl">average monthly creator earnings</p>
-            </motion.div>
-            
-            <motion.div
-              className="text-center"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3 }}
-            >
-              <motion.div 
-                className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-500 mb-2"
-                animate={{ 
-                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-                }}
-                transition={{
-                  duration: 5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                style={{
-                  backgroundSize: '200% 100%'
-                }}
-              >
-                72hrs
-              </motion.div>
-              <p className="text-xl">average payout speed after campaign completion</p>
-            </motion.div>
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-900 to-red-900 opacity-20 rounded-lg"></div>
+          <div className="border rounded-lg relative z-10">
+            <div className="p-6 md:p-10">
+              <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-10 flex items-center gap-2">
+                <Users className="h-6 w-6 text-blue-400" />
+                CREATOR SPOTLIGHT_
+              </h2>
+
+              {/* Featured Creator */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 mb-10">
+                <div className="md:col-span-1">
+                  <div className="relative w-full aspect-square rounded-lg border-2 border-white overflow-hidden mb-4">
+                    <img 
+                      src="/api/placeholder/400/400" 
+                      alt="Creator" 
+                      className="object-cover w-full h-full"
+                    />
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <span className="text-sm">Live Now</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="p-1 rounded-full border border-blue-500">
+                      <Instagram className="h-4 w-4 text-blue-400" />
+                    </div>
+                    <div className="p-1 rounded-full border border-cyan-500">
+                      <svg className="h-4 w-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16.5 7.3c-.4-.1-.8-.1-1.2-.1-3 0-5.6 2-6.7 4.7-.3.7-.4 1.5-.4 2.3 0 3.3 2.7 6 6 6 .8 0 1.6-.1 2.3-.4.8-.3 1.5-.8 2-1.3.1-.1.1-.3.2-.4V9.9c0-.1 0-.3-.1-.4-.5-2.2-2.4-3.8-4.7-3.8-.4 0-.8 0-1.2.1-.3.1-.7.2-1 .4-.2.2-.4.4-.5.7-.1.3-.2.7-.2 1 0 1.4 1 2.6 2.4 2.6h.1V15c-.9 0-1.7-.1-2.5-.4-1.7-.6-3-2-3.6-3.7-.2-.6-.3-1.3-.3-2 0-1.5.5-2.9 1.4-4C7 3 8.4 2.3 9.9 2.1c1.5-.2 3.1 0 4.5.7 1.3.6 2.4 1.7 3 3 .1.1.2.2.3.2.1.1.3.1.4.1l.1-.1c.4-.4.6-.9.8-1.4.1-.5.2-1.1.1-1.6 0-.1-.1-.2-.3-.2zm-.5 11.1c-.1.2-.4.3-.6.3-1.7 0-3.1-1.4-3.1-3.1 0-.2.1-.4.3-.6.1-.1.3-.2.5-.1 1.7 0 3.1 1.4 3.1 3.1 0 .2-.1.4-.3.6 0 .1-.1.1-.2.1z"/></svg>
+                    </div>
+                    <div className="p-1 rounded-full border border-red-500">
+                      <Youtube className="h-4 w-4 text-red-400" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="md:col-span-2 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-3 mb-4">
+                      <h3 className="text-2xl font-bold">Sarah Chen</h3>
+                      <span className="px-2 py-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full text-xs">
+                        Top Creator
+                      </span>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4 mb-6">
+                      <div className="border border-white border-opacity-20 rounded bg-white bg-opacity-5 p-3 text-center">
+                        <p className="text-sm opacity-70">Total Earned</p>
+                        <p className="text-xl font-bold">$126,450</p>
+                      </div>
+                      <div className="border border-white border-opacity-20 rounded bg-white bg-opacity-5 p-3 text-center">
+                        <p className="text-sm opacity-70">Total Views</p>
+                        <p className="text-xl font-bold">42M+</p>
+                      </div>
+                      <div className="border border-white border-opacity-20 rounded bg-white bg-opacity-5 p-3 text-center">
+                        <p className="text-sm opacity-70">Campaigns</p>
+                        <p className="text-xl font-bold">18</p>
+                      </div>
+                    </div>
+                    
+                    <div className="mb-6">
+                      <p className="mb-2">
+                        "With CREATE_OS, I've been able to monetize across all my social platforms without having to negotiate individual brand deals. The campaigns are straightforward and let me maintain my creative voice."
+                      </p>
+                      <p className="text-sm opacity-70">
+                        Sarah specializes in tech reviews and lifestyle content, with a focus on minimal aesthetics and productivity tools.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <motion.button
+                      className="px-4 py-2 border rounded flex items-center justify-center gap-2"
+                      whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      View Creator Profile <ArrowUpRight className="h-4 w-4" />
+                    </motion.button>
+                    <motion.button
+                      className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 border-none rounded flex items-center justify-center gap-2"
+                      whileHover={{ scale: 1.02, boxShadow: "0 0 15px rgba(66,135,245,0.5)" }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      Become a Creator <Zap className="h-4 w-4" />
+                    </motion.button>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Stats at bottom */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-blue-500 bg-opacity-10 rounded-full">
+                    <Users className="h-6 w-6 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">10,000+</p>
+                    <p className="text-sm opacity-70">Active creators</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-green-500 bg-opacity-10 rounded-full">
+                    <DollarSign className="h-6 w-6 text-green-400" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">$4.2M+</p>
+                    <p className="text-sm opacity-70">Paid out this year</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-purple-500 bg-opacity-10 rounded-full">
+                    <Clock className="h-6 w-6 text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">72 hours</p>
+                    <p className="text-sm opacity-70">Average payout time</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          
-          <motion.div
-            className="mt-12 text-center"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.4 }}
-          >
-            <motion.button 
-              className="px-8 py-3 bg-gradient-to-r from-blue-500 to-red-500 rounded-full font-bold text-white border-none inline-flex items-center gap-2"
-              whileHover={{ 
-                scale: 1.05,
-                boxShadow: "0 0 20px rgba(255,68,68,0.5)"
-              }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <Zap className="h-5 w-5" />
-              Become a Creator
-            </motion.button>
-          </motion.div>
         </motion.div>
 
         {/* Enhanced Footer */}
