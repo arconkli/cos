@@ -1,6 +1,7 @@
 // app/layout.tsx
 import { Inter } from 'next/font/google';
 import type { Metadata } from 'next';
+import OnboardingProvider from '@/components/OnboardingProvider';
 import './globals.css'; // Ensure this path is correct
 
 // Configure the Inter font.  This is where you customize it.
@@ -14,7 +15,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: 'Create OS', 
-  description: 'Monitize Your Creativity', 
+  description: 'Monetize Your Creativity', 
 };
 
 export default function RootLayout({
@@ -26,7 +27,9 @@ export default function RootLayout({
     <html lang="en">
       {/* Apply the font to the <body> using the generated CSS variable */}
       <body className={`${inter.variable} antialiased`}>
-        {children}
+        <OnboardingProvider>
+          {children}
+        </OnboardingProvider>
       </body>
     </html>
   );
