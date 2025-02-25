@@ -495,7 +495,7 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
             <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
             
             <div className="flex justify-between items-center">
-              <h3 className="text-lg md:text-xl font-bold">Campaign Requirements</h3>
+              <h3 className="text-lg md:text-xl font-bold">Campaign Details</h3>
               
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 opacity-70" />
@@ -517,6 +517,20 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
               </div>
             )}
             
+            {/* Brand Information */}
+            <div className="p-4 bg-white bg-opacity-5 rounded-lg">
+              <h4 className="font-bold text-base mb-2">About {campaign.id === 1 ? 'Netflix' : campaign.id === 2 ? 'Fashion Nova' : campaign.id === 3 ? 'Universal Music' : 'Paramount Pictures'}</h4>
+              <p className="text-sm">
+                {campaign.id === 1 
+                  ? 'Netflix is a streaming service offering a wide variety of award-winning TV shows, movies, anime, documentaries, and more on thousands of internet-connected devices.'
+                  : campaign.id === 2
+                  ? 'Fashion Nova is an American fast fashion retail company known for its trendsetting styles and celebrity collaborations.'
+                  : campaign.id === 3
+                  ? 'Universal Music Group is a world leader in music-based entertainment, with a broad array of businesses engaged in recorded music, music publishing, and more.'
+                  : 'Paramount Pictures, one of the oldest Hollywood studios, produces and distributes feature films for worldwide entertainment.'}
+              </p>
+            </div>
+            
             {/* What You Need To Do */}
             <div>
               <div className="flex items-center gap-2 mb-3">
@@ -525,9 +539,6 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
               </div>
               
               <ul className="list-disc pl-8 space-y-2 text-sm md:text-base">
-                {'postCount' in campaign.requirements && (
-                  <li><span className="font-semibold">{campaign.requirements.postCount} posts</span> required</li>
-                )}
                 <li>Content must be published on: <span className="font-semibold">{campaign.requirements.platforms.join(', ')}</span></li>
                 <li>You need at least <span className="font-semibold">{campaign.requirements.minViewsForPayout}</span> views for payment</li>
                 {isActiveCampaign(campaign) ? (
@@ -569,31 +580,14 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
               </div>
             </div>
             
-            {/* Campaign Benefits */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="h-5 w-5 rounded-full bg-red-500 flex items-center justify-center text-sm font-bold">4</div>
-                <h4 className="font-bold text-base">Campaign Benefits</h4>
+            {/* Only show budget for "pot" campaigns - campaign ID #4 */}
+            {campaign.id === 4 && (
+              <div className="border border-yellow-600 bg-yellow-900 bg-opacity-10 p-3 rounded-lg">
+                <p className="font-semibold mb-1">Pot Campaign</p>
+                <p className="text-sm">Total Budget: {campaign.requirements.totalBudget}</p>
+                <p className="text-xs opacity-70 mt-1">Earnings are distributed based on your portion of the total views.</p>
               </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pl-8">
-                <ul className="list-disc space-y-1 text-sm md:text-base">
-                  <li>Exposure to brand's audience</li>
-                  <li>Performance-based payouts</li>
-                  <li>Creative freedom within guidelines</li>
-                  <li>Potential for recurring partnerships</li>
-                </ul>
-                
-                {/* Only show budget for "pot" campaigns - I'm simulating this with campaign ID #4 */}
-                {campaign.id === 4 && (
-                  <div className="border border-yellow-600 bg-yellow-900 bg-opacity-10 p-3 rounded-lg">
-                    <p className="font-semibold mb-1">Pot Campaign</p>
-                    <p className="text-sm">Total Budget: {campaign.requirements.totalBudget}</p>
-                    <p className="text-xs opacity-70 mt-1">Earnings are distributed based on your portion of the total views.</p>
-                  </div>
-                )}
-              </div>
-            </div>
+            )}
             
             {/* Apply Button - Only for Available Campaigns */}
             {'postCount' in campaign.requirements && (
@@ -686,6 +680,11 @@ const ContentTypeRates: React.FC<{ campaign: Campaign | AvailableCampaign }> = (
   // Determine if this is an active campaign
   const isActive = isActiveCampaign(campaign);
   
+  // Only show content types that match the campaign's content type for active campaigns
+  const showOriginal = !isActive || campaign.contentType === 'original' || campaign.contentType === 'both';
+  const showRepurposed = !isActive && campaign.requirements.payoutRate.repurposed || 
+                         (isActive && (campaign.contentType === 'repurposed' || campaign.contentType === 'both'));
+  
   return (
     <div className="space-y-4 border rounded-lg p-4 bg-black bg-opacity-50 backdrop-blur-sm relative overflow-hidden">
       <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
@@ -699,37 +698,35 @@ const ContentTypeRates: React.FC<{ campaign: Campaign | AvailableCampaign }> = (
       )}
       
       <div className="space-y-4">
-        <motion.div 
-          className={`border rounded-lg p-4 bg-opacity-10 bg-white relative overflow-hidden ${selectedContentType === 'original' ? 'border-green-500' : ''}`}
-          whileHover={!isActive ? { borderColor: "#31a952" } : {}}
-          onClick={() => !isActive && setSelectedContentType('original')}
-        >
-          <div className="absolute -right-20 -top-20 w-32 h-32 bg-green-500 opacity-5 rounded-full blur-xl" />
-          <div className="flex items-center gap-2 mb-2">
-            {!isActive && (
-              <input 
-                type="radio" 
-                id="original" 
-                name="contentType" 
-                checked={selectedContentType === 'original'} 
-                onChange={() => setSelectedContentType('original')}
-                className="text-green-500 focus:ring-green-500"
-              />
-            )}
-            <label htmlFor="original" className="font-bold">Original Content</label>
-            <span className="ml-auto border border-green-500 text-green-500 px-2 py-1 rounded text-sm">
-              {isActive ? (
-                campaign.contentType === 'original' || campaign.contentType === 'both' ? 'Active' : 'Unavailable'
-              ) : (
-                'Available'
+        {showOriginal && (
+          <motion.div 
+            className={`border rounded-lg p-4 bg-opacity-10 bg-white relative overflow-hidden ${selectedContentType === 'original' ? 'border-green-500' : ''}`}
+            whileHover={!isActive ? { borderColor: "#31a952" } : {}}
+            onClick={() => !isActive && setSelectedContentType('original')}
+          >
+            <div className="absolute -right-20 -top-20 w-32 h-32 bg-green-500 opacity-5 rounded-full blur-xl" />
+            <div className="flex items-center gap-2 mb-2">
+              {!isActive && (
+                <input 
+                  type="radio" 
+                  id="original" 
+                  name="contentType" 
+                  checked={selectedContentType === 'original'} 
+                  onChange={() => setSelectedContentType('original')}
+                  className="text-green-500 focus:ring-green-500"
+                />
               )}
-            </span>
-          </div>
-          <p className="text-sm opacity-70 mb-2">Create unique content specifically for this campaign</p>
-          <p className="font-bold">{campaign.requirements.payoutRate.original}</p>
-        </motion.div>
+              <label htmlFor="original" className="font-bold">Original Content</label>
+              <span className="ml-auto border border-green-500 text-green-500 px-2 py-1 rounded text-sm">
+                {isActive ? 'Active' : 'Available'}
+              </span>
+            </div>
+            <p className="text-sm opacity-70 mb-2">Create unique content specifically for this campaign</p>
+            <p className="font-bold">{campaign.requirements.payoutRate.original}</p>
+          </motion.div>
+        )}
 
-        {campaign.requirements.payoutRate.repurposed && (
+        {showRepurposed && campaign.requirements.payoutRate.repurposed && (
           <motion.div 
             className={`border rounded-lg p-4 bg-opacity-10 bg-white relative overflow-hidden ${selectedContentType === 'repurposed' ? 'border-blue-500' : ''}`}
             whileHover={!isActive ? { borderColor: "#4287f5" } : {}}
@@ -749,11 +746,7 @@ const ContentTypeRates: React.FC<{ campaign: Campaign | AvailableCampaign }> = (
               )}
               <label htmlFor="repurposed" className="font-bold">Repurposed Content</label>
               <span className="ml-auto border border-blue-500 text-blue-500 px-2 py-1 rounded text-sm">
-                {isActive ? (
-                  campaign.contentType === 'repurposed' || campaign.contentType === 'both' ? 'Active' : 'Unavailable'
-                ) : (
-                  'Available'
-                )}
+                {isActive ? 'Active' : 'Available'}
               </span>
             </div>
             <p className="text-sm opacity-70 mb-2">Adapt existing content to fit campaign requirements</p>
@@ -767,12 +760,6 @@ const ContentTypeRates: React.FC<{ campaign: Campaign | AvailableCampaign }> = (
           <span className="text-sm opacity-70">Minimum Views:</span>
           <span className="font-bold">{campaign.requirements.minViewsForPayout}</span>
         </div>
-        {campaign.requirements.totalBudget && (
-          <div className="flex items-center gap-2 mt-2">
-            <span className="text-sm opacity-70">Campaign Budget:</span>
-            <span className="font-bold">{campaign.requirements.totalBudget}</span>
-          </div>
-        )}
       </div>
     </div>
   );
