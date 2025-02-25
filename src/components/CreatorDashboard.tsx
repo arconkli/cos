@@ -1089,7 +1089,10 @@ const NavigationTabs: React.FC<{
     <div className="mb-6 md:mb-8 flex overflow-x-auto custom-scrollbar border-b relative z-10">
       <motion.button
         className={`px-4 md:px-6 py-3 font-medium relative whitespace-nowrap ${activeView === 'campaigns' ? 'text-white' : 'text-gray-400'}`}
-        onClick={() => setActiveView('campaigns')}
+                  onClick={(e) => {
+            e.stopPropagation();
+            setActiveView('campaigns');
+          }}
         whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
       >
         Campaigns
@@ -1102,7 +1105,10 @@ const NavigationTabs: React.FC<{
       </motion.button>
       <motion.button
         className={`px-4 md:px-6 py-3 font-medium relative whitespace-nowrap ${activeView === 'analytics' ? 'text-white' : 'text-gray-400'}`}
-        onClick={() => setActiveView('analytics')}
+                  onClick={(e) => {
+            e.stopPropagation();
+            setActiveView('analytics');
+          }}
         whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
       >
         Analytics
@@ -1115,7 +1121,10 @@ const NavigationTabs: React.FC<{
       </motion.button>
       <motion.button
         className={`px-4 md:px-6 py-3 font-medium relative whitespace-nowrap ${activeView === 'payments' ? 'text-white' : 'text-gray-400'}`}
-        onClick={() => setActiveView('payments')}
+                  onClick={(e) => {
+            e.stopPropagation();
+            setActiveView('payments');
+          }}
         whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
       >
         Payments
@@ -1128,7 +1137,10 @@ const NavigationTabs: React.FC<{
       </motion.button>
       <motion.button
         className={`px-4 md:px-6 py-3 font-medium relative whitespace-nowrap ${activeView === 'settings' ? 'text-white' : 'text-gray-400'}`}
-        onClick={() => setActiveView('settings')}
+                  onClick={(e) => {
+            e.stopPropagation();
+            setActiveView('settings');
+          }}
         whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
       >
         Settings
@@ -1200,7 +1212,7 @@ export default function CreatorDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | AvailableCampaign | null>(null);
   const [activeView, setActiveView] = useState<'campaigns' | 'analytics' | 'payments' | 'settings'>('campaigns');
-  const [settingsTab, setSettingsTab] = useState<'profile' | 'security' | 'accounts' | 'payments'>('profile');
+
 
   // Calculate derived values once
   const totalPendingPayout = useMemo(() => 
@@ -1666,7 +1678,10 @@ const SettingsView = () => {
             <motion.button
               key={tab}
               className={`px-4 py-3 font-medium whitespace-nowrap relative ${activeSettingsTab === tab ? 'text-white' : 'text-gray-400'}`}
-              onClick={() => setActiveSettingsTab(tab as any)}
+              onClick={(e) => {
+                e.stopPropagation(); // Stop event bubbling
+                setActiveSettingsTab(tab as any);
+              }}
               whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
