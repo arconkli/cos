@@ -410,10 +410,23 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
         return 'text-yellow-500 border-yellow-500';
     }
   };
+  
+  // Add effect to handle ESC key
+  useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => {
+      window.removeEventListener('keydown', handleEsc);
+    };
+  }, [onClose]);
 
   return (
     <motion.div
-      className="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center p-3 md:p-6 z-50"
+      className="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center p-3 md:p-6 z-[100]"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -422,7 +435,7 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
       <BackgroundPattern />
       
       <motion.div
-        className="border p-4 md:p-8 rounded-lg w-full max-w-4xl bg-black overflow-y-auto max-h-[90vh] md:max-h-[85vh] relative"
+        className="border p-4 md:p-8 rounded-lg w-full max-w-4xl bg-black custom-scrollbar overflow-y-auto max-h-[90vh] md:max-h-[85vh] relative"
         initial={{ opacity: 0, y: 20, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -441,7 +454,7 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
             {campaign.title}
           </motion.h2>
           <motion.button
-            className="border p-2 rounded hover:bg-white hover:bg-opacity-10 absolute top-4 right-4 md:static"
+            className="border p-2 rounded hover:bg-white hover:bg-opacity-20 absolute top-4 right-4 md:static z-[200]"
             onClick={onClose}
             whileHover={{ scale: 1.1, rotate: 90 }}
             whileTap={{ scale: 0.9 }}
@@ -727,7 +740,7 @@ const PaymentHistory: React.FC = () => {
         </motion.div>
       </div>
       
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto custom-scrollbar">
         <table className="w-full">
           <thead>
             <tr className="border-b">
@@ -1064,7 +1077,7 @@ const NavigationTabs: React.FC<{
   setActiveView: (view: 'campaigns' | 'analytics' | 'payments') => void;
 }> = memo(({ activeView, setActiveView }) => {
   return (
-    <div className="mb-6 md:mb-8 flex overflow-x-auto scrollbar-none border-b relative z-10">
+    <div className="mb-6 md:mb-8 flex overflow-x-auto custom-scrollbar border-b relative z-10">
       <motion.button
         className={`px-4 md:px-6 py-3 font-medium relative whitespace-nowrap ${activeView === 'campaigns' ? 'text-white' : 'text-gray-400'}`}
         onClick={() => setActiveView('campaigns')}
