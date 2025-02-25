@@ -472,9 +472,30 @@ export default function HomePage() {
           <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">HOW IT WORKS_</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {[
-              { icon: <Eye className="h-8 w-8 text-blue-400" />, title: "Connect Platforms", desc: "Link your TikTok, Instagram, YouTube, and X accounts. No minimum metric requirements." },
-              { icon: <Zap className="h-8 w-8 text-yellow-400" />, title: "Choose Campaigns", desc: "Browse available campaigns, create content following simple guidelines, and post with campaign hashtags." },
-              { icon: <DollarSign className="h-8 w-8 text-green-400" />, title: "Earn Per View", desc: "Get paid based on your views. Minimum thresholds start at 100K views. Quick monthly payouts." }
+              { 
+                color: '#4287f5',
+                bgClass: 'bg-blue-500 bg-opacity-10',
+                borderClass: 'border-blue-400',
+                icon: <Eye className="h-8 w-8 text-blue-400" />, 
+                title: "Connect Platforms", 
+                desc: "Link your TikTok, Instagram, YouTube, and X accounts. No minimum metric requirements." 
+              },
+              { 
+                color: '#FFD700',
+                bgClass: 'bg-yellow-500 bg-opacity-10',
+                borderClass: 'border-yellow-400',
+                icon: <Zap className="h-8 w-8 text-yellow-400" />, 
+                title: "Choose Campaigns", 
+                desc: "Browse available campaigns, create content following simple guidelines, and post with campaign hashtags." 
+              },
+              { 
+                color: '#31a952',
+                bgClass: 'bg-green-500 bg-opacity-10',
+                borderClass: 'border-green-400',
+                icon: <DollarSign className="h-8 w-8 text-green-400" />, 
+                title: "Earn Per View", 
+                desc: "Get paid based on your views. Minimum thresholds start at 100K views. Quick monthly payouts." 
+              }
             ].map((step, i) => (
               <motion.div 
                 key={i}
@@ -484,17 +505,44 @@ export default function HomePage() {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.2 }}
               >
-                <motion.div 
-                  className="p-4 border rounded-lg inline-block relative overflow-hidden"
-                  whileHover={{ 
-                    scale: 1.05, 
-                    borderColor: i === 0 ? '#4287f5' : i === 1 ? '#FFD700' : '#31a952' 
-                  }}
-                >
-                  {step.icon}
-                </motion.div>
+                {/* Fixed icon animation to prevent glitching */}
+                <div className="relative mb-4 h-16 w-16">
+                  <motion.div 
+                    className={`absolute inset-0 ${step.bgClass} rounded-lg`}
+                    animate={{ opacity: [0.5, 0.8, 0.5] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                  <motion.div 
+                    className={`absolute inset-0 border ${step.borderClass} rounded-lg flex items-center justify-center`}
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ type: "tween", duration: 0.2 }}
+                  >
+                    {step.icon}
+                  </motion.div>
+                </div>
+                
                 <h3 className="text-xl font-bold">{step.title}</h3>
                 <p className="text-sm md:text-base">{step.desc}</p>
+                
+                <motion.div
+                  className="mt-2 pt-2 border-t border-dashed flex items-center gap-2 text-sm"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 0.7 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.2 + 0.3 }}
+                >
+                  {i < 2 && (
+                    <motion.div
+                      animate={{ x: [0, 10, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <ArrowUpRight className="h-4 w-4" />
+                    </motion.div>
+                  )}
+                  {i === 0 && <span>No minimum follower count required</span>}
+                  {i === 1 && <span>Simple guidelines with creative freedom</span>}
+                  {i === 2 && <span>Payments sent directly to your account</span>}
+                </motion.div>
               </motion.div>
             ))}
           </div>
@@ -615,40 +663,120 @@ export default function HomePage() {
           </div>
         </motion.div>
 
-        {/* Testimonials Section */}
+        {/* Success Metrics Section (replacing testimonials) */}
         <motion.div
-          className="mb-8 md:mb-12"
+          className="mb-8 md:mb-12 border p-8 rounded-lg relative overflow-hidden"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
+          whileHover={{ borderColor: '#4287f5' }}
         >
-          <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">CREATOR TESTIMONIALS_</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-            {[
-              { name: "Alex Chen", handle: "@alexcreates", quote: "I've made over $25,000 in six months just by doing what I already love. The platform makes monetization so straightforward.", platform: "TikTok" },
-              { name: "Sophia Rodriguez", handle: "@sophiarodriguez", quote: "As a smaller creator with only 50K followers, most brand deals weren't accessible to me. CREATE_OS changed everything.", platform: "Instagram" },
-              { name: "Marcus Johnson", handle: "@marcusjtech", quote: "The analytics dashboard helps me understand which content performs best, and the payment process is always on time.", platform: "YouTube" }
-            ].map((testimonial, i) => (
-              <motion.div
-                key={i}
-                className="border p-6 rounded-lg relative overflow-hidden"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                whileHover={{ scale: 1.02, borderColor: '#FF4444' }}
+          <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
+          
+          <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 flex items-center gap-2">
+            <Zap className="h-6 w-6 text-yellow-400" />
+            CREATOR SUCCESS_
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-16">
+            <motion.div
+              className="text-center"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+            >
+              <motion.div 
+                className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 mb-2"
+                animate={{ 
+                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                }}
+                transition={{
+                  duration: 5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                style={{
+                  backgroundSize: '200% 100%'
+                }}
               >
-                <div className="absolute -right-20 -top-20 w-40 h-40 bg-white opacity-5 rounded-full blur-2xl" />
-                <div className="flex flex-col h-full">
-                  <p className="italic mb-4">"{testimonial.quote}"</p>
-                  <div className="mt-auto">
-                    <p className="font-bold">{testimonial.name}</p>
-                    <p className="text-sm opacity-70">{testimonial.handle} • {testimonial.platform}</p>
-                  </div>
-                </div>
+                93%
               </motion.div>
-            ))}
+              <p className="text-xl">of creators earn within their first 30 days</p>
+            </motion.div>
+            
+            <motion.div
+              className="text-center"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+            >
+              <motion.div 
+                className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-teal-500 mb-2"
+                animate={{ 
+                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                }}
+                transition={{
+                  duration: 5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                style={{
+                  backgroundSize: '200% 100%'
+                }}
+              >
+                $2,400
+              </motion.div>
+              <p className="text-xl">average monthly creator earnings</p>
+            </motion.div>
+            
+            <motion.div
+              className="text-center"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3 }}
+            >
+              <motion.div 
+                className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-500 mb-2"
+                animate={{ 
+                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                }}
+                transition={{
+                  duration: 5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                style={{
+                  backgroundSize: '200% 100%'
+                }}
+              >
+                72hrs
+              </motion.div>
+              <p className="text-xl">average payout speed after campaign completion</p>
+            </motion.div>
           </div>
+          
+          <motion.div
+            className="mt-12 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.4 }}
+          >
+            <motion.button 
+              className="px-8 py-3 bg-gradient-to-r from-blue-500 to-red-500 rounded-full font-bold text-white border-none inline-flex items-center gap-2"
+              whileHover={{ 
+                scale: 1.05,
+                boxShadow: "0 0 20px rgba(255,68,68,0.5)"
+              }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Zap className="h-5 w-5" />
+              Become a Creator
+            </motion.button>
+          </motion.div>
         </motion.div>
 
         {/* Enhanced Footer */}

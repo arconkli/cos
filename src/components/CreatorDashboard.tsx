@@ -322,7 +322,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-// Enhanced profile menu with animation effects
+// Enhanced profile menu with animation effects and improved UX
 interface ProfileMenuProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
@@ -330,62 +330,117 @@ interface ProfileMenuProps {
 
 const ProfileMenu: React.FC<ProfileMenuProps> = ({ isOpen, setIsOpen }) => {
   const [activeTab, setActiveTab] = useState<'accounts' | 'payment' | 'settings'>('accounts');
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Function to handle saving settings
+  const handleSaveSettings = () => {
+    setShowFeedback(true);
+    setTimeout(() => setShowFeedback(false), 3000);
+  };
+
+  // Enhanced close function
+  const handleClose = () => {
+    setIsOpen(false);
+    setShowFeedback(false);
+    setShowDeleteConfirm(false);
+  };
+
+  // Icons for tabs
+  const getTabIcon = (tab: string) => {
+    switch(tab) {
+      case 'accounts':
+        return <Users className="h-4 w-4" />;
+      case 'payment':
+        return <CreditCard className="h-4 w-4" />;
+      case 'settings':
+        return <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>;
+      default:
+        return null;
+    }
+  };
 
   return (
     <>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-40 bg-black bg-opacity-50"
+          className="fixed inset-0 z-40 bg-black bg-opacity-60 backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={() => setIsOpen(false)}
+          onClick={handleClose}
         />
       )}
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="absolute right-0 top-full mt-2 w-[32rem] border rounded-lg bg-black p-6 shadow-lg z-50"
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            className="absolute right-0 top-full mt-2 w-[32rem] border rounded-lg bg-black p-6 shadow-xl z-50 backdrop-blur-sm"
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
           >
-            <div className="flex items-center gap-3 pb-4 border-b">
-              <motion.img
-                src={userProfile.avatar}
-                alt="Profile"
-                className="w-10 h-10 rounded-full flex-shrink-0"
-                whileHover={{ scale: 1.1 }}
-              />
+            <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
+            
+            <div className="flex items-center gap-4 pb-4 border-b">
+              <motion.div 
+                className="relative"
+                whileHover={{ scale: 1.05 }}
+              >
+                <motion.img
+                  src={userProfile.avatar}
+                  alt="Profile"
+                  className="w-12 h-12 rounded-full flex-shrink-0 border-2 border-white"
+                  whileHover={{ scale: 1.1 }}
+                />
+                <motion.div 
+                  className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-black"
+                  animate={{ scale: [1, 1.1, 1], opacity: [1, 0.8, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
+              </motion.div>
               <div className="min-w-0 flex-1">
-                <p className="font-bold truncate">{userProfile.name}</p>
+                <p className="font-bold truncate text-lg">{userProfile.name}</p>
                 <p className="text-sm opacity-70 truncate">{userProfile.email}</p>
+              </div>
+              <motion.button
+                className="p-2 rounded-full hover:bg-white hover:bg-opacity-10"
+                whileHover={{ scale: 1.1, rotate: 90 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={handleClose}
+              >
+                <X className="h-5 w-5" />
+              </motion.button>
+            </div>
+
+            {/* Enhanced tabs with icons and improved animations */}
+            <div className="mt-6 mb-6">
+              <div className="flex bg-white bg-opacity-5 rounded-lg p-1">
+                {['accounts', 'payment', 'settings'].map((tab) => (
+                  <motion.button
+                    key={tab}
+                    className={`flex-1 py-2 px-3 rounded-md flex items-center justify-center gap-2 relative transition-colors duration-200
+                      ${activeTab === tab ? 'text-white' : 'text-gray-400'}`}
+                    onClick={() => setActiveTab(tab as any)}
+                    whileHover={{ backgroundColor: activeTab !== tab ? "rgba(255,255,255,0.05)" : "" }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {getTabIcon(tab)}
+                    <span>{tab.charAt(0).toUpperCase() + tab.slice(1)}</span>
+                    {activeTab === tab && (
+                      <motion.div
+                        className="absolute inset-0 bg-white bg-opacity-10 rounded-md -z-10"
+                        layoutId="activeBg"
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      />
+                    )}
+                  </motion.button>
+                ))}
               </div>
             </div>
 
-            <div className="flex gap-2 my-4 border-b">
-              {['accounts', 'payment', 'settings'].map((tab) => (
-                <motion.button
-                  key={tab}
-                  className={`px-4 py-2 text-sm relative ${activeTab === tab ? 'text-white' : 'text-gray-400'}`}
-                  onClick={() => setActiveTab(tab as any)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                  {activeTab === tab && (
-                    <motion.div
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
-                      layoutId="activeTab"
-                    />
-                  )}
-                </motion.button>
-              ))}
-            </div>
-
-            <div className="h-auto max-h-[calc(100vh-16rem)] overflow-y-auto">
+            <div className="h-auto max-h-[calc(100vh-16rem)] overflow-y-auto px-2">
               <div className="space-y-4 w-full">
                 {activeTab === 'accounts' && (
                   <motion.div
@@ -394,27 +449,44 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({ isOpen, setIsOpen }) => {
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <h3 className="text-lg font-bold">Connected Accounts</h3>
-                    {Object.entries(userProfile.connectedAccounts).map(([platform, data]) => (
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-lg font-bold">Connected Accounts</h3>
+                      <motion.button
+                        className="text-sm text-white bg-opacity-10 hover:bg-white hover:bg-opacity-5 px-2 py-1 rounded flex items-center gap-1"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Zap className="h-3 w-3" />
+                        Refresh
+                      </motion.button>
+                    </div>
+                    
+                    {Object.entries(userProfile.connectedAccounts).map(([platform, data], index) => (
                       data && (
                         <motion.div
                           key={platform}
-                          className="flex items-center justify-between p-4 border rounded"
+                          className="flex items-center justify-between p-4 border rounded bg-white bg-opacity-5"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
                           whileHover={{ scale: 1.02, borderColor: getColorForPlatform(platform) }}
-                          transition={{ duration: 0.2 }}
                         >
                           <div className="flex items-center gap-3 min-w-0">
-                            {platform === 'youtube' && <Youtube className="h-5 w-5 flex-shrink-0" />}
-                            {platform === 'instagram' && <Instagram className="h-5 w-5 flex-shrink-0" />}
-                            {platform === 'tiktok' && <svg className="h-5 w-5 flex-shrink-0" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16.5 7.3c-.4-.1-.8-.1-1.2-.1-3 0-5.6 2-6.7 4.7-.3.7-.4 1.5-.4 2.3 0 3.3 2.7 6 6 6 .8 0 1.6-.1 2.3-.4.8-.3 1.5-.8 2-1.3.1-.1.1-.3.2-.4V9.9c0-.1 0-.3-.1-.4-.5-2.2-2.4-3.8-4.7-3.8-.4 0-.8 0-1.2.1-.3.1-.7.2-1 .4-.2.2-.4.4-.5.7-.1.3-.2.7-.2 1 0 1.4 1 2.6 2.4 2.6h.1V15c-.9 0-1.7-.1-2.5-.4-1.7-.6-3-2-3.6-3.7-.2-.6-.3-1.3-.3-2 0-1.5.5-2.9 1.4-4C7 3 8.4 2.3 9.9 2.1c1.5-.2 3.1 0 4.5.7 1.3.6 2.4 1.7 3 3 .1.1.2.2.3.2.1.1.3.1.4.1l.1-.1c.4-.4.6-.9.8-1.4.1-.5.2-1.1.1-1.6 0-.1-.1-.2-.3-.2zm-.5 11.1c-.1.2-.4.3-.6.3-1.7 0-3.1-1.4-3.1-3.1 0-.2.1-.4.3-.6.1-.1.3-.2.5-.1 1.7 0 3.1 1.4 3.1 3.1 0 .2-.1.4-.3.6 0 .1-.1.1-.2.1z"/></svg>}
-                            {platform === 'twitter' && <Twitter className="h-5 w-5 flex-shrink-0" />}
+                            {platform === 'youtube' && <Youtube className="h-5 w-5 flex-shrink-0 text-red-500" />}
+                            {platform === 'instagram' && <Instagram className="h-5 w-5 flex-shrink-0 text-pink-500" />}
+                            {platform === 'tiktok' && <svg className="h-5 w-5 flex-shrink-0 text-cyan-400" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16.5 7.3c-.4-.1-.8-.1-1.2-.1-3 0-5.6 2-6.7 4.7-.3.7-.4 1.5-.4 2.3 0 3.3 2.7 6 6 6 .8 0 1.6-.1 2.3-.4.8-.3 1.5-.8 2-1.3.1-.1.1-.3.2-.4V9.9c0-.1 0-.3-.1-.4-.5-2.2-2.4-3.8-4.7-3.8-.4 0-.8 0-1.2.1-.3.1-.7.2-1 .4-.2.2-.4.4-.5.7-.1.3-.2.7-.2 1 0 1.4 1 2.6 2.4 2.6h.1V15c-.9 0-1.7-.1-2.5-.4-1.7-.6-3-2-3.6-3.7-.2-.6-.3-1.3-.3-2 0-1.5.5-2.9 1.4-4C7 3 8.4 2.3 9.9 2.1c1.5-.2 3.1 0 4.5.7 1.3.6 2.4 1.7 3 3 .1.1.2.2.3.2.1.1.3.1.4.1l.1-.1c.4-.4.6-.9.8-1.4.1-.5.2-1.1.1-1.6 0-.1-.1-.2-.3-.2zm-.5 11.1c-.1.2-.4.3-.6.3-1.7 0-3.1-1.4-3.1-3.1 0-.2.1-.4.3-.6.1-.1.3-.2.5-.1 1.7 0 3.1 1.4 3.1 3.1 0 .2-.1.4-.3.6 0 .1-.1.1-.2.1z"/></svg>}
+                            {platform === 'twitter' && <Twitter className="h-5 w-5 flex-shrink-0 text-blue-400" />}
+                            
                             <div className="min-w-0 flex-1">
                               <p className="font-medium truncate">{data.username}</p>
-                              <p className="text-sm opacity-70 truncate">{data.followers} followers</p>
+                              <div className="flex items-center gap-1">
+                                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                <p className="text-sm opacity-70 truncate">{data.followers} followers</p>
+                              </div>
                             </div>
                           </div>
                           <motion.button 
-                            className="ml-4 text-sm border px-4 py-1.5 rounded flex-shrink-0"
+                            className="ml-4 text-sm border px-4 py-1.5 rounded flex-shrink-0 transition-colors"
                             whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
                             whileTap={{ scale: 0.95 }}
                           >
@@ -423,13 +495,14 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({ isOpen, setIsOpen }) => {
                         </motion.div>
                       )
                     ))}
+                    
                     <motion.button 
-                      className="w-full border p-2.5 rounded flex items-center justify-center gap-2"
-                      whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                      className="w-full border-2 border-dashed p-3 rounded-lg flex items-center justify-center gap-2 mt-6"
+                      whileHover={{ backgroundColor: "rgba(255,255,255,0.05)", borderStyle: "solid" }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <Zap className="h-4 w-4" />
-                      Connect New Account
+                      <Zap className="h-5 w-5 text-blue-400" />
+                      <span className="font-medium">Connect New Account</span>
                     </motion.button>
                   </motion.div>
                 )}
@@ -441,42 +514,87 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({ isOpen, setIsOpen }) => {
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <h3 className="text-lg font-bold">Payment Methods</h3>
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-lg font-bold">Payment Methods</h3>
+                      <motion.div 
+                        className="flex items-center gap-2 text-sm px-2 py-1 rounded border border-green-500 text-green-400"
+                        animate={{ scale: [1, 1.03, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                        <span>Verified</span>
+                      </motion.div>
+                    </div>
+                    
                     {userProfile.paymentMethods.map((method, index) => (
                       <motion.div
                         key={index}
-                        className="flex items-center justify-between p-4 border rounded"
-                        whileHover={{ scale: 1.02, borderColor: "#3CB371" }}
-                        transition={{ duration: 0.2 }}
+                        className="flex items-center justify-between p-4 border rounded bg-white bg-opacity-5"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        whileHover={{ scale: 1.02, borderColor: method.default ? "#31a952" : "#FFFFFF" }}
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <CreditCard className="h-5 w-5 flex-shrink-0" />
+                          {method.type === 'bank' ? (
+                            <svg className="h-5 w-5 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+                          ) : (
+                            <svg className="h-5 w-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                          )}
+                          
                           <div className="min-w-0 flex-1">
                             <p className="font-medium truncate">
                               {method.type === 'bank' ? `Bank Account ****${method.last4}` : `PayPal ${method.email}`}
                             </p>
                             {method.default && (
-                              <span className="text-sm opacity-70">Default</span>
+                              <span className="text-xs bg-green-900 bg-opacity-30 text-green-400 px-2 py-0.5 rounded-full">
+                                Default
+                              </span>
                             )}
                           </div>
                         </div>
-                        <motion.button 
-                          className={`ml-4 text-sm ${method.default ? 'bg-green-900 bg-opacity-30 border-green-500' : 'border'} px-4 py-1.5 rounded flex-shrink-0`}
-                          whileHover={{ backgroundColor: method.default ? "rgba(60,179,113,0.2)" : "rgba(255,255,255,0.1)" }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          {method.default ? 'Default' : 'Make Default'}
-                        </motion.button>
+                        
+                        <div className="flex items-center gap-2">
+                          <motion.button 
+                            className="text-sm border px-3 py-1.5 rounded flex-shrink-0"
+                            whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            Edit
+                          </motion.button>
+                          
+                          {!method.default && (
+                            <motion.button 
+                              className="text-sm border border-green-500 text-green-400 px-3 py-1.5 rounded flex-shrink-0"
+                              whileHover={{ backgroundColor: "rgba(49,169,82,0.1)" }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              Set Default
+                            </motion.button>
+                          )}
+                        </div>
                       </motion.div>
                     ))}
-                    <motion.button 
-                      className="w-full border p-2.5 rounded flex items-center justify-center gap-2"
-                      whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <CreditCard className="h-4 w-4" />
-                      Add Payment Method
-                    </motion.button>
+                    
+                    <div className="grid grid-cols-2 gap-4 mt-6">
+                      <motion.button 
+                        className="border p-3 rounded flex items-center justify-center gap-2"
+                        whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <svg className="h-5 w-5 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+                        <span>Add Bank Account</span>
+                      </motion.button>
+                      
+                      <motion.button 
+                        className="border p-3 rounded flex items-center justify-center gap-2"
+                        whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <svg className="h-5 w-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                        <span>Connect PayPal</span>
+                      </motion.button>
+                    </div>
                   </motion.div>
                 )}
 
@@ -487,53 +605,143 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({ isOpen, setIsOpen }) => {
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <h3 className="text-lg font-bold">Account Settings</h3>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <label className="block text-sm">Email Address</label>
-                        <input
-                          type="email"
-                          value={userProfile.email}
-                          className="w-full bg-transparent border rounded p-2.5"
-                          readOnly
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="block text-sm">Current Password</label>
-                        <input
-                          type="password"
-                          className="w-full bg-transparent border rounded p-2.5"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="block text-sm">New Password</label>
-                        <input
-                          type="password"
-                          className="w-full bg-transparent border rounded p-2.5"
-                        />
-                      </div>
-                      <motion.button 
-                        className="w-full border p-2.5 rounded"
-                        whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                        whileTap={{ scale: 0.98 }}
+                    <h3 className="text-lg font-bold mb-4">Account Settings</h3>
+                    
+                    {/* Success feedback message */}
+                    <AnimatePresence>
+                      {showFeedback && (
+                        <motion.div 
+                          className="bg-green-900 bg-opacity-30 border border-green-500 text-green-400 p-3 rounded flex items-center gap-2"
+                          initial={{ opacity: 0, height: 0, y: -10 }}
+                          animate={{ opacity: 1, height: 'auto', y: 0 }}
+                          exit={{ opacity: 0, height: 0, y: -10 }}
+                        >
+                          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                          <span>Settings successfully updated!</span>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                    
+                    <div className="grid gap-6">
+                      <motion.div 
+                        className="p-4 border rounded bg-white bg-opacity-5"
+                        whileHover={{ borderColor: "#4287f5" }}
                       >
-                        Save Changes
-                      </motion.button>
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium">Name</label>
+                          <input
+                            type="text"
+                            defaultValue={userProfile.name}
+                            className="w-full bg-black bg-opacity-50 border rounded p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                          />
+                        </div>
+                      </motion.div>
+                      
+                      <motion.div 
+                        className="p-4 border rounded bg-white bg-opacity-5"
+                        whileHover={{ borderColor: "#4287f5" }}
+                      >
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium">Email Address</label>
+                          <input
+                            type="email"
+                            defaultValue={userProfile.email}
+                            className="w-full bg-black bg-opacity-50 border rounded p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                          />
+                          <p className="text-xs opacity-70">We'll send a verification link to the new email.</p>
+                        </div>
+                      </motion.div>
+                      
+                      <motion.div 
+                        className="p-4 border rounded bg-white bg-opacity-5"
+                        whileHover={{ borderColor: "#4287f5" }}
+                      >
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium">Password</label>
+                          <input
+                            type="password"
+                            placeholder="••••••••"
+                            className="w-full bg-black bg-opacity-50 border rounded p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                          />
+                          <p className="text-xs opacity-70">Leave blank to keep current password.</p>
+                        </div>
+                      </motion.div>
+                      
+                      <div className="flex gap-4">
+                        <motion.button 
+                          className="flex-1 bg-gradient-to-r from-blue-500 to-blue-700 border-none p-3 rounded font-bold"
+                          whileHover={{ scale: 1.02, boxShadow: "0 0 10px rgba(66,135,245,0.5)" }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={handleSaveSettings}
+                        >
+                          Save Changes
+                        </motion.button>
+                        
+                        <motion.button 
+                          className="border border-red-500 text-red-500 p-3 rounded font-bold"
+                          whileHover={{ backgroundColor: "rgba(255,68,68,0.1)" }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setShowDeleteConfirm(!showDeleteConfirm)}
+                        >
+                          Delete Account
+                        </motion.button>
+                      </div>
+                      
+                      <AnimatePresence>
+                        {showDeleteConfirm && (
+                          <motion.div 
+                            className="border border-red-500 p-4 rounded"
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                          >
+                            <p className="mb-4">Are you sure you want to delete your account? This action cannot be undone.</p>
+                            <div className="flex gap-4">
+                              <motion.button 
+                                className="flex-1 bg-black border border-gray-500 p-2 rounded"
+                                whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() => setShowDeleteConfirm(false)}
+                              >
+                                Cancel
+                              </motion.button>
+                              <motion.button 
+                                className="flex-1 bg-red-900 bg-opacity-30 border border-red-500 text-red-500 p-2 rounded font-bold"
+                                whileHover={{ backgroundColor: "rgba(255,68,68,0.3)" }}
+                                whileTap={{ scale: 0.98 }}
+                              >
+                                Confirm Delete
+                              </motion.button>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </motion.div>
                 )}
               </div>
             </div>
 
-            <motion.button
-              className="w-full border p-2.5 rounded mt-4 flex items-center justify-center gap-2"
-              whileHover={{ backgroundColor: "rgba(255,0,0,0.1)", borderColor: "#FF4444" }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setIsOpen(false)}
-            >
-              <LogOut className="h-4 w-4" />
-              Sign Out
-            </motion.button>
+            <div className="pt-4 mt-4 border-t grid grid-cols-2 gap-4">
+              <motion.button
+                className="border p-2.5 rounded flex items-center justify-center gap-2"
+                whileHover={{ backgroundColor: "rgba(66,135,245,0.1)", borderColor: "#4287f5" }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <svg className="h-4 w-4 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                Help Center
+              </motion.button>
+              
+              <motion.button
+                className="border p-2.5 rounded flex items-center justify-center gap-2"
+                whileHover={{ backgroundColor: "rgba(255,68,68,0.1)", borderColor: "#FF4444" }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleClose}
+              >
+                <LogOut className="h-4 w-4 text-red-400" />
+                Sign Out
+              </motion.button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -709,6 +917,7 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ campaign, onClose }) =>
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      onClick={onClose} // Close when clicking outside
     >
       <BackgroundPattern />
       
@@ -718,6 +927,7 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ campaign, onClose }) =>
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 20, scale: 0.95 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the modal
       >
         <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
         
@@ -742,6 +952,54 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ campaign, onClose }) =>
 
         <div className="grid grid-cols-1 gap-6 mb-6">
           <ContentTypeRates campaign={campaign} />
+
+          {/* Campaign Information (for Available Campaigns) */}
+          {'requirements' in campaign && 'postCount' in campaign.requirements && (
+            <motion.div 
+              className="space-y-4 border p-4 rounded-lg bg-black bg-opacity-50 backdrop-blur-sm relative overflow-hidden"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
+              
+              <h3 className="text-xl font-bold">Campaign Details</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm opacity-70">Total Budget</p>
+                  <p className="text-xl font-bold">{campaign.requirements.totalBudget}</p>
+                </div>
+                <div>
+                  <p className="text-sm opacity-70">Campaign Deadline</p>
+                  <p className="text-xl font-bold">{new Date(campaign.endDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                </div>
+              </div>
+              
+              <div className="mt-4">
+                <p className="text-sm opacity-70">Expected Results</p>
+                <p className="mt-1">Join this campaign to create engaging content for {campaign.title}. This campaign is expected to reach millions of viewers and build your following while earning based on your performance.</p>
+              </div>
+              
+              <div className="mt-4">
+                <p className="text-sm opacity-70">Campaign Benefits</p>
+                <ul className="list-disc pl-4 mt-2 space-y-1">
+                  <li>Exposure to brand's audience</li>
+                  <li>Performance-based payouts</li>
+                  <li>Creative freedom within guidelines</li>
+                  <li>Potential for recurring partnerships</li>
+                </ul>
+              </div>
+              
+              <motion.button
+                className="mt-4 w-full border p-2 rounded bg-gradient-to-r from-red-500 to-red-700 border-none text-white font-bold"
+                whileHover={{ scale: 1.02, boxShadow: "0 0 10px rgba(255,68,68,0.5)" }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Apply For This Campaign
+              </motion.button>
+            </motion.div>
+          )}
 
           <motion.div 
             className="space-y-4"
@@ -953,11 +1211,22 @@ const AvailableCampaignsSection: React.FC<{
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.1 }}
         whileHover={{ scale: 1.02, borderColor: '#FF4444' }}
+        onClick={() => onCampaignClick(campaign)}
       >
         <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
         
         <div className="flex justify-between items-start mb-4">
-          <h3 className="text-xl font-bold">{campaign.title}</h3>
+          <div>
+            <h3 className="text-xl font-bold">{campaign.title}</h3>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="px-2 py-0.5 bg-white bg-opacity-10 rounded-full text-xs text-green-400">
+                {campaign.contentType === 'both' ? 'Original & Repurposed' : campaign.contentType}
+              </span>
+              <span className="px-2 py-0.5 bg-white bg-opacity-10 rounded-full text-xs text-blue-400">
+                New
+              </span>
+            </div>
+          </div>
           <motion.button
             className="border px-4 py-2 rounded flex items-center gap-2"
             whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)" }}
@@ -982,8 +1251,8 @@ const AvailableCampaignsSection: React.FC<{
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm opacity-70">Required Posts</p>
-              <p className="text-xl font-bold">{campaign.requirements.postCount}</p>
+              <p className="text-sm opacity-70">Budget</p>
+              <p className="text-xl font-bold">{campaign.requirements.totalBudget}</p>
             </div>
             <div>
               <p className="text-sm opacity-70">Min. Views</p>
@@ -992,8 +1261,13 @@ const AvailableCampaignsSection: React.FC<{
           </div>
 
           <div>
-            <p className="text-sm opacity-70">Content Type:</p>
-            <p className="capitalize font-medium">{campaign.contentType}</p>
+            <p className="text-sm opacity-70">Campaign Brief:</p>
+            <p className="text-sm mt-1 line-clamp-2 opacity-90">
+              {campaign.id === 3 ? 
+                "Create engaging content to promote a new artist's album launch across social media platforms." :
+                "Produce reaction videos and reviews for upcoming movie premiere to build audience excitement."
+              }
+            </p>
           </div>
 
           <div>
