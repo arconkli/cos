@@ -602,6 +602,26 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
                 ))}
               </ul>
             </div>
+            
+            {'postCount' in campaign.requirements && (
+              <div>
+                <p className="font-bold mb-2 text-sm md:text-base">Campaign Requirements:</p>
+                <ul className="list-disc pl-4 space-y-1 text-sm md:text-base">
+                  <motion.li 
+                    initial={{ opacity: 0, x: -5 }}
+                    animate={{ opacity: 1, x: 0 }}
+                  >
+                    {campaign.requirements.postCount} posts required
+                  </motion.li>
+                  <motion.li 
+                    initial={{ opacity: 0, x: -5 }}
+                    animate={{ opacity: 1, x: 0 }}
+                  >
+                    Minimum {campaign.requirements.minViewsForPayout} views for payout
+                  </motion.li>
+                </ul>
+              </div>
+            )}
           </motion.div>
 
           {isActiveCampaign(campaign) && campaign.posts.length > 0 && (
@@ -671,38 +691,39 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
 
 CampaignDetail.displayName = 'CampaignDetail';
 
-// Enhanced content type rates component with content type selection
+// Enhanced content type rates component with simplified selection
 const ContentTypeRates: React.FC<{ campaign: Campaign | AvailableCampaign }> = ({ campaign }) => {
-  const [selectedContentType, setSelectedContentType] = useState<'original' | 'repurposed'>('original');
-  const [selectedAccount, setSelectedAccount] = useState<string | null>(
-    Object.keys(userProfile.connectedAccounts).length > 0 
-      ? Object.keys(userProfile.connectedAccounts)[0] 
-      : null
+  const [selectedContentType, setSelectedContentType] = useState<'original' | 'repurposed'>(
+    // For active campaigns, set the default based on the campaign's content type
+    isActiveCampaign(campaign) ? 
+      (campaign.contentType === 'both' ? 'original' : campaign.contentType) : 
+      'original'
   );
   
-  // Get applicable platforms for the campaign
-  const availablePlatforms = campaign.requirements.platforms;
+  // Determine if this is an active campaign
+  const isActive = isActiveCampaign(campaign);
   
-  // Filter connected accounts based on available platforms
-  const filteredAccounts = Object.entries(userProfile.connectedAccounts)
-    .filter(([platform]) => availablePlatforms.includes(platform.charAt(0).toUpperCase() + platform.slice(1)));
-
   return (
     <div className="space-y-4 border rounded-lg p-4 bg-black bg-opacity-50 backdrop-blur-sm relative overflow-hidden">
       <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
       
-      <h4 className="font-bold">Content Types & Campaign Registration</h4>
+      <h4 className="font-bold">Content Types & Rates</h4>
       
-      <div className="mt-4">
-        <p className="text-sm opacity-70 mb-2">Select content type you want to create:</p>
-        <div className="space-y-4">
-          <motion.div 
-            className={`border rounded-lg p-4 bg-opacity-10 bg-white relative overflow-hidden ${selectedContentType === 'original' ? 'border-green-500' : ''}`}
-            whileHover={{ borderColor: "#31a952" }}
-            onClick={() => setSelectedContentType('original')}
-          >
-            <div className="absolute -right-20 -top-20 w-32 h-32 bg-green-500 opacity-5 rounded-full blur-xl" />
-            <div className="flex items-center gap-2 mb-2">
+      {!isActive && (
+        <p className="text-sm opacity-80 italic mb-2">
+          Please review all campaign details below before applying. You can only select one content type per campaign.
+        </p>
+      )}
+      
+      <div className="space-y-4">
+        <motion.div 
+          className={`border rounded-lg p-4 bg-opacity-10 bg-white relative overflow-hidden ${selectedContentType === 'original' ? 'border-green-500' : ''}`}
+          whileHover={!isActive ? { borderColor: "#31a952" } : {}}
+          onClick={() => !isActive && setSelectedContentType('original')}
+        >
+          <div className="absolute -right-20 -top-20 w-32 h-32 bg-green-500 opacity-5 rounded-full blur-xl" />
+          <div className="flex items-center gap-2 mb-2">
+            {!isActive && (
               <input 
                 type="radio" 
                 id="original" 
@@ -711,23 +732,29 @@ const ContentTypeRates: React.FC<{ campaign: Campaign | AvailableCampaign }> = (
                 onChange={() => setSelectedContentType('original')}
                 className="text-green-500 focus:ring-green-500"
               />
-              <label htmlFor="original" className="font-bold">Original Content</label>
-              <span className="ml-auto border border-green-500 text-green-500 px-2 py-1 rounded text-sm">
-                Available
-              </span>
-            </div>
-            <p className="text-sm opacity-70 mb-2">Create unique content specifically for this campaign</p>
-            <p className="font-bold">{campaign.requirements.payoutRate.original}</p>
-          </motion.div>
+            )}
+            <label htmlFor="original" className="font-bold">Original Content</label>
+            <span className="ml-auto border border-green-500 text-green-500 px-2 py-1 rounded text-sm">
+              {isActive ? (
+                campaign.contentType === 'original' || campaign.contentType === 'both' ? 'Active' : 'Unavailable'
+              ) : (
+                'Available'
+              )}
+            </span>
+          </div>
+          <p className="text-sm opacity-70 mb-2">Create unique content specifically for this campaign</p>
+          <p className="font-bold">{campaign.requirements.payoutRate.original}</p>
+        </motion.div>
 
-          {campaign.requirements.payoutRate.repurposed && (
-            <motion.div 
-              className={`border rounded-lg p-4 bg-opacity-10 bg-white relative overflow-hidden ${selectedContentType === 'repurposed' ? 'border-blue-500' : ''}`}
-              whileHover={{ borderColor: "#4287f5" }}
-              onClick={() => setSelectedContentType('repurposed')}
-            >
-              <div className="absolute -right-20 -top-20 w-32 h-32 bg-blue-500 opacity-5 rounded-full blur-xl" />
-              <div className="flex items-center gap-2 mb-2">
+        {campaign.requirements.payoutRate.repurposed && (
+          <motion.div 
+            className={`border rounded-lg p-4 bg-opacity-10 bg-white relative overflow-hidden ${selectedContentType === 'repurposed' ? 'border-blue-500' : ''}`}
+            whileHover={!isActive ? { borderColor: "#4287f5" } : {}}
+            onClick={() => !isActive && setSelectedContentType('repurposed')}
+          >
+            <div className="absolute -right-20 -top-20 w-32 h-32 bg-blue-500 opacity-5 rounded-full blur-xl" />
+            <div className="flex items-center gap-2 mb-2">
+              {!isActive && (
                 <input 
                   type="radio" 
                   id="repurposed" 
@@ -736,64 +763,20 @@ const ContentTypeRates: React.FC<{ campaign: Campaign | AvailableCampaign }> = (
                   onChange={() => setSelectedContentType('repurposed')}
                   className="text-blue-500 focus:ring-blue-500"
                 />
-                <label htmlFor="repurposed" className="font-bold">Repurposed Content</label>
-                <span className="ml-auto border border-blue-500 text-blue-500 px-2 py-1 rounded text-sm">
-                  Available
-                </span>
-              </div>
-              <p className="text-sm opacity-70 mb-2">Adapt existing content to fit campaign requirements</p>
-              <p className="font-bold">{campaign.requirements.payoutRate.repurposed}</p>
-            </motion.div>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-6 border-t pt-4">
-        <p className="text-sm opacity-70 mb-2">Select account to use for this campaign:</p>
-        <div className="space-y-2">
-          {filteredAccounts.length > 0 ? (
-            filteredAccounts.map(([platform, account]) => (
-              <motion.div 
-                key={platform}
-                className={`border p-3 rounded-lg flex items-center gap-3 ${selectedAccount === platform ? 'border-red-500' : ''}`}
-                whileHover={{ borderColor: getColorForPlatform(platform) }}
-                onClick={() => setSelectedAccount(platform)}
-              >
-                <input 
-                  type="radio" 
-                  id={`account-${platform}`} 
-                  name="account" 
-                  checked={selectedAccount === platform} 
-                  onChange={() => setSelectedAccount(platform)}
-                  className="text-red-500 focus:ring-red-500"
-                />
-                <label htmlFor={`account-${platform}`} className="flex items-center gap-2 flex-1">
-                  {platform === 'youtube' && <Youtube className="h-5 w-5 text-red-500" />}
-                  {platform === 'instagram' && <Instagram className="h-5 w-5 text-pink-500" />}
-                  {platform === 'tiktok' && <svg className="h-5 w-5 text-cyan-300" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16.5 7.3c-.4-.1-.8-.1-1.2-.1-3 0-5.6 2-6.7 4.7-.3.7-.4 1.5-.4 2.3 0 3.3 2.7 6 6 6 .8 0 1.6-.1 2.3-.4.8-.3 1.5-.8 2-1.3.1-.1.1-.3.2-.4V9.9c0-.1 0-.3-.1-.4-.5-2.2-2.4-3.8-4.7-3.8-.4 0-.8 0-1.2.1-.3.1-.7.2-1 .4-.2.2-.4.4-.5.7-.1.3-.2.7-.2 1 0 1.4 1 2.6 2.4 2.6h.1V15c-.9 0-1.7-.1-2.5-.4-1.7-.6-3-2-3.6-3.7-.2-.6-.3-1.3-.3-2 0-1.5.5-2.9 1.4-4C7 3 8.4 2.3 9.9 2.1c1.5-.2 3.1 0 4.5.7 1.3.6 2.4 1.7 3 3 .1.1.2.2.3.2.1.1.3.1.4.1l.1-.1c.4-.4.6-.9.8-1.4.1-.5.2-1.1.1-1.6 0-.1-.1-.2-.3-.2z"/><path d="M16 18.4c-.1.2-.4.3-.6.3-1.7 0-3.1-1.4-3.1-3.1 0-.2.1-.4.3-.6.1-.1.3-.2.5-.1 1.7 0 3.1 1.4 3.1 3.1 0 .2-.1.4-.3.6 0 .1-.1.1-.2.1z"/></svg>}
-                  {platform === 'twitter' && <Twitter className="h-5 w-5 text-blue-400" />}
-                  <span className="capitalize">{platform}</span>
-                  <span className="text-sm opacity-70">@{account.username}</span>
-                </label>
-                <span className="text-xs bg-white bg-opacity-10 px-2 py-1 rounded-full">
-                  {account.followers} followers
-                </span>
-              </motion.div>
-            ))
-          ) : (
-            <div className="text-center p-4 border border-dashed rounded-lg">
-              <p className="mb-2">No compatible accounts connected</p>
-              <motion.button
-                className="px-4 py-2 border rounded inline-flex items-center gap-2"
-                whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Zap className="h-4 w-4" />
-                Connect Account
-              </motion.button>
+              )}
+              <label htmlFor="repurposed" className="font-bold">Repurposed Content</label>
+              <span className="ml-auto border border-blue-500 text-blue-500 px-2 py-1 rounded text-sm">
+                {isActive ? (
+                  campaign.contentType === 'repurposed' || campaign.contentType === 'both' ? 'Active' : 'Unavailable'
+                ) : (
+                  'Available'
+                )}
+              </span>
             </div>
-          )}
-        </div>
+            <p className="text-sm opacity-70 mb-2">Adapt existing content to fit campaign requirements</p>
+            <p className="font-bold">{campaign.requirements.payoutRate.repurposed}</p>
+          </motion.div>
+        )}
       </div>
 
       <div className="mt-4 pt-4 border-t">
@@ -808,16 +791,6 @@ const ContentTypeRates: React.FC<{ campaign: Campaign | AvailableCampaign }> = (
           </div>
         )}
       </div>
-      
-      {'postCount' in campaign.requirements && (
-        <motion.button
-          className="mt-4 w-full border p-2 rounded bg-gradient-to-r from-red-500 to-red-700 border-none text-white font-bold"
-          whileHover={{ scale: 1.02, boxShadow: "0 0 10px rgba(255,68,68,0.5)" }}
-          whileTap={{ scale: 0.98 }}
-        >
-          Apply With Selected Options
-        </motion.button>
-      )}
     </div>
   );
 };
