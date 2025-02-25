@@ -582,10 +582,20 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
             
             {/* Only show budget for "pot" campaigns - campaign ID #4 */}
             {campaign.id === 4 && (
-              <div className="border border-yellow-600 bg-yellow-900 bg-opacity-10 p-3 rounded-lg">
-                <p className="font-semibold mb-1">Pot Campaign</p>
-                <p className="text-sm">Total Budget: {campaign.requirements.totalBudget}</p>
-                <p className="text-xs opacity-70 mt-1">Earnings are distributed based on your portion of the total views.</p>
+              <div className="border border-yellow-600 bg-yellow-900 bg-opacity-10 p-4 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-5 w-5 rounded-full bg-yellow-600 flex items-center justify-center text-xs font-bold">$</div>
+                  <h4 className="font-bold">Pot Campaign - Variable Payout</h4>
+                </div>
+                <p className="text-sm mb-2">Total Campaign Budget: <span className="font-bold">{campaign.requirements.totalBudget}</span></p>
+                <div className="space-y-2 text-sm">
+                  <p className="opacity-80">Unlike fixed-rate campaigns, pot campaigns distribute the total budget among all participating creators based on performance:</p>
+                  <ul className="list-disc pl-5 space-y-1 opacity-80">
+                    <li>Your earnings depend on your share of total campaign views</li>
+                    <li>More participants means the budget is split among more creators</li>
+                    <li>Your estimated payout = (Your Views ÷ Total Campaign Views) × Total Budget</li>
+                  </ul>
+                </div>
               </div>
             )}
             
