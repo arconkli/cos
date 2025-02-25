@@ -1634,8 +1634,9 @@ const PaymentsView = () => {
   );
 };
 
-// Settings view component
+// Settings view component as a completely separate component with isolated state
 const SettingsView = () => {
+  // Local state for the settings tab navigation
   const [activeSettingsTab, setActiveSettingsTab] = useState<'profile' | 'security' | 'accounts' | 'payments'>('profile');
   const [userForm, setUserForm] = useState({
     name: userProfile.name,
@@ -1662,6 +1663,353 @@ const SettingsView = () => {
     alert('Password changed successfully!');
   };
 
+  // This renders the appropriate content based on the active settings tab
+  const renderSettingsContent = () => {
+    switch (activeSettingsTab) {
+      case 'profile':
+        return (
+          <motion.div
+            key="profile-settings"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <h2 className="text-xl font-bold mb-6">Profile Settings</h2>
+            
+            <div className="flex flex-col md:flex-row gap-6 mb-8">
+              <div className="md:w-1/3">
+                <div className="flex flex-col items-center">
+                  <div className="w-32 h-32 rounded-full mb-4 overflow-hidden relative group">
+                    <img src={userProfile.avatar} alt="Profile" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <motion.button
+                        className="text-white text-xs px-2 py-1 border rounded"
+                        whileHover={{ scale: 1.05 }}
+                      >
+                        Change Photo
+                      </motion.button>
+                    </div>
+                  </div>
+                  <p className="text-sm opacity-70 text-center max-w-xs">
+                    Upload a square image for best results. Maximum size 5MB.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="md:w-2/3">
+                <form onSubmit={handleSaveProfile}>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm opacity-70 mb-1">Full Name</label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={userForm.name}
+                        onChange={handleInputChange}
+                        className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm opacity-70 mb-1">Email Address</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={userForm.email}
+                        onChange={handleInputChange}
+                        className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm opacity-70 mb-1">Creator Bio</label>
+                      <textarea
+                        rows={4}
+                        className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors custom-scrollbar"
+                        placeholder="Tell brands about yourself..."
+                      ></textarea>
+                    </div>
+                    
+                    <div className="pt-4">
+                      <motion.button
+                        type="submit"
+                        className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded font-bold"
+                        whileHover={{ scale: 1.02, boxShadow: "0 0 10px rgba(255,68,68,0.5)" }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        Save Changes
+                      </motion.button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </motion.div>
+        );
+      
+      case 'security':
+        return (
+          <motion.div
+            key="security-settings"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <h2 className="text-xl font-bold mb-6">Security Settings</h2>
+            
+            <div className="max-w-xl">
+              <form onSubmit={handlePasswordChange}>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm opacity-70 mb-1">Current Password</label>
+                    <input
+                      type="password"
+                      className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm opacity-70 mb-1">New Password</label>
+                    <input
+                      type="password"
+                      className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm opacity-70 mb-1">Confirm New Password</label>
+                    <input
+                      type="password"
+                      className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors"
+                    />
+                  </div>
+                  
+                  <div className="pt-4">
+                    <motion.button
+                      type="submit"
+                      className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded font-bold"
+                      whileHover={{ scale: 1.02, boxShadow: "0 0 10px rgba(255,68,68,0.5)" }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      Update Password
+                    </motion.button>
+                  </div>
+                </div>
+              </form>
+              
+              <div className="mt-8 pt-8 border-t">
+                <h3 className="text-lg font-bold mb-4">Two-Factor Authentication</h3>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Protect your account with 2FA</p>
+                    <p className="text-sm opacity-70">Secure your account with an additional verification step.</p>
+                  </div>
+                  <motion.button
+                    className="px-4 py-2 border rounded"
+                    whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                  >
+                    Enable
+                  </motion.button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        );
+      
+      case 'accounts':
+        return (
+          <motion.div
+            key="accounts-settings"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <h2 className="text-xl font-bold mb-6">Connected Accounts</h2>
+            
+            <div className="space-y-4">
+              {Object.entries(userProfile.connectedAccounts).map(([platform, account]) => (
+                <motion.div 
+                  key={platform} 
+                  className="border p-4 rounded-lg flex items-center justify-between"
+                  whileHover={{ borderColor: getColorForPlatform(platform) }}
+                >
+                  <div className="flex items-center gap-4">
+                    {platform === 'youtube' && <Youtube className="h-6 w-6 text-red-500" />}
+                    {platform === 'instagram' && <Instagram className="h-6 w-6 text-pink-500" />}
+                    {platform === 'tiktok' && <svg className="h-6 w-6 text-cyan-300" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16.5 7.3c-.4-.1-.8-.1-1.2-.1-3 0-5.6 2-6.7 4.7-.3.7-.4 1.5-.4 2.3 0 3.3 2.7 6 6 6 .8 0 1.6-.1 2.3-.4.8-.3 1.5-.8 2-1.3.1-.1.1-.3.2-.4V9.9c0-.1 0-.3-.1-.4-.5-2.2-2.4-3.8-4.7-3.8-.4 0-.8 0-1.2.1-.3.1-.7.2-1 .4-.2.2-.4.4-.5.7-.1.3-.2.7-.2 1 0 1.4 1 2.6 2.4 2.6h.1V15c-.9 0-1.7-.1-2.5-.4-1.7-.6-3-2-3.6-3.7-.2-.6-.3-1.3-.3-2 0-1.5.5-2.9 1.4-4C7 3 8.4 2.3 9.9 2.1c1.5-.2 3.1 0 4.5.7 1.3.6 2.4 1.7 3 3 .1.1.2.2.3.2.1.1.3.1.4.1l.1-.1c.4-.4.6-.9.8-1.4.1-.5.2-1.1.1-1.6 0-.1-.1-.2-.3-.2z"/><path d="M16 18.4c-.1.2-.4.3-.6.3-1.7 0-3.1-1.4-3.1-3.1 0-.2.1-.4.3-.6.1-.1.3-.2.5-.1 1.7 0 3.1 1.4 3.1 3.1 0 .2-.1.4-.3.6 0 .1-.1.1-.2.1z"/></svg>}
+                    {platform === 'twitter' && <Twitter className="h-6 w-6 text-blue-400" />}
+                    <div>
+                      <p className="font-bold capitalize">{platform}</p>
+                      <p className="text-sm">{account.username} ({account.followers} followers)</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <motion.button
+                      className="px-3 py-1 border rounded text-sm"
+                      whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                    >
+                      Refresh
+                    </motion.button>
+                    <motion.button
+                      className="px-3 py-1 border rounded text-sm"
+                      whileHover={{ backgroundColor: "rgba(255,0,0,0.1)", borderColor: "rgba(255,0,0,0.5)" }}
+                    >
+                      Disconnect
+                    </motion.button>
+                  </div>
+                </motion.div>
+              ))}
+              
+              <motion.div 
+                className="border border-dashed p-4 rounded-lg text-center"
+                whileHover={{ backgroundColor: "rgba(255,255,255,0.03)" }}
+              >
+                <p className="mb-4">Connect another platform to earn more</p>
+                <motion.button
+                  className="px-4 py-2 border rounded inline-flex items-center gap-2"
+                  whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Zap className="h-4 w-4" />
+                  Connect New Platform
+                </motion.button>
+              </motion.div>
+            </div>
+          </motion.div>
+        );
+      
+      case 'payments':
+        return (
+          <motion.div
+            key="payments-settings"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <h2 className="text-xl font-bold mb-6">Payment Methods</h2>
+            
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {userProfile.paymentMethods.map((method, index) => (
+                  <motion.div
+                    key={index}
+                    className="border p-4 rounded-lg flex items-center justify-between"
+                    whileHover={{ scale: 1.01, borderColor: method.default ? "#31a952" : "#FFFFFF" }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <CreditCard className="h-6 w-6" />
+                      <div>
+                        <p className="font-medium">
+                          {method.type === 'bank' ? `Bank Account ****${method.last4}` : `PayPal ${method.email}`}
+                        </p>
+                        {method.default && (
+                          <span className="text-xs bg-green-900 bg-opacity-30 text-green-400 px-2 py-0.5 rounded-full">
+                            Default
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <motion.button
+                        className="px-3 py-1 border rounded text-sm"
+                        whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                      >
+                        Edit
+                      </motion.button>
+                      {!method.default && (
+                        <motion.button
+                          className="px-3 py-1 border rounded text-sm"
+                          whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                        >
+                          Make Default
+                        </motion.button>
+                      )}
+                      <motion.button
+                        className="px-3 py-1 border rounded text-sm"
+                        whileHover={{ backgroundColor: "rgba(255,0,0,0.1)", borderColor: "rgba(255,0,0,0.5)" }}
+                      >
+                        Remove
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-bold mb-4">Add Payment Method</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <motion.button
+                    className="border p-4 rounded-lg flex items-center gap-4"
+                    whileHover={{ scale: 1.01, backgroundColor: "rgba(255,255,255,0.05)" }}
+                  >
+                    <CreditCard className="h-6 w-6" />
+                    <div className="text-left">
+                      <p className="font-medium">Add Bank Account</p>
+                      <p className="text-sm opacity-70">Connect directly to your bank</p>
+                    </div>
+                  </motion.button>
+                  
+                  <motion.button
+                    className="border p-4 rounded-lg flex items-center gap-4"
+                    whileHover={{ scale: 1.01, backgroundColor: "rgba(255,255,255,0.05)" }}
+                  >
+                    <svg className="h-6 w-6 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M7.144 19.532l1.049-5.751A5.978 5.978 0 016.3 10.286c0-3.316 2.694-6 6.022-6 3.328 0 6.022 2.684 6.022 6 0 3.316-2.694 6-6.022 6-1.269 0-2.447-.395-3.41-1.059l-6.051 1.343a.391.391 0 01-.448-.432l.732-2.606z" />
+                    </svg>
+                    <div className="text-left">
+                      <p className="font-medium">Add PayPal</p>
+                      <p className="text-sm opacity-70">Link your PayPal account</p>
+                    </div>
+                  </motion.button>
+                </div>
+              </div>
+              
+              <div className="mt-8 pt-8 border-t">
+                <h3 className="text-lg font-bold mb-4">Payout Preferences</h3>
+                
+                <div className="max-w-xl">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm opacity-70 mb-1">Minimum Payout Amount</label>
+                      <select className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors">
+                        <option>$50</option>
+                        <option>$100</option>
+                        <option>$250</option>
+                        <option>$500</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm opacity-70 mb-1">Payout Frequency</label>
+                      <select className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors">
+                        <option>Monthly (15th)</option>
+                        <option>Bi-weekly</option>
+                        <option>Weekly</option>
+                      </select>
+                    </div>
+                    
+                    <div className="pt-4">
+                      <motion.button
+                        className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded font-bold"
+                        whileHover={{ scale: 1.02, boxShadow: "0 0 10px rgba(255,68,68,0.5)" }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        Save Preferences
+                      </motion.button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        );
+      
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="relative z-10">
       <motion.div
@@ -1672,367 +2020,49 @@ const SettingsView = () => {
       >
         <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
       
-        {/* Tabs navigation */}
+        {/* Settings tabs navigation */}
         <div className="flex overflow-x-auto custom-scrollbar border-b">
-          {['profile', 'security', 'accounts', 'payments'].map((tab) => (
-            <motion.button
-              key={tab}
-              className={`px-4 py-3 font-medium whitespace-nowrap relative ${activeSettingsTab === tab ? 'text-white' : 'text-gray-400'}`}
-              onClick={(e) => {
-                e.stopPropagation(); // Stop event bubbling
-                setActiveSettingsTab(tab as any);
-              }}
-              whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              {activeSettingsTab === tab && (
-                <motion.div
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
-                  layoutId="settingsTab"
-                />
-              )}
-            </motion.button>
-          ))}
+          <button
+            className={`px-4 py-3 font-medium whitespace-nowrap relative ${activeSettingsTab === 'profile' ? 'text-white' : 'text-gray-400'}`}
+            onClick={() => setActiveSettingsTab('profile')}
+          >
+            Profile
+            {activeSettingsTab === 'profile' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white" />
+            )}
+          </button>
+          <button
+            className={`px-4 py-3 font-medium whitespace-nowrap relative ${activeSettingsTab === 'security' ? 'text-white' : 'text-gray-400'}`}
+            onClick={() => setActiveSettingsTab('security')}
+          >
+            Security
+            {activeSettingsTab === 'security' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white" />
+            )}
+          </button>
+          <button
+            className={`px-4 py-3 font-medium whitespace-nowrap relative ${activeSettingsTab === 'accounts' ? 'text-white' : 'text-gray-400'}`}
+            onClick={() => setActiveSettingsTab('accounts')}
+          >
+            Accounts
+            {activeSettingsTab === 'accounts' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white" />
+            )}
+          </button>
+          <button
+            className={`px-4 py-3 font-medium whitespace-nowrap relative ${activeSettingsTab === 'payments' ? 'text-white' : 'text-gray-400'}`}
+            onClick={() => setActiveSettingsTab('payments')}
+          >
+            Payments
+            {activeSettingsTab === 'payments' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white" />
+            )}
+          </button>
         </div>
       
-        {/* Tab content */}
+        {/* Settings content */}
         <div className="p-6">
-          <AnimatePresence mode="wait">
-            {activeSettingsTab === 'profile' && (
-              <motion.div
-                key="profile"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-              >
-                <h2 className="text-xl font-bold mb-6">Profile Settings</h2>
-                
-                <div className="flex flex-col md:flex-row gap-6 mb-8">
-                  <div className="md:w-1/3">
-                    <div className="flex flex-col items-center">
-                      <div className="w-32 h-32 rounded-full mb-4 overflow-hidden relative group">
-                        <img src={userProfile.avatar} alt="Profile" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <motion.button
-                            className="text-white text-xs px-2 py-1 border rounded"
-                            whileHover={{ scale: 1.05 }}
-                          >
-                            Change Photo
-                          </motion.button>
-                        </div>
-                      </div>
-                      <p className="text-sm opacity-70 text-center max-w-xs">
-                        Upload a square image for best results. Maximum size 5MB.
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="md:w-2/3">
-                    <form onSubmit={handleSaveProfile}>
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm opacity-70 mb-1">Full Name</label>
-                          <input
-                            type="text"
-                            name="name"
-                            value={userForm.name}
-                            onChange={handleInputChange}
-                            className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors"
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm opacity-70 mb-1">Email Address</label>
-                          <input
-                            type="email"
-                            name="email"
-                            value={userForm.email}
-                            onChange={handleInputChange}
-                            className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors"
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm opacity-70 mb-1">Creator Bio</label>
-                          <textarea
-                            rows={4}
-                            className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors custom-scrollbar"
-                            placeholder="Tell brands about yourself..."
-                          ></textarea>
-                        </div>
-                        
-                        <div className="pt-4">
-                          <motion.button
-                            type="submit"
-                            className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded font-bold"
-                            whileHover={{ scale: 1.02, boxShadow: "0 0 10px rgba(255,68,68,0.5)" }}
-                            whileTap={{ scale: 0.98 }}
-                          >
-                            Save Changes
-                          </motion.button>
-                        </div>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-            
-            {activeSettingsTab === 'security' && (
-              <motion.div
-                key="security"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-              >
-                <h2 className="text-xl font-bold mb-6">Security Settings</h2>
-                
-                <div className="max-w-xl">
-                  <form onSubmit={handlePasswordChange}>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm opacity-70 mb-1">Current Password</label>
-                        <input
-                          type="password"
-                          className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm opacity-70 mb-1">New Password</label>
-                        <input
-                          type="password"
-                          className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm opacity-70 mb-1">Confirm New Password</label>
-                        <input
-                          type="password"
-                          className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors"
-                        />
-                      </div>
-                      
-                      <div className="pt-4">
-                        <motion.button
-                          type="submit"
-                          className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded font-bold"
-                          whileHover={{ scale: 1.02, boxShadow: "0 0 10px rgba(255,68,68,0.5)" }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          Update Password
-                        </motion.button>
-                      </div>
-                    </div>
-                  </form>
-                  
-                  <div className="mt-8 pt-8 border-t">
-                    <h3 className="text-lg font-bold mb-4">Two-Factor Authentication</h3>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">Protect your account with 2FA</p>
-                        <p className="text-sm opacity-70">Secure your account with an additional verification step.</p>
-                      </div>
-                      <motion.button
-                        className="px-4 py-2 border rounded"
-                        whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                      >
-                        Enable
-                      </motion.button>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-            
-            {activeSettingsTab === 'accounts' && (
-              <motion.div
-                key="accounts"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-              >
-                <h2 className="text-xl font-bold mb-6">Connected Accounts</h2>
-                
-                <div className="space-y-4">
-                  {Object.entries(userProfile.connectedAccounts).map(([platform, account]) => (
-                    <motion.div 
-                      key={platform} 
-                      className="border p-4 rounded-lg flex items-center justify-between"
-                      whileHover={{ borderColor: getColorForPlatform(platform) }}
-                    >
-                      <div className="flex items-center gap-4">
-                        {platform === 'youtube' && <Youtube className="h-6 w-6 text-red-500" />}
-                        {platform === 'instagram' && <Instagram className="h-6 w-6 text-pink-500" />}
-                        {platform === 'tiktok' && <svg className="h-6 w-6 text-cyan-300" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16.5 7.3c-.4-.1-.8-.1-1.2-.1-3 0-5.6 2-6.7 4.7-.3.7-.4 1.5-.4 2.3 0 3.3 2.7 6 6 6 .8 0 1.6-.1 2.3-.4.8-.3 1.5-.8 2-1.3.1-.1.1-.3.2-.4V9.9c0-.1 0-.3-.1-.4-.5-2.2-2.4-3.8-4.7-3.8-.4 0-.8 0-1.2.1-.3.1-.7.2-1 .4-.2.2-.4.4-.5.7-.1.3-.2.7-.2 1 0 1.4 1 2.6 2.4 2.6h.1V15c-.9 0-1.7-.1-2.5-.4-1.7-.6-3-2-3.6-3.7-.2-.6-.3-1.3-.3-2 0-1.5.5-2.9 1.4-4C7 3 8.4 2.3 9.9 2.1c1.5-.2 3.1 0 4.5.7 1.3.6 2.4 1.7 3 3 .1.1.2.2.3.2.1.1.3.1.4.1l.1-.1c.4-.4.6-.9.8-1.4.1-.5.2-1.1.1-1.6 0-.1-.1-.2-.3-.2z"/><path d="M16 18.4c-.1.2-.4.3-.6.3-1.7 0-3.1-1.4-3.1-3.1 0-.2.1-.4.3-.6.1-.1.3-.2.5-.1 1.7 0 3.1 1.4 3.1 3.1 0 .2-.1.4-.3.6 0 .1-.1.1-.2.1z"/></svg>}
-                        {platform === 'twitter' && <Twitter className="h-6 w-6 text-blue-400" />}
-                        <div>
-                          <p className="font-bold capitalize">{platform}</p>
-                          <p className="text-sm">{account.username} ({account.followers} followers)</p>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <motion.button
-                          className="px-3 py-1 border rounded text-sm"
-                          whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                        >
-                          Refresh
-                        </motion.button>
-                        <motion.button
-                          className="px-3 py-1 border rounded text-sm"
-                          whileHover={{ backgroundColor: "rgba(255,0,0,0.1)", borderColor: "rgba(255,0,0,0.5)" }}
-                        >
-                          Disconnect
-                        </motion.button>
-                      </div>
-                    </motion.div>
-                  ))}
-                  
-                  <motion.div 
-                    className="border border-dashed p-4 rounded-lg text-center"
-                    whileHover={{ backgroundColor: "rgba(255,255,255,0.03)" }}
-                  >
-                    <p className="mb-4">Connect another platform to earn more</p>
-                    <motion.button
-                      className="px-4 py-2 border rounded inline-flex items-center gap-2"
-                      whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Zap className="h-4 w-4" />
-                      Connect New Platform
-                    </motion.button>
-                  </motion.div>
-                </div>
-              </motion.div>
-            )}
-            
-            {activeSettingsTab === 'payments' && (
-              <motion.div
-                key="payments"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-              >
-                <h2 className="text-xl font-bold mb-6">Payment Methods</h2>
-                
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {userProfile.paymentMethods.map((method, index) => (
-                      <motion.div
-                        key={index}
-                        className="border p-4 rounded-lg flex items-center justify-between"
-                        whileHover={{ scale: 1.01, borderColor: method.default ? "#31a952" : "#FFFFFF" }}
-                      >
-                        <div className="flex items-center gap-3">
-                          <CreditCard className="h-6 w-6" />
-                          <div>
-                            <p className="font-medium">
-                              {method.type === 'bank' ? `Bank Account ****${method.last4}` : `PayPal ${method.email}`}
-                            </p>
-                            {method.default && (
-                              <span className="text-xs bg-green-900 bg-opacity-30 text-green-400 px-2 py-0.5 rounded-full">
-                                Default
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <motion.button
-                            className="px-3 py-1 border rounded text-sm"
-                            whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                          >
-                            Edit
-                          </motion.button>
-                          {!method.default && (
-                            <motion.button
-                              className="px-3 py-1 border rounded text-sm"
-                              whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                            >
-                              Make Default
-                            </motion.button>
-                          )}
-                          <motion.button
-                            className="px-3 py-1 border rounded text-sm"
-                            whileHover={{ backgroundColor: "rgba(255,0,0,0.1)", borderColor: "rgba(255,0,0,0.5)" }}
-                          >
-                            Remove
-                          </motion.button>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-lg font-bold mb-4">Add Payment Method</h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <motion.button
-                        className="border p-4 rounded-lg flex items-center gap-4"
-                        whileHover={{ scale: 1.01, backgroundColor: "rgba(255,255,255,0.05)" }}
-                      >
-                        <CreditCard className="h-6 w-6" />
-                        <div className="text-left">
-                          <p className="font-medium">Add Bank Account</p>
-                          <p className="text-sm opacity-70">Connect directly to your bank</p>
-                        </div>
-                      </motion.button>
-                      
-                      <motion.button
-                        className="border p-4 rounded-lg flex items-center gap-4"
-                        whileHover={{ scale: 1.01, backgroundColor: "rgba(255,255,255,0.05)" }}
-                      >
-                        <svg className="h-6 w-6 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M7.144 19.532l1.049-5.751A5.978 5.978 0 016.3 10.286c0-3.316 2.694-6 6.022-6 3.328 0 6.022 2.684 6.022 6 0 3.316-2.694 6-6.022 6-1.269 0-2.447-.395-3.41-1.059l-6.051 1.343a.391.391 0 01-.448-.432l.732-2.606z" />
-                        </svg>
-                        <div className="text-left">
-                          <p className="font-medium">Add PayPal</p>
-                          <p className="text-sm opacity-70">Link your PayPal account</p>
-                        </div>
-                      </motion.button>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-8 pt-8 border-t">
-                    <h3 className="text-lg font-bold mb-4">Payout Preferences</h3>
-                    
-                    <div className="max-w-xl">
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm opacity-70 mb-1">Minimum Payout Amount</label>
-                          <select className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors">
-                            <option>$50</option>
-                            <option>$100</option>
-                            <option>$250</option>
-                            <option>$500</option>
-                          </select>
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm opacity-70 mb-1">Payout Frequency</label>
-                          <select className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors">
-                            <option>Monthly (15th)</option>
-                            <option>Bi-weekly</option>
-                            <option>Weekly</option>
-                          </select>
-                        </div>
-                        
-                        <div className="pt-4">
-                          <motion.button
-                            className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded font-bold"
-                            whileHover={{ scale: 1.02, boxShadow: "0 0 10px rgba(255,68,68,0.5)" }}
-                            whileTap={{ scale: 0.98 }}
-                          >
-                            Save Preferences
-                          </motion.button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {renderSettingsContent()}
         </div>
       </motion.div>
     </div>
