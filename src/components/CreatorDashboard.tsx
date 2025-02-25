@@ -364,7 +364,7 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({ isOpen, setIsOpen }) => {
     <>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-40 bg-black bg-opacity-60 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] bg-black bg-opacity-60 backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -375,7 +375,7 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({ isOpen, setIsOpen }) => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="absolute right-0 top-full mt-2 w-[32rem] border rounded-lg bg-black p-6 shadow-xl z-50 backdrop-blur-sm"
+            className="fixed top-20 right-4 w-[32rem] border rounded-lg bg-black p-6 shadow-xl z-[10000] backdrop-blur-sm"
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}

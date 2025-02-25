@@ -505,20 +505,12 @@ export default function HomePage() {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.2 }}
               >
-                {/* Fixed icon animation to prevent glitching */}
+                {/* Fixed static icon container with no animations */}
                 <div className="relative mb-4 h-16 w-16">
-                  <motion.div 
-                    className={`absolute inset-0 ${step.bgClass} rounded-lg`}
-                    animate={{ opacity: [0.5, 0.8, 0.5] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                  <motion.div 
-                    className={`absolute inset-0 border ${step.borderClass} rounded-lg flex items-center justify-center`}
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ type: "tween", duration: 0.2 }}
-                  >
+                  <div className={`absolute inset-0 ${step.bgClass} rounded-lg opacity-60`} />
+                  <div className={`absolute inset-0 border ${step.borderClass} rounded-lg flex items-center justify-center`}>
                     {step.icon}
-                  </motion.div>
+                  </div>
                 </div>
                 
                 <h3 className="text-xl font-bold">{step.title}</h3>
@@ -527,21 +519,18 @@ export default function HomePage() {
                 <motion.div
                   className="mt-2 pt-2 border-t border-dashed flex items-center gap-2 text-sm"
                   initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 0.7 }}
+                  whileInView={{ opacity: 0.6 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.2 + 0.3 }}
                 >
                   {i < 2 && (
-                    <motion.div
-                      animate={{ x: [0, 10, 0] }}
-                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    >
+                    <div className="text-gray-400">
                       <ArrowUpRight className="h-4 w-4" />
-                    </motion.div>
+                    </div>
                   )}
-                  {i === 0 && <span>No minimum follower count required</span>}
-                  {i === 1 && <span>Simple guidelines with creative freedom</span>}
-                  {i === 2 && <span>Payments sent directly to your account</span>}
+                  {i === 0 && <span className="text-gray-400">No minimum follower count required</span>}
+                  {i === 1 && <span className="text-gray-400">Simple guidelines with creative freedom</span>}
+                  {i === 2 && <span className="text-gray-400">Payments sent directly to your account</span>}
                 </motion.div>
               </motion.div>
             ))}
