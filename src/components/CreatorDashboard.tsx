@@ -1037,9 +1037,7 @@ const ActiveCampaigns: React.FC<{
 const DashboardHeader: React.FC<{
   timeFilter: string;
   setTimeFilter: (filter: string) => void;
-  isProfileOpen: boolean;
-  setIsProfileOpen: (open: boolean) => void;
-}> = memo(({ timeFilter, setTimeFilter, isProfileOpen, setIsProfileOpen }) => {
+}> = memo(({ timeFilter, setTimeFilter }) => {
   return (
     <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:justify-between md:items-start gap-4">
       <div>
@@ -1071,17 +1069,9 @@ const DashboardHeader: React.FC<{
           className="flex items-center gap-2 border px-4 py-2 rounded bg-black"
           whileHover={{ scale: 1.02, borderColor: "#FF4444" }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => setIsProfileOpen(!isProfileOpen)}
         >
-          <motion.img
-            src={userProfile.avatar}
-            alt="Profile"
-            className="w-8 h-8 rounded-full"
-            whileHover={{ scale: 1.1 }}
-            loading="lazy"
-          />
-          <span className="hidden md:inline">{userProfile.name}</span>
-          <ChevronDown className="h-4 w-4" />
+          <LogOut className="h-4 w-4" />
+          <span className="hidden md:inline">Sign Out</span>
         </motion.button>
       </div>
     </div>
@@ -1209,8 +1199,8 @@ export default function CreatorDashboard() {
   const [timeFilter, setTimeFilter] = useState('6M');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | AvailableCampaign | null>(null);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [activeView, setActiveView] = useState<'campaigns' | 'analytics' | 'payments' | 'settings'>('campaigns');
+  const [settingsTab, setSettingsTab] = useState<'profile' | 'security' | 'accounts' | 'payments'>('profile');
 
   // Calculate derived values once
   const totalPendingPayout = useMemo(() => 
@@ -1287,8 +1277,6 @@ export default function CreatorDashboard() {
       <DashboardHeader 
         timeFilter={timeFilter} 
         setTimeFilter={setTimeFilter}
-        isProfileOpen={isProfileOpen}
-        setIsProfileOpen={setIsProfileOpen}
       />
 
       {/* Stats Overview */}
@@ -1366,16 +1354,6 @@ export default function CreatorDashboard() {
           <CampaignDetail
             campaign={selectedCampaign}
             onClose={() => setSelectedCampaign(null)}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Profile Menu */}
-      <AnimatePresence>
-        {isProfileOpen && (
-          <ProfileMenu
-            isOpen={isProfileOpen}
-            setIsOpen={setIsProfileOpen}
           />
         )}
       </AnimatePresence>
@@ -1646,7 +1624,7 @@ const PaymentsView = () => {
 
 // Settings view component
 const SettingsView = () => {
-  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'accounts' | 'payments'>('profile');
+  const [activeSettingsTab, setActiveSettingsTab] = useState<'profile' | 'security' | 'accounts' | 'payments'>('profile');
   const [userForm, setUserForm] = useState({
     name: userProfile.name,
     email: userProfile.email,
@@ -1687,12 +1665,12 @@ const SettingsView = () => {
           {['profile', 'security', 'accounts', 'payments'].map((tab) => (
             <motion.button
               key={tab}
-              className={`px-4 py-3 font-medium whitespace-nowrap relative ${activeTab === tab ? 'text-white' : 'text-gray-400'}`}
-              onClick={() => setActiveTab(tab as any)}
+              className={`px-4 py-3 font-medium whitespace-nowrap relative ${activeSettingsTab === tab ? 'text-white' : 'text-gray-400'}`}
+              onClick={() => setActiveSettingsTab(tab as any)}
               whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              {activeTab === tab && (
+              {activeSettingsTab === tab && (
                 <motion.div
                   className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
                   layoutId="settingsTab"
@@ -1705,7 +1683,7 @@ const SettingsView = () => {
         {/* Tab content */}
         <div className="p-6">
           <AnimatePresence mode="wait">
-            {activeTab === 'profile' && (
+            {activeSettingsTab === 'profile' && (
               <motion.div
                 key="profile"
                 initial={{ opacity: 0, y: 10 }}
@@ -1785,7 +1763,7 @@ const SettingsView = () => {
               </motion.div>
             )}
             
-            {activeTab === 'security' && (
+            {activeSettingsTab === 'security' && (
               <motion.div
                 key="security"
                 initial={{ opacity: 0, y: 10 }}
@@ -1853,7 +1831,7 @@ const SettingsView = () => {
               </motion.div>
             )}
             
-            {activeTab === 'accounts' && (
+            {activeSettingsTab === 'accounts' && (
               <motion.div
                 key="accounts"
                 initial={{ opacity: 0, y: 10 }}
@@ -1914,7 +1892,7 @@ const SettingsView = () => {
               </motion.div>
             )}
             
-            {activeTab === 'payments' && (
+            {activeSettingsTab === 'payments' && (
               <motion.div
                 key="payments"
                 initial={{ opacity: 0, y: 10 }}
