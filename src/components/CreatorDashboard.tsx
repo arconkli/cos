@@ -690,6 +690,9 @@ const ContentTypeRates: React.FC<{ campaign: Campaign | AvailableCampaign }> = (
   // Determine if this is an active campaign
   const isActive = isActiveCampaign(campaign);
   
+  // Check if this is a pot campaign (ID #4)
+  const isPotCampaign = campaign.id === 4;
+  
   // Only show content types that match the campaign's content type for active campaigns
   const showOriginal = !isActive || campaign.contentType === 'original' || campaign.contentType === 'both';
   const showRepurposed = !isActive && campaign.requirements.payoutRate.repurposed || 
@@ -699,7 +702,7 @@ const ContentTypeRates: React.FC<{ campaign: Campaign | AvailableCampaign }> = (
     <div className="space-y-4 border rounded-lg p-4 bg-black bg-opacity-50 backdrop-blur-sm relative overflow-hidden">
       <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
       
-      <h4 className="font-bold">Content Types & Rates</h4>
+      <h4 className="font-bold">{isPotCampaign ? 'Content Types & Pot Campaign' : 'Content Types & Rates'}</h4>
       
       {!isActive && (
         <p className="text-sm opacity-80 italic mb-2">
@@ -732,7 +735,19 @@ const ContentTypeRates: React.FC<{ campaign: Campaign | AvailableCampaign }> = (
               </span>
             </div>
             <p className="text-sm opacity-70 mb-2">Create unique content specifically for this campaign</p>
-            <p className="font-bold">{campaign.requirements.payoutRate.original}</p>
+            {isPotCampaign ? (
+              <div className="font-bold flex items-center gap-1">
+                <span className="text-yellow-500">
+                  <svg className="inline-block h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M12 16V12M12 8H12.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
+                <span>Variable payout (pot campaign)</span>
+              </div>
+            ) : (
+              <p className="font-bold">{campaign.requirements.payoutRate.original}</p>
+            )}
           </motion.div>
         )}
 
@@ -760,7 +775,19 @@ const ContentTypeRates: React.FC<{ campaign: Campaign | AvailableCampaign }> = (
               </span>
             </div>
             <p className="text-sm opacity-70 mb-2">Adapt existing content to fit campaign requirements</p>
-            <p className="font-bold">{campaign.requirements.payoutRate.repurposed}</p>
+            {isPotCampaign ? (
+              <div className="font-bold flex items-center gap-1">
+                <span className="text-yellow-500">
+                  <svg className="inline-block h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M12 16V12M12 8H12.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
+                <span>Variable payout (pot campaign)</span>
+              </div>
+            ) : (
+              <p className="font-bold">{campaign.requirements.payoutRate.repurposed}</p>
+            )}
           </motion.div>
         )}
       </div>
@@ -770,6 +797,12 @@ const ContentTypeRates: React.FC<{ campaign: Campaign | AvailableCampaign }> = (
           <span className="text-sm opacity-70">Minimum Views:</span>
           <span className="font-bold">{campaign.requirements.minViewsForPayout}</span>
         </div>
+        
+        {isPotCampaign && (
+          <div className="mt-2 text-sm text-yellow-400">
+            <span className="font-bold">⚠️ Pot Campaign:</span> Payout varies based on campaign performance. See details below.
+          </div>
+        )}
       </div>
     </div>
   );
