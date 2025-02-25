@@ -531,6 +531,20 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
               </p>
             </div>
             
+            {/* Campaign Brief */}
+            <div className="p-4 border-l-2 border-red-500 bg-white bg-opacity-5 rounded-lg">
+              <h4 className="font-bold text-base mb-2">Campaign Brief</h4>
+              <p className="text-sm">
+                {campaign.id === 1 
+                  ? 'Promote the upcoming Netflix original series launch by creating authentic, engaging content that highlights what excites you most about the new show. Use your storytelling skills to generate anticipation and interest among your followers.'
+                  : campaign.id === 2
+                  ? 'Showcase the Summer Fashion Collection by creating stylish, trend-focused content that displays the versatility and quality of the pieces. Your content should inspire viewers to imagine themselves wearing these items.'
+                  : campaign.id === 3
+                  ? 'Help introduce this exciting new artist to your audience by creating content featuring their debut album. Your authentic reaction and creative interpretation of the music will help connect your followers with this emerging talent.'
+                  : 'Create buzz for our upcoming movie premiere by sharing your genuine excitement and reactions to the trailer. Your content should build anticipation for the film while showcasing your personal take on why your audience should see it.'}
+              </p>
+            </div>
+            
             {/* What You Need To Do */}
             <div>
               <div className="flex items-center gap-2 mb-3">
