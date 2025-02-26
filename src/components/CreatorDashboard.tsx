@@ -1933,6 +1933,7 @@ const SettingsView = () => {
         </motion.div>
       );
     
+
       return null;
     }
   };
@@ -1996,233 +1997,742 @@ return (
 );
 };
 
-// NEW HEADER COMPONENT
-const DashboardHeader: React.FC<{
+// DASHBOARD HEADER COMPONENT - Improved with animated title
+const EnhancedDashboardHeader: React.FC<{
   timeFilter: string;
   setTimeFilter: (filter: string) => void;
-  onLogout: () => void;
-}> = memo(({ timeFilter, setTimeFilter, onLogout }) => {
+  handleLogout: () => void;
+}> = memo(({ timeFilter, setTimeFilter, handleLogout }) => {
   return (
-    <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-      <div>
-        <h1 className="text-2xl md:text-4xl font-bold mb-2">DASHBOARD</h1>
-        <div className="flex items-center gap-4">
-          <motion.div
-            className="flex items-center gap-2 border px-3 py-1 rounded"
-            whileHover={{ scale: 1.02, borderColor: "#4287f5" }}
-          >
-            <Calendar className="h-4 w-4" />
-            <select
-              className="bg-transparent border-none outline-none text-sm md:text-base"
-              value={timeFilter}
-              onChange={(e) => setTimeFilter(e.target.value)}
+    <div className="mb-6 md:mb-8">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
+        <div>
+          <h1 className="text-2xl md:text-4xl font-bold mb-2">
+            <span>CREATOR_</span>
+            <motion.span
+              className="inline-block"
+              animate={{ 
+                color: ['#FFFFFF', '#FF4444', '#FFFFFF'],
+                transition: { duration: 3, repeat: Infinity }
+              }}
             >
-              <option value="7D">7 Days</option>
-              <option value="1M">1 Month</option>
-              <option value="3M">3 Months</option>
-              <option value="6M">6 Months</option>
-              <option value="1Y">1 Year</option>
-              <option value="ALL">Lifetime</option>
-            </select>
-          </motion.div>
+              DASHBOARD
+            </motion.span>
+          </h1>
+          <div className="flex items-center gap-4">
+            <motion.div
+              className="flex items-center gap-2 border px-3 py-1 rounded"
+              whileHover={{ scale: 1.02, borderColor: "#4287f5" }}
+            >
+              <Calendar className="h-4 w-4" />
+              <select
+                className="bg-transparent border-none outline-none text-sm md:text-base"
+                value={timeFilter}
+                onChange={(e) => setTimeFilter(e.target.value)}
+              >
+                <option value="7D">7 Days</option>
+                <option value="1M">1 Month</option>
+                <option value="3M">3 Months</option>
+                <option value="6M">6 Months</option>
+                <option value="1Y">1 Year</option>
+                <option value="ALL">Lifetime</option>
+              </select>
+            </motion.div>
+          </div>
+        </div>
+        {/* Desktop-only logout button */}
+        <div className="hidden md:block">
+          <motion.button
+            className="border px-4 py-2 rounded flex items-center gap-2 text-sm md:text-base"
+            whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)", borderColor: "#FF4444" }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleLogout}
+          >
+            <LogOut className="h-4 w-4" />
+            <span>Logout</span>
+          </motion.button>
         </div>
       </div>
-      {/* Simple logout button */}
-      <motion.button
-        className="border px-4 py-2 rounded flex items-center gap-2 text-sm md:text-base"
-        whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)", borderColor: "#FF4444" }}
-        whileTap={{ scale: 0.98 }}
-        onClick={onLogout}
-      >
-        <LogOut className="h-4 w-4" />
-        <span>Logout</span>
-      </motion.button>
     </div>
   );
 });
 
-DashboardHeader.displayName = 'DashboardHeader';
+EnhancedDashboardHeader.displayName = 'EnhancedDashboardHeader';
 
-// Main component with fixed errors
-export default function CreatorDashboard() {
-const router = useRouter();
-const [timeFilter, setTimeFilter] = useState('6M');
-const [searchTerm, setSearchTerm] = useState('');
-const [selectedCampaign, setSelectedCampaign] = useState<Campaign | AvailableCampaign | null>(null);
-const [activeView, setActiveView] = useState<'campaigns' | 'analytics' | 'payments' | 'settings'>('campaigns');
-
-// Check authentication on component mount
-useEffect(() => {
-  // Verify authentication
-  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-  if (!isLoggedIn) {
-    router.push('/');
-    return;
-  }
-}, [router]);
-
-// Handle logout
-const handleLogout = useCallback(() => {
-  localStorage.removeItem('isLoggedIn');
-  router.push('/');
-}, [router]);
-
-// Calculate derived values once
-const totalPendingPayout = useMemo(() => 
-  activeCampaigns.reduce((sum, campaign) => sum + campaign.pendingPayout, 0), 
-  [activeCampaigns]
-);
-
-// Filter available campaigns based on search term
-const filteredAvailableCampaigns = useMemo(() => {
-  if (!searchTerm) return availableCampaigns;
+// IMPROVED SETTINGS VIEW COMPONENT - Complete rewrite for mobile
+const ImprovedSettingsView = () => {
+  // Local state for the settings tab navigation
+  const [activeSettingsTab, setActiveSettingsTab] = useState<'profile' | 'security' | 'accounts' | 'payments'>('profile');
+  const [userForm, setUserForm] = useState({
+    name: defaultUserProfile.name,
+    email: defaultUserProfile.email,
+  });
   
-  const term = searchTerm.toLowerCase();
-  return availableCampaigns.filter(campaign => 
-    campaign.title.toLowerCase().includes(term) || 
-    campaign.requirements.platforms.some(platform => platform.toLowerCase().includes(term))
-  );
-}, [searchTerm, availableCampaigns]);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setUserForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Here would be the API call to save profile changes
+    alert('Profile saved successfully!');
+  };
+  
+  const handlePasswordChange = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Here would be the API call to change password
+    alert('Password changed successfully!');
+  };
 
-// Optimize to skip rendering when not needed
-const renderCampaignView = useCallback(() => (
-  <>
-    {/* Active Campaigns */}
-    <div className="mb-6 md:mb-8">
-      <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 flex items-center gap-2">
-        <Zap className="h-5 w-5 text-yellow-400" />
-        ACTIVE CAMPAIGNS
-      </h2>
-      <ActiveCampaigns campaigns={activeCampaigns} onCampaignClick={setSelectedCampaign} />
-    </div>
+  // Handle payment method actions with proper typing
+  const handlePaymentMethodAction = (method: PaymentMethod, index: number) => {
+    console.log(`Action on payment method ${index}:`, method);
+    // Implementation would go here
+  };
 
-    {/* Available Campaigns */}
-    <div className="mb-6 md:mb-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 gap-3">
-        <h2 className="text-xl md:text-2xl font-bold flex items-center gap-2">
-          <Layers className="h-5 w-5 text-blue-400" />
-          AVAILABLE CAMPAIGNS
-        </h2>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <motion.div
-            className="relative flex-1 sm:flex-none"
-            whileHover={{ scale: 1.02 }}
-          >
-            <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search campaigns..."
-              className="pl-10 pr-4 py-2 border rounded bg-transparent w-full sm:w-auto"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+  // Mobile-friendly settings tabs
+  const renderSettingsTabs = () => (
+    <div className="flex overflow-x-auto custom-scrollbar border-b mb-6">
+      {['profile', 'security', 'accounts', 'payments'].map((tab) => (
+        <motion.button
+          key={tab}
+          className={`px-4 py-3 font-medium whitespace-nowrap relative ${
+            activeSettingsTab === tab ? 'text-white' : 'text-gray-400'
+          }`}
+          onClick={() => setActiveSettingsTab(tab as any)}
+          whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
+        >
+          {tab.charAt(0).toUpperCase() + tab.slice(1)}
+          {activeSettingsTab === tab && (
+            <motion.div
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
+              layoutId="activeSettingsTab"
             />
-          </motion.div>
-          <motion.button
-            className="border p-2 rounded"
-            whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <Filter className="h-4 w-4" />
-          </motion.button>
-        </div>
-      </div>
-      <AvailableCampaignsSection
-        campaigns={filteredAvailableCampaigns}
-        onCampaignClick={setSelectedCampaign}
-      />
+          )}
+        </motion.button>
+      ))}
     </div>
-  </>
-), [activeCampaigns, filteredAvailableCampaigns, searchTerm, setSelectedCampaign]);
+  );
 
-return (
-  <div className="min-h-screen bg-black p-3 md:p-6 relative">
-    <BackgroundPattern />
-    
-    {/* Updated Header with simple logout */}
-    <DashboardHeader 
-      timeFilter={timeFilter} 
-      setTimeFilter={setTimeFilter}
-      onLogout={handleLogout}
-    />
-
-    {/* Stats Overview */}
-    <StatsOverview totalPendingPayout={totalPendingPayout} />
-
-    {/* Navigation Tabs */}
-    <NavigationTabs activeView={activeView} setActiveView={setActiveView} />
-
-    <AnimatePresence mode="wait">
-      {activeView === 'campaigns' && (
-        <motion.div
-          key="campaigns"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.3 }}
-          className="relative z-10"
-        >
-          {renderCampaignView()}
-        </motion.div>
-      )}
-
-      {activeView === 'analytics' && (
-        <motion.div
-          key="analytics"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.3 }}
-        >
-          <Suspense fallback={
-            <div className="w-full p-10 flex justify-center">
-              <div className="border p-6 rounded-lg inline-flex items-center gap-2">
-                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                <span>Loading analytics...</span>
+  // This renders the appropriate content based on the active settings tab
+  const renderSettingsContent = () => {
+    switch (activeSettingsTab) {
+      case 'profile':
+        return (
+          <motion.div
+            key="profile-settings"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <h2 className="text-xl font-bold mb-6">Profile Settings</h2>
+            
+            <div className="flex flex-col md:flex-row gap-6 mb-8">
+              <div className="w-full md:w-1/3 flex justify-center">
+                <div className="flex flex-col items-center">
+                  <div className="w-24 h-24 md:w-32 md:h-32 rounded-full mb-4 overflow-hidden relative group">
+                    <img src={defaultUserProfile.avatar} alt="Profile" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <motion.button
+                        className="text-white text-xs px-2 py-1 border rounded"
+                        whileHover={{ scale: 1.05 }}
+                      >
+                        Change Photo
+                      </motion.button>
+                    </div>
+                  </div>
+                  <p className="text-xs md:text-sm opacity-70 text-center max-w-xs">
+                    Upload a square image for best results. Maximum size 5MB.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="w-full md:w-2/3">
+                <form onSubmit={handleSaveProfile}>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm opacity-70 mb-1">Full Name</label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={userForm.name}
+                        onChange={handleInputChange}
+                        className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm opacity-70 mb-1">Email Address</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={userForm.email}
+                        onChange={handleInputChange}
+                        className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm opacity-70 mb-1">Creator Bio</label>
+                      <textarea
+                        rows={4}
+                        className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors custom-scrollbar"
+                        placeholder="Tell brands about yourself..."
+                      ></textarea>
+                    </div>
+                    
+                    <div className="pt-4">
+                      <motion.button
+                        type="submit"
+                        className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded font-bold"
+                        whileHover={{ scale: 1.02, boxShadow: "0 0 10px rgba(255,68,68,0.5)" }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        Save Changes
+                      </motion.button>
+                    </div>
+                  </div>
+                </form>
               </div>
             </div>
-          }>
-            <AnalyticsView />
-          </Suspense>
-        </motion.div>
-      )}
-
-      {activeView === 'payments' && (
-        <motion.div
-          key="payments"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.3 }}
-        >
-          <PaymentsView />
-        </motion.div>
-      )}
+          </motion.div>
+        );
       
-      {activeView === 'settings' && (
+      case 'security':
+        return (
+          <motion.div
+            key="security-settings"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <h2 className="text-xl font-bold mb-6">Security Settings</h2>
+            
+            <div>
+              <form onSubmit={handlePasswordChange}>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm opacity-70 mb-1">Current Password</label>
+                    <input
+                      type="password"
+                      className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm opacity-70 mb-1">New Password</label>
+                    <input
+                      type="password"
+                      className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm opacity-70 mb-1">Confirm New Password</label>
+                    <input
+                      type="password"
+                      className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors"
+                    />
+                  </div>
+                  
+                  <div className="pt-4">
+                    <motion.button
+                      type="submit"
+                      className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded font-bold"
+                      whileHover={{ scale: 1.02, boxShadow: "0 0 10px rgba(255,68,68,0.5)" }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      Update Password
+                    </motion.button>
+                  </div>
+                </div>
+              </form>
+              
+              <div className="mt-8 pt-8 border-t">
+                <h3 className="text-lg font-bold mb-4">Two-Factor Authentication</h3>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Protect your account with 2FA</p>
+                    <p className="text-sm opacity-70">Secure your account with an additional verification step.</p>
+                  </div>
+                  <motion.button
+                    className="px-4 py-2 border rounded"
+                    whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                  >
+                    Enable
+                  </motion.button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        );
+      
+      case 'accounts':
+        return (
+          <motion.div
+            key="accounts-settings"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <h2 className="text-xl font-bold mb-6">Connected Accounts</h2>
+            
+            <div className="space-y-4">
+              {Object.entries(defaultUserProfile.connectedAccounts).map(([platform, account]) => {
+                // Add type checking
+                if (!account) return null;
+                
+                return (
+                  <motion.div 
+                    key={platform} 
+                    className="border p-4 rounded-lg"
+                    whileHover={{ borderColor: getColorForPlatform(platform) }}
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      {platform === 'youtube' && <Youtube className="h-5 w-5 text-red-500" />}
+                      {platform === 'instagram' && <Instagram className="h-5 w-5 text-pink-500" />}
+                      {platform === 'tiktok' && <svg className="h-5 w-5 text-cyan-300" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16.5 7.3c-.4-.1-.8-.1-1.2-.1-3 0-5.6 2-6.7 4.7-.3.7-.4 1.5-.4 2.3 0 3.3 2.7 6 6 6 .8 0 1.6-.1 2.3-.4.8-.3 1.5-.8 2-1.3.1-.1.1-.3.2-.4V9.9c0-.1 0-.3-.1-.4-.5-2.2-2.4-3.8-4.7-3.8-.4 0-.8 0-1.2.1-.3.1-.7.2-1 .4-.2.2-.4.4-.5.7-.1.3-.2.7-.2 1 0 1.4 1 2.6 2.4 2.6h.1V15c-.9 0-1.7-.1-2.5-.4-1.7-.6-3-2-3.6-3.7-.2-.6-.3-1.3-.3-2 0-1.5.5-2.9 1.4-4C7 3 8.4 2.3 9.9 2.1c1.5-.2 3.1 0 4.5.7 1.3.6 2.4 1.7 3 3 .1.1.2.2.3.2.1.1.3.1.4.1l.1-.1c.4-.4.6-.9.8-1.4.1-.5.2-1.1.1-1.6 0-.1-.1-.2-.3-.2z"/><path d="M16 18.4c-.1.2-.4.3-.6.3-1.7 0-3.1-1.4-3.1-3.1 0-.2.1-.4.3-.6.1-.1.3-.2.5-.1 1.7 0 3.1 1.4 3.1 3.1 0 .2-.1.4-.3.6 0 .1-.1.1-.2.1z"/></svg>}
+                      {platform === 'twitter' && <Twitter className="h-5 w-5 text-blue-400" />}
+                      <div>
+                        <p className="font-bold capitalize">{platform}</p>
+                        <p className="text-sm">{account.username} ({account.followers} followers)</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 flex-wrap">
+                      <motion.button
+                        className="px-3 py-1 border rounded text-sm"
+                        whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                      >
+                        Refresh
+                      </motion.button>
+                      <motion.button
+                        className="px-3 py-1 border rounded text-sm"
+                        whileHover={{ backgroundColor: "rgba(255,0,0,0.1)", borderColor: "rgba(255,0,0,0.5)" }}
+                      >
+                        Disconnect
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+              
+              <motion.div 
+                className="border border-dashed p-4 rounded-lg text-center"
+                whileHover={{ backgroundColor: "rgba(255,255,255,0.03)" }}
+              >
+                <p className="mb-4">Connect another platform to earn more</p>
+                <motion.button
+                  className="px-4 py-2 border rounded inline-flex items-center gap-2"
+                  whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
+                  whileTap={{ scale: 0.98 }}
+                ><Zap className="h-4 w-4" />
+                Connect New Platform
+              </motion.button>
+            </motion.div>
+          </div>
+        </motion.div>
+      );
+    
+    case 'payments':
+      return (
         <motion.div
-          key="settings"
+          key="payments-settings"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.3 }}
         >
-          <SettingsView />
+          <h2 className="text-xl font-bold mb-6">Payment Methods</h2>
+          
+          <div className="space-y-4">
+            {defaultUserProfile.paymentMethods.map((method, index) => (
+              <motion.div
+                key={index}
+                className="border p-4 rounded-lg"
+                whileHover={{ scale: 1.01, borderColor: method.default ? "#31a952" : "#FFFFFF" }}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <CreditCard className="h-5 w-5" />
+                  <div>
+                    <p className="font-medium">
+                      {method.type === 'bank' ? `Bank Account ****${method.last4}` : `PayPal ${method.email}`}
+                    </p>
+                    {method.default && (
+                      <span className="text-xs bg-green-900 bg-opacity-30 text-green-400 px-2 py-0.5 rounded-full">
+                        Default
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  <motion.button
+                    className="px-3 py-1 border rounded text-sm"
+                    whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                    onClick={() => handlePaymentMethodAction(method, index)}
+                  >
+                    Edit
+                  </motion.button>
+                  {!method.default && (
+                    <motion.button
+                      className="px-3 py-1 border rounded text-sm"
+                      whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                      onClick={() => handlePaymentMethodAction(method, index)}
+                    >
+                      Make Default
+                    </motion.button>
+                  )}
+                  <motion.button
+                    className="px-3 py-1 border rounded text-sm"
+                    whileHover={{ backgroundColor: "rgba(255,0,0,0.1)", borderColor: "rgba(255,0,0,0.5)" }}
+                    onClick={() => handlePaymentMethodAction(method, index)}
+                  >
+                    Remove
+                  </motion.button>
+                </div>
+              </motion.div>
+            ))}
+            
+            <div>
+              <h3 className="text-lg font-bold mb-4">Add Payment Method</h3>
+              
+              <div className="grid grid-cols-1 gap-4">
+                <motion.button
+                  className="border p-4 rounded-lg flex items-center gap-4"
+                  whileHover={{ scale: 1.01, backgroundColor: "rgba(255,255,255,0.05)" }}
+                >
+                  <CreditCard className="h-6 w-6" />
+                  <div className="text-left">
+                    <p className="font-medium">Add Bank Account</p>
+                    <p className="text-sm opacity-70">Connect directly to your bank</p>
+                  </div>
+                </motion.button>
+                
+                <motion.button
+                  className="border p-4 rounded-lg flex items-center gap-4"
+                  whileHover={{ scale: 1.01, backgroundColor: "rgba(255,255,255,0.05)" }}
+                >
+                  <svg className="h-6 w-6 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M7.144 19.532l1.049-5.751A5.978 5.978 0 016.3 10.286c0-3.316 2.694-6 6.022-6 3.328 0 6.022 2.684 6.022 6 0 3.316-2.694 6-6.022 6-1.269 0-2.447-.395-3.41-1.059l-6.051 1.343a.391.391 0 01-.448-.432l.732-2.606z" />
+                  </svg>
+                  <div className="text-left">
+                    <p className="font-medium">Add PayPal</p>
+                    <p className="text-sm opacity-70">Link your PayPal account</p>
+                  </div>
+                </motion.button>
+              </div>
+            </div>
+            
+            <div className="mt-6 pt-6 border-t">
+              <h3 className="text-lg font-bold mb-4">Payout Preferences</h3>
+              
+              <div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm opacity-70 mb-1">Minimum Payout Amount</label>
+                    <select className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors">
+                      <option>$50</option>
+                      <option>$100</option>
+                      <option>$250</option>
+                      <option>$500</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm opacity-70 mb-1">Payout Frequency</label>
+                    <select className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors">
+                      <option>Monthly (15th)</option>
+                      <option>Bi-weekly</option>
+                      <option>Weekly</option>
+                    </select>
+                  </div>
+                  
+                  <div className="pt-4">
+                    <motion.button
+                      className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded font-bold"
+                      whileHover={{ scale: 1.02, boxShadow: "0 0 10px rgba(255,68,68,0.5)" }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      Save Preferences
+                    </motion.button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </motion.div>
-      )}
-    </AnimatePresence>
+      );
+    
+      return null;
+    }
+  };
 
-    {/* Campaign Detail Modal */}
-    <AnimatePresence>
-      {selectedCampaign && (
-        <CampaignDetail
-          campaign={selectedCampaign}
-          onClose={() => setSelectedCampaign(null)}
-        />
-      )}
-    </AnimatePresence>
+return (
+  <div className="relative z-10">
+    <motion.div
+      className="border rounded-lg overflow-hidden backdrop-blur-sm relative"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.1 }}
+    >
+      <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
+    
+      {/* Settings tabs navigation */}
+      {renderSettingsTabs()}
+      
+      {/* Settings content */}
+      <div className="p-4 md:p-6">
+        {renderSettingsContent()}
+      </div>
+    </motion.div>
   </div>
 );
-}
+};
+
+// Mobile logout button and confirmation modal
+const MobileLogoutButton = ({ onClick }: { onClick: () => void }) => (
+  <motion.button
+    className="fixed bottom-6 right-6 z-50 bg-black bg-opacity-70 backdrop-blur-sm shadow-lg rounded-full w-12 h-12 flex items-center justify-center border border-red-500"
+    onClick={onClick}
+    whileHover={{ scale: 1.1, borderColor: "#FF4444" }}
+    whileTap={{ scale: 0.9 }}
+  >
+    <LogOut className="h-5 w-5 text-red-500" />
+  </motion.button>
+);
+
+// Logout confirmation modal
+const LogoutConfirmModal = ({ onConfirm, onCancel }: { onConfirm: () => void, onCancel: () => void }) => (
+  <motion.div
+    className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm z-50 p-4"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    onClick={onCancel}
+  >
+    <motion.div
+      className="border p-6 rounded-lg w-full max-w-xs relative bg-black"
+      initial={{ scale: 0.8, y: 20 }}
+      animate={{ scale: 1, y: 0 }}
+      exit={{ scale: 0.8, y: 20 }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <h3 className="text-lg font-bold mb-4">Log Out</h3>
+      <p className="mb-6">Are you sure you want to log out?</p>
+      <div className="flex gap-3">
+        <motion.button
+          className="flex-1 px-4 py-2 border rounded"
+          onClick={onCancel}
+          whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+        >
+          Cancel
+        </motion.button>
+        <motion.button
+          className="flex-1 px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded"
+          onClick={onConfirm}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          Log Out
+        </motion.button>
+      </div>
+    </motion.div>
+  </motion.div>
+);
+
+// Fixed mobile dashboard wrapper with improved logout button positioning
+// Usage example - you can update your main CreatorDashboard component with this
+const EnhancedCreatorDashboard = () => {
+  const router = useRouter();
+  const [timeFilter, setTimeFilter] = useState('6M');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | AvailableCampaign | null>(null);
+  const [activeView, setActiveView] = useState<'campaigns' | 'analytics' | 'payments' | 'settings'>('campaigns');
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  
+  // Filter available campaigns based on search term
+  const filteredAvailableCampaigns = useMemo(() => {
+    if (!searchTerm) return availableCampaigns;
+    
+    const term = searchTerm.toLowerCase();
+    return availableCampaigns.filter(campaign => 
+      campaign.title.toLowerCase().includes(term) || 
+      campaign.requirements.platforms.some(platform => platform.toLowerCase().includes(term))
+    );
+  }, [searchTerm, availableCampaigns]);
+
+  // Check authentication on component mount
+  useEffect(() => {
+    // Verify authentication
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    if (!isLoggedIn) {
+      router.push('/');
+      return;
+    }
+  }, [router]);
+
+  // Handle logout
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem('isLoggedIn');
+    router.push('/');
+  }, [router]);
+
+  // Calculate derived values once
+  const totalPendingPayout = useMemo(() => 
+    activeCampaigns.reduce((sum, campaign) => sum + campaign.pendingPayout, 0), 
+    [activeCampaigns]
+  );
+
+  return (
+    <div className="min-h-screen bg-black p-3 md:p-6 relative">
+      <BackgroundPattern />
+      
+      {/* Updated Header */}
+      <EnhancedDashboardHeader 
+        timeFilter={timeFilter} 
+        setTimeFilter={setTimeFilter}
+        handleLogout={() => setShowLogoutConfirm(true)}
+      />
+
+      {/* Stats Overview */}
+      <StatsOverview totalPendingPayout={totalPendingPayout} />
+
+      {/* Navigation Tabs */}
+      <NavigationTabs activeView={activeView} setActiveView={setActiveView} />
+
+      <AnimatePresence mode="wait">
+        {activeView === 'campaigns' && (
+          <motion.div
+            key="campaigns"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+            className="relative z-10"
+          >
+            {/* Campaign view content */}
+            {/* Active Campaigns */}
+            <div className="mb-6 md:mb-8">
+              <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 flex items-center gap-2">
+                <Zap className="h-5 w-5 text-yellow-400" />
+                ACTIVE CAMPAIGNS
+              </h2>
+              <ActiveCampaigns campaigns={activeCampaigns} onCampaignClick={setSelectedCampaign} />
+            </div>
+
+            {/* Available Campaigns */}
+            <div className="mb-6 md:mb-8">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 gap-3">
+                <h2 className="text-xl md:text-2xl font-bold flex items-center gap-2">
+                  <Layers className="h-5 w-5 text-blue-400" />
+                  AVAILABLE CAMPAIGNS
+                </h2>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <motion.div
+                    className="relative flex-1 sm:flex-none"
+                    whileHover={{ scale: 1.02 }}
+                  >
+                    <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="Search campaigns..."
+                      className="pl-10 pr-4 py-2 border rounded bg-transparent w-full sm:w-auto"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </motion.div>
+                  <motion.button
+                    className="border p-2 rounded"
+                    whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Filter className="h-4 w-4" />
+                  </motion.button>
+                </div>
+              </div>
+              <AvailableCampaignsSection
+                campaigns={filteredAvailableCampaigns}
+                onCampaignClick={setSelectedCampaign}
+              />
+            </div>
+          </motion.div>
+        )}
+
+        {activeView === 'analytics' && (
+          <motion.div
+            key="analytics"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Suspense fallback={
+              <div className="w-full p-10 flex justify-center">
+                <div className="border p-6 rounded-lg inline-flex items-center gap-2">
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  <span>Loading analytics...</span>
+                </div>
+              </div>
+            }>
+              <AnalyticsView />
+            </Suspense>
+          </motion.div>
+        )}
+
+        {activeView === 'payments' && (
+          <motion.div
+            key="payments"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
+            <PaymentsView />
+          </motion.div>
+        )}
+        
+        {activeView === 'settings' && (
+          <motion.div
+            key="settings"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
+            <ImprovedSettingsView />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile-only logout button */}
+      <div className="md:hidden">
+        <MobileLogoutButton onClick={() => setShowLogoutConfirm(true)} />
+      </div>
+
+      {/* Logout confirmation modal */}
+      <AnimatePresence>
+        {showLogoutConfirm && (
+          <LogoutConfirmModal 
+            onConfirm={handleLogout} 
+            onCancel={() => setShowLogoutConfirm(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Campaign Detail Modal */}
+      <AnimatePresence>
+        {selectedCampaign && (
+          <CampaignDetail
+            campaign={selectedCampaign}
+            onClose={() => setSelectedCampaign(null)}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
