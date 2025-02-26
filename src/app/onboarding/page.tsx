@@ -242,159 +242,133 @@ const OnboardingPage: React.FC = () => {
       <div className="space-y-4">
         <p className="text-sm mb-3">Choose how you want to receive your earnings from campaigns:</p>
         
-        {!formData.skipPayment ? (
-          <>
-            <div className="grid grid-cols-1 gap-3">
-              <motion.button
-                className={`p-4 border rounded-lg text-left flex items-start gap-3 ${formData.paymentMethod === 'bank' ? 'border-green-500 bg-green-900 bg-opacity-10' : ''}`}
-                whileHover={{ scale: 1.01, backgroundColor: "rgba(255,255,255,0.05)" }}
-                onClick={() => handleChange('bank', 'paymentMethod')}
-              >
-                <div className="mt-1">
-                  <svg className="h-5 w-5 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="2" y="5" width="20" height="14" rx="2" />
-                    <line x1="2" y1="10" x2="22" y2="10" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-medium">Bank Account</p>
-                  <p className="text-sm text-gray-400">Receive direct deposits to your bank account</p>
-                </div>
-                {formData.paymentMethod === 'bank' && (
-                  <div className="absolute right-4 top-4">
-                    <svg className="h-5 w-5 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                    </svg>
-                  </div>
-                )}
-              </motion.button>
-              
-              <motion.button
-                className={`p-4 border rounded-lg text-left flex items-start gap-3 ${formData.paymentMethod === 'paypal' ? 'border-blue-500 bg-blue-900 bg-opacity-10' : ''}`}
-                whileHover={{ scale: 1.01, backgroundColor: "rgba(255,255,255,0.05)" }}
-                onClick={() => handleChange('paypal', 'paymentMethod')}
-              >
-                <div className="mt-1">
-                  <svg className="h-5 w-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M7 11l5-7"></path>
-                    <path d="M21 6l-3 7"></path>
-                    <path d="M11 4h1a3 3 0 0 1 3 3v0a3 3 0 0 1-3 3h-1v5"></path>
-                    <path d="M14 15v-3a2 2 0 0 1 2-2h1a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-1"></path>
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-medium">PayPal</p>
-                  <p className="text-sm text-gray-400">Get paid quickly to your PayPal account</p>
-                </div>
-                {formData.paymentMethod === 'paypal' && (
-                  <div className="absolute right-4 top-4">
-                    <svg className="h-5 w-5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                    </svg>
-                  </div>
-                )}
-              </motion.button>
-            </div>
-            
-            {formData.paymentMethod === 'paypal' && (
-              <div className="mt-3">
-                <label className="block text-sm opacity-70 mb-1">PayPal Email</label>
-                <input
-                  type="email"
-                  value={formData.paymentEmail as string}
-                  onChange={(e) => handleChange(e.target.value, 'paymentEmail')}
-                  className="w-full p-3 bg-transparent border rounded focus:border-red-500 outline-none transition-colors"
-                  placeholder="your@email.com"
-                />
-              </div>
-            )}
-            
-            {formData.paymentMethod === 'bank' && (
-              <div className="space-y-3 mt-3">
-                <div>
-                  <label className="block text-sm opacity-70 mb-1">Account Holder Name</label>
-                  <input
-                    type="text"
-                    value={formData.accountName as string}
-                    onChange={(e) => handleChange(e.target.value, 'accountName')}
-                    className="w-full p-3 bg-transparent border rounded focus:border-red-500 outline-none transition-colors"
-                    placeholder="Full name on account"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm opacity-70 mb-1">Routing Number</label>
-                  <input
-                    type="text"
-                    value={formData.routingNumber as string}
-                    onChange={(e) => handleChange(formatRoutingNumber(e.target.value), 'routingNumber')}
-                    className="w-full p-3 bg-transparent border rounded focus:border-red-500 outline-none transition-colors"
-                    placeholder="9 digits"
-                    maxLength={9}
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm opacity-70 mb-1">Account Number</label>
-                  <input
-                    type="text"
-                    value={formData.accountNumber as string}
-                    onChange={(e) => handleChange(formatAccountNumber(e.target.value), 'accountNumber')}
-                    className="w-full p-3 bg-transparent border rounded focus:border-red-500 outline-none transition-colors"
-                    placeholder="Your account number"
-                  />
-                </div>
-              </div>
-            )}
-            
-            <div className="mt-5 pt-5 border-t border-gray-700">
-              <motion.button
-                onClick={() => {
-                  handleChange(true, 'skipPayment');
-                  handleComplete(); // Immediately complete onboarding
-                }}
-                className="w-full p-3 border border-gray-600 rounded-lg text-gray-400 font-medium hover:text-white flex items-center justify-center gap-2"
-                whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="7 10 12 15 17 10"></polyline>
-                  <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-                Skip payment setup for now
-              </motion.button>
-              <p className="text-xs text-gray-500 text-center mt-2">
-                You can set this up later in your account settings
-              </p>
-            </div>
-          </>
-        ) : (
-          <div className="p-6 border border-gray-700 rounded-lg text-center">
-            <svg className="mx-auto h-10 w-10 text-gray-500 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
-              <line x1="9" y1="9" x2="9.01" y2="9"></line>
-              <line x1="15" y1="9" x2="15.01" y2="9"></line>
-            </svg>
-            <p className="mb-4 text-lg font-medium">Payment setup skipped</p>
-            <p className="text-gray-400 mb-4">You can set up your payment method later in your account settings</p>
-            <motion.button
-              onClick={() => handleChange(false, 'skipPayment')}
-              className="px-4 py-2 border border-gray-600 rounded-lg text-gray-300 inline-flex items-center gap-2"
-              whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="1 4 1 10 7 10"></polyline>
-                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+        <div className="grid grid-cols-1 gap-3">
+          <motion.button
+            className={`p-4 border rounded-lg text-left flex items-start gap-3 ${formData.paymentMethod === 'bank' ? 'border-green-500 bg-green-900 bg-opacity-10' : ''}`}
+            whileHover={{ scale: 1.01, backgroundColor: "rgba(255,255,255,0.05)" }}
+            onClick={() => handleChange('bank', 'paymentMethod')}
+          >
+            <div className="mt-1">
+              <svg className="h-5 w-5 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="5" width="20" height="14" rx="2" />
+                <line x1="2" y1="10" x2="22" y2="10" />
               </svg>
-              Go back and set up payment
-            </motion.button>
+            </div>
+            <div>
+              <p className="font-medium">Bank Account</p>
+              <p className="text-sm text-gray-400">Receive direct deposits to your bank account</p>
+            </div>
+            {formData.paymentMethod === 'bank' && (
+              <div className="absolute right-4 top-4">
+                <svg className="h-5 w-5 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+              </div>
+            )}
+          </motion.button>
+          
+          <motion.button
+            className={`p-4 border rounded-lg text-left flex items-start gap-3 ${formData.paymentMethod === 'paypal' ? 'border-blue-500 bg-blue-900 bg-opacity-10' : ''}`}
+            whileHover={{ scale: 1.01, backgroundColor: "rgba(255,255,255,0.05)" }}
+            onClick={() => handleChange('paypal', 'paymentMethod')}
+          >
+            <div className="mt-1">
+              <svg className="h-5 w-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M7 11l5-7"></path>
+                <path d="M21 6l-3 7"></path>
+                <path d="M11 4h1a3 3 0 0 1 3 3v0a3 3 0 0 1-3 3h-1v5"></path>
+                <path d="M14 15v-3a2 2 0 0 1 2-2h1a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-1"></path>
+              </svg>
+            </div>
+            <div>
+              <p className="font-medium">PayPal</p>
+              <p className="text-sm text-gray-400">Get paid quickly to your PayPal account</p>
+            </div>
+            {formData.paymentMethod === 'paypal' && (
+              <div className="absolute right-4 top-4">
+                <svg className="h-5 w-5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+              </div>
+            )}
+          </motion.button>
+        </div>
+        
+        {formData.paymentMethod === 'paypal' && (
+          <div className="mt-3">
+            <label className="block text-sm opacity-70 mb-1">PayPal Email</label>
+            <input
+              type="email"
+              value={formData.paymentEmail as string}
+              onChange={(e) => handleChange(e.target.value, 'paymentEmail')}
+              className="w-full p-3 bg-transparent border rounded focus:border-red-500 outline-none transition-colors"
+              placeholder="your@email.com"
+            />
           </div>
         )}
+        
+        {formData.paymentMethod === 'bank' && (
+          <div className="space-y-3 mt-3">
+            <div>
+              <label className="block text-sm opacity-70 mb-1">Account Holder Name</label>
+              <input
+                type="text"
+                value={formData.accountName as string}
+                onChange={(e) => handleChange(e.target.value, 'accountName')}
+                className="w-full p-3 bg-transparent border rounded focus:border-red-500 outline-none transition-colors"
+                placeholder="Full name on account"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm opacity-70 mb-1">Routing Number</label>
+              <input
+                type="text"
+                value={formData.routingNumber as string}
+                onChange={(e) => handleChange(formatRoutingNumber(e.target.value), 'routingNumber')}
+                className="w-full p-3 bg-transparent border rounded focus:border-red-500 outline-none transition-colors"
+                placeholder="9 digits"
+                maxLength={9}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm opacity-70 mb-1">Account Number</label>
+              <input
+                type="text"
+                value={formData.accountNumber as string}
+                onChange={(e) => handleChange(formatAccountNumber(e.target.value), 'accountNumber')}
+                className="w-full p-3 bg-transparent border rounded focus:border-red-500 outline-none transition-colors"
+                placeholder="Your account number"
+              />
+            </div>
+          </div>
+        )}
+        
+        <div className="mt-5 pt-5 border-t border-gray-700">
+          <motion.button
+            onClick={() => {
+              // Set skipPayment to true and complete onboarding in one step
+              setFormData({...formData, skipPayment: true});
+              handleComplete();
+            }}
+            className="w-full p-3 border border-gray-600 rounded-lg text-gray-400 font-medium hover:text-white flex items-center justify-center gap-2"
+            whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Skip payment setup for now
+          </motion.button>
+          <p className="text-xs text-gray-500 text-center mt-2">
+            You can set this up later in your account settings
+          </p>
+        </div>
         
         <p className="text-xs text-gray-400 mt-2">
           Your payment information is encrypted and secure. This account will be used
