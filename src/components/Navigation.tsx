@@ -60,7 +60,7 @@ const Navigation: React.FC<NavigationProps> = ({ isLoggedIn = false }) => {
               {/* User is logged in - show dashboard + logout */}
               <motion.button
                 onClick={goToDashboard}
-                className="px-3 py-1 md:px-4 md:py-2 border rounded flex items-center gap-2 text-sm md:text-base"
+                className="px-3 py-1 md:px-4 md:py-2 border rounded flex items-center gap-2 text-sm md:text-base text-white"
                 whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)", borderColor: "#FF4444" }}
                 whileTap={{ scale: 0.95 }}
               >

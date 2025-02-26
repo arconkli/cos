@@ -655,134 +655,163 @@ export default function HomePage() {
           </div>
         </motion.div>
 
-        {/* Creator Spotlight Section (replacing Creator Success) */}
+        {/* Enhanced CTA Section */}
         <motion.div
           className="mb-8 md:mb-12 relative overflow-hidden"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          id="creator"
+          id="cta"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-900 to-red-900 opacity-20 rounded-lg"></div>
-          <div className="border rounded-lg relative z-10">
-            <div className="p-6 md:p-10">
-              <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-10 flex items-center gap-2">
-                <Users className="h-6 w-6 text-blue-400" />
-                CREATOR SPOTLIGHT_
-              </h2>
-
-              {/* Featured Creator */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 mb-10">
-                <div className="md:col-span-1">
-                  <div className="relative w-full aspect-square rounded-lg border-2 border-white overflow-hidden mb-4">
-                    <img 
-                      src="/api/placeholder/400/400" 
-                      alt="Creator" 
-                      className="object-cover w-full h-full"
-                    />
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                        <span className="text-sm">Live Now</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="p-1 rounded-full border border-blue-500">
-                      <Instagram className="h-4 w-4 text-blue-400" />
-                    </div>
-                    <div className="p-1 rounded-full border border-cyan-500">
-                      <svg className="h-4 w-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16.5 7.3c-.4-.1-.8-.1-1.2-.1-3 0-5.6 2-6.7 4.7-.3.7-.4 1.5-.4 2.3 0 3.3 2.7 6 6 6 .8 0 1.6-.1 2.3-.4.8-.3 1.5-.8 2-1.3.1-.1.1-.3.2-.4V9.9c0-.1 0-.3-.1-.4-.5-2.2-2.4-3.8-4.7-3.8-.4 0-.8 0-1.2.1-.3.1-.7.2-1 .4-.2.2-.4.4-.5.7-.1.3-.2.7-.2 1 0 1.4 1 2.6 2.4 2.6h.1V15c-.9 0-1.7-.1-2.5-.4-1.7-.6-3-2-3.6-3.7-.2-.6-.3-1.3-.3-2 0-1.5.5-2.9 1.4-4C7 3 8.4 2.3 9.9 2.1c1.5-.2 3.1 0 4.5.7 1.3.6 2.4 1.7 3 3 .1.1.2.2.3.2.1.1.3.1.4.1l.1-.1c.4-.4.6-.9.8-1.4.1-.5.2-1.1.1-1.6 0-.1-.1-.2-.3-.2z"/><path d="M16 18.4c-.1.2-.4.3-.6.3-1.7 0-3.1-1.4-3.1-3.1 0-.2.1-.4.3-.6.1-.1.3-.2.5-.1 1.7 0 3.1 1.4 3.1 3.1 0 .2-.1.4-.3.6 0 .1-.1.1-.2.1z"/></svg>
-                    </div>
-                    <div className="p-1 rounded-full border border-red-500">
-                      <Youtube className="h-4 w-4 text-red-400" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="md:col-span-2 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center gap-3 mb-4">
-                      <h3 className="text-2xl font-bold">Sarah Chen</h3>
-                      <span className="px-2 py-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full text-xs">
-                        Top Creator
-                      </span>
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-4 mb-6">
-                      <div className="border border-white border-opacity-20 rounded bg-white bg-opacity-5 p-3 text-center">
-                        <p className="text-sm opacity-70">Total Earned</p>
-                        <p className="text-xl font-bold">$126,450</p>
-                      </div>
-                      <div className="border border-white border-opacity-20 rounded bg-white bg-opacity-5 p-3 text-center">
-                        <p className="text-sm opacity-70">Total Views</p>
-                        <p className="text-xl font-bold">42M+</p>
-                      </div>
-                      <div className="border border-white border-opacity-20 rounded bg-white bg-opacity-5 p-3 text-center">
-                        <p className="text-sm opacity-70">Campaigns</p>
-                        <p className="text-xl font-bold">18</p>
-                      </div>
-                    </div>
-                    
-                    <div className="mb-6">
-                      <p className="mb-2">
-                        "With CREATE_OS, I've been able to monetize across all my social platforms without having to negotiate individual brand deals. The campaigns are straightforward and let me maintain my creative voice."
-                      </p>
-                      <p className="text-sm opacity-70">
-                        Sarah specializes in tech reviews and lifestyle content, with a focus on minimal aesthetics and productivity tools.
-                      </p>
-                    </div>
-                  </div>
+          <div className="absolute inset-0 bg-gradient-to-r from-red-900 to-blue-900 opacity-20 rounded-lg"></div>
+          <div className="border border-red-500 rounded-lg relative z-10 overflow-hidden">
+            {/* Abstract background elements */}
+            <div className="absolute -right-10 top-10 w-64 h-64 bg-red-500 opacity-10 rounded-full blur-3xl"></div>
+            <div className="absolute left-10 -bottom-20 w-64 h-64 bg-blue-500 opacity-10 rounded-full blur-3xl"></div>
+            
+            <div className="p-8 md:p-12">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+                <div>
+                  <motion.h2 
+                    className="text-3xl md:text-5xl font-bold mb-6"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    START EARNING <br/>
+                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-red-300">
+                      RIGHT NOW_
+                    </span>
+                  </motion.h2>
                   
-                  <div className="grid grid-cols-2 gap-3">
+                  <motion.div 
+                    className="space-y-6"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-red-500 bg-opacity-10 rounded-lg mt-1">
+                        <DollarSign className="h-5 w-5 text-red-400" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-lg">Get Paid For Your Content</p>
+                        <p className="opacity-80">Monetize across TikTok, Instagram, YouTube, and X with no follower requirements</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-red-500 bg-opacity-10 rounded-lg mt-1">
+                        <Zap className="h-5 w-5 text-red-400" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-lg">Simple Payout Structure</p>
+                        <p className="opacity-80">Earn based on views, with transparent rates and fast monthly payments</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-red-500 bg-opacity-10 rounded-lg mt-1">
+                        <Eye className="h-5 w-5 text-red-400" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-lg">Creative Freedom</p>
+                        <p className="opacity-80">Create authentic content that aligns with your personal brand and audience</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                  
+                  <div className="mt-8 grid grid-cols-2 gap-4">
+                    <motion.div
+                      className="relative inline-block"
+                      whileHover={{ scale: 1.02 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {/* Animated border container */}
+                      <motion.div
+                        className="absolute -inset-[1px] rounded-lg bg-gradient-to-r from-red-500 via-white to-red-500"
+                        style={{
+                          backgroundSize: '200% 100%'
+                        }}
+                        animate={{
+                          backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                        }}
+                        transition={{
+                          duration: 3,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
+                      />
+                      
+                      {/* Main button */}
+                      <button 
+                        className="relative w-full px-6 py-3 rounded-lg bg-black text-white flex items-center justify-center gap-2 border border-transparent"
+                        onClick={handleJoinCreator}
+                      >
+                        <span className="font-bold text-lg">Join For Free</span>
+                      </button>
+                    </motion.div>
+                    
                     <motion.button
-                      className="px-4 py-2 border rounded flex items-center justify-center gap-2"
+                      className="px-6 py-3 border border-white border-opacity-30 rounded-lg flex items-center justify-center gap-2"
                       whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => isLoggedIn ? router.push('/dashboard') : setShowLogin(true)}
                     >
-                      View Creator Profile <ArrowUpRight className="h-4 w-4" />
-                    </motion.button>
-                    <motion.button
-                      className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 border-none rounded flex items-center justify-center gap-2"
-                      whileHover={{ scale: 1.02, boxShadow: "0 0 15px rgba(66,135,245,0.5)" }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={handleJoinCreator}
-                    >
-                      Become a Creator <Zap className="h-4 w-4" />
+                      Browse Campaigns <ArrowUpRight className="h-4 w-4" />
                     </motion.button>
                   </div>
                 </div>
-              </div>
-              
-              {/* Stats at bottom */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-blue-500 bg-opacity-10 rounded-full">
-                    <Users className="h-6 w-6 text-blue-400" />
+                
+                <div className="relative">
+                  <div className="border-t border-l border-white border-opacity-20 p-6 md:p-8 bg-black bg-opacity-60 rounded-lg relative">
+                    <div className="absolute -right-4 -top-4 p-2 bg-black border border-red-500 rounded-md">
+                      <DollarSign className="h-6 w-6 text-red-400" />
+                    </div>
+                    
+                    <h3 className="text-2xl font-bold mb-6">CREATOR EARNINGS_</h3>
+                    
+                    <div className="space-y-6">
+                      <div className="flex justify-between items-center border-b border-white border-opacity-10 pb-4">
+                        <div>
+                          <p className="font-bold">1M Views</p>
+                          <p className="text-sm opacity-70">Average Payout</p>
+                        </div>
+                        <p className="text-2xl font-bold text-red-400">$500</p>
+                      </div>
+                      
+                      <div className="flex justify-between items-center border-b border-white border-opacity-10 pb-4">
+                        <div>
+                          <p className="font-bold">Top 10% Creators</p>
+                          <p className="text-sm opacity-70">Monthly Average</p>
+                        </div>
+                        <p className="text-2xl font-bold text-red-400">$2,450</p>
+                      </div>
+                      
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="font-bold">Total Paid Out</p>
+                          <p className="text-sm opacity-70">This Year</p>
+                        </div>
+                        <p className="text-2xl font-bold text-red-400">$4.2M+</p>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-8 flex items-center justify-between pt-4 border-t border-white border-opacity-10">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-sm">Next payout: 15th of month</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-red-400" />
+                        <span className="text-sm">72hr processing</span>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold">10,000+</p>
-                    <p className="text-sm opacity-70">Active creators</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-green-500 bg-opacity-10 rounded-full">
-                    <DollarSign className="h-6 w-6 text-green-400" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">$4.2M+</p>
-                    <p className="text-sm opacity-70">Paid out this year</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-purple-500 bg-opacity-10 rounded-full">
-                    <Clock className="h-6 w-6 text-purple-400" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">72 hours</p>
-                    <p className="text-sm opacity-70">Average payout time</p>
-                  </div>
+                  
+                  <div className="absolute -z-10 -bottom-4 -right-4 w-full h-full border border-red-500 rounded-lg"></div>
                 </div>
               </div>
             </div>
