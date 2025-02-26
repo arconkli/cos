@@ -265,7 +265,8 @@ export default function HomePage() {
     if (isLoggedIn) {
       router.push('/dashboard');
     } else {
-      resetOnboarding();
+      // Direct navigation to onboarding page
+      router.push('/onboarding');
     }
   };
 
