@@ -59,64 +59,45 @@ const Navigation: React.FC<NavigationProps> = ({ isLoggedIn = false }) => {
           CREATE_OS
         </motion.h1>
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {authStatus && (
             <>
-              {/* Always render dashboard button with maximum visibility guarantees */}
-              <a 
-                href="/dashboard"
-                onClick={(e) => {
-                  e.preventDefault();
-                  goToDashboard();
-                }}
-                className="px-3 py-1 md:px-4 md:py-2 border-2 border-white rounded flex items-center gap-2 text-white font-bold"
-                style={{ 
-                  color: 'white', 
-                  backgroundColor: '#000',
-                  borderColor: '#FFF',
-                  boxShadow: '0 0 0 1px white',
-                  display: 'flex',
-                  alignItems: 'center'
-                }}
+              {/* Improved dashboard button that matches site styling */}
+              <motion.button
+                onClick={goToDashboard}
+                className="px-3 py-1.5 md:px-5 md:py-2 bg-gradient-to-r from-red-500 to-red-700 rounded-lg text-white font-bold flex items-center gap-2 shadow-lg"
+                whileHover={{ scale: 1.05, boxShadow: "0 0 10px rgba(255,68,68,0.3)" }}
+                whileTap={{ scale: 0.98 }}
               >
-                <span style={{ color: 'white', fontWeight: 'bold' }}>Dashboard</span>
-                <User color="white" size={16} />
-              </a>
+                <span className="hidden xs:inline">Dashboard</span>
+                <User className="h-4 w-4" />
+              </motion.button>
               
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleLogout();
-                }}
-                className="px-3 py-1 md:px-4 md:py-2 border-2 border-white rounded flex items-center gap-2 text-white"
-                style={{ 
-                  color: 'white', 
-                  backgroundColor: '#000',
-                  borderColor: '#FFF',
-                  display: 'flex',
-                  alignItems: 'center'
-                }}
+              {/* Desktop-only logout button */}
+              <motion.button
+                onClick={handleLogout}
+                className="hidden md:flex px-3 py-1.5 md:px-4 md:py-2 border border-gray-600 hover:border-gray-400 rounded-lg text-white items-center gap-2"
+                whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
+                whileTap={{ scale: 0.98 }}
               >
-                <span style={{ color: 'white' }}>Logout</span>
-                <LogOut color="white" size={16} />
-              </a>
+                <span>Logout</span>
+                <LogOut className="h-4 w-4" />
+              </motion.button>
             </>
           )}
           
           {!authStatus && (
             <motion.button
               onClick={handleLogin}
-              className="px-3 py-1 md:px-6 md:py-2 border-2 border-red-500 rounded flex items-center gap-2 text-white"
-              style={{ color: 'white', backgroundColor: '#000' }}
+              className="px-3 py-1.5 md:px-6 md:py-2 border-2 border-red-500 rounded-lg flex items-center gap-2 text-white"
               whileHover={{ scale: 1.05, backgroundColor: "rgba(255,68,68,0.1)" }}
               whileTap={{ scale: 0.95 }}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
-              <span style={{ color: 'white' }}>Join as Creator</span>
-              <ArrowUpRight color="white" size={16} />
+              <span>Join as Creator</span>
+              <ArrowUpRight className="h-4 w-4" />
             </motion.button>
           )}
         </div>
