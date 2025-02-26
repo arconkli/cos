@@ -1,3 +1,5 @@
+'use client';
+
 // src/components/Navigation.tsx
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';

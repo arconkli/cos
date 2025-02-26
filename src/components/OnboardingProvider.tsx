@@ -1,3 +1,5 @@
+'use client';
+
 // src/components/OnboardingProvider.tsx
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { AnimatePresence } from 'framer-motion';
