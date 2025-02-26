@@ -240,23 +240,10 @@ const OnboardingPage: React.FC = () => {
   const renderPaymentFields = () => {
     return (
       <div className="space-y-4">
-        <div className="flex items-center mb-4">
-          <input
-            type="checkbox"
-            id="skipPayment"
-            checked={formData.skipPayment}
-            onChange={(e) => handleChange(e.target.checked, 'skipPayment')}
-            className="rounded border-gray-400 text-red-500 focus:ring-red-500"
-          />
-          <label htmlFor="skipPayment" className="ml-2 cursor-pointer">
-            Skip payment setup for now
-          </label>
-        </div>
+        <p className="text-sm mb-3">Choose how you want to receive your earnings from campaigns:</p>
         
-        {!formData.skipPayment && (
+        {!formData.skipPayment ? (
           <>
-            <p className="text-sm mb-3">Choose how you want to receive your earnings from campaigns:</p>
-            
             <div className="grid grid-cols-1 gap-3">
               <motion.button
                 className={`p-4 border rounded-lg text-left flex items-start gap-3 ${formData.paymentMethod === 'bank' ? 'border-green-500 bg-green-900 bg-opacity-10' : ''}`}
@@ -316,7 +303,7 @@ const OnboardingPage: React.FC = () => {
                 <label className="block text-sm opacity-70 mb-1">PayPal Email</label>
                 <input
                   type="email"
-                  value={formData.paymentEmail}
+                  value={formData.paymentEmail as string}
                   onChange={(e) => handleChange(e.target.value, 'paymentEmail')}
                   className="w-full p-3 bg-transparent border rounded focus:border-red-500 outline-none transition-colors"
                   placeholder="your@email.com"
@@ -330,7 +317,7 @@ const OnboardingPage: React.FC = () => {
                   <label className="block text-sm opacity-70 mb-1">Account Holder Name</label>
                   <input
                     type="text"
-                    value={formData.accountName}
+                    value={formData.accountName as string}
                     onChange={(e) => handleChange(e.target.value, 'accountName')}
                     className="w-full p-3 bg-transparent border rounded focus:border-red-500 outline-none transition-colors"
                     placeholder="Full name on account"
@@ -341,7 +328,7 @@ const OnboardingPage: React.FC = () => {
                   <label className="block text-sm opacity-70 mb-1">Routing Number</label>
                   <input
                     type="text"
-                    value={formData.routingNumber}
+                    value={formData.routingNumber as string}
                     onChange={(e) => handleChange(formatRoutingNumber(e.target.value), 'routingNumber')}
                     className="w-full p-3 bg-transparent border rounded focus:border-red-500 outline-none transition-colors"
                     placeholder="9 digits"
@@ -353,7 +340,7 @@ const OnboardingPage: React.FC = () => {
                   <label className="block text-sm opacity-70 mb-1">Account Number</label>
                   <input
                     type="text"
-                    value={formData.accountNumber}
+                    value={formData.accountNumber as string}
                     onChange={(e) => handleChange(formatAccountNumber(e.target.value), 'accountNumber')}
                     className="w-full p-3 bg-transparent border rounded focus:border-red-500 outline-none transition-colors"
                     placeholder="Your account number"
@@ -362,12 +349,54 @@ const OnboardingPage: React.FC = () => {
               </div>
             )}
             
-            <p className="text-xs text-gray-400 mt-3">
-              Your payment information is encrypted and secure. This account will be used
-              to receive your earnings from campaigns once you reach the minimum payout threshold.
-            </p>
+            <div className="mt-5 pt-5 border-t border-gray-700">
+              <motion.button
+                onClick={() => handleChange(true, 'skipPayment')}
+                className="w-full p-3 border border-gray-600 rounded-lg text-gray-400 font-medium hover:text-white flex items-center justify-center gap-2"
+                whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Skip payment setup for now
+              </motion.button>
+              <p className="text-xs text-gray-500 text-center mt-2">
+                You can set this up later in your account settings
+              </p>
+            </div>
           </>
+        ) : (
+          <div className="p-6 border border-gray-700 rounded-lg text-center">
+            <svg className="mx-auto h-10 w-10 text-gray-500 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+              <line x1="9" y1="9" x2="9.01" y2="9"></line>
+              <line x1="15" y1="9" x2="15.01" y2="9"></line>
+            </svg>
+            <p className="mb-4 text-lg font-medium">Payment setup skipped</p>
+            <p className="text-gray-400 mb-4">You can set up your payment method later in your account settings</p>
+            <motion.button
+              onClick={() => handleChange(false, 'skipPayment')}
+              className="px-4 py-2 border border-gray-600 rounded-lg text-gray-300 inline-flex items-center gap-2"
+              whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="1 4 1 10 7 10"></polyline>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+              </svg>
+              Go back and set up payment
+            </motion.button>
+          </div>
         )}
+        
+        <p className="text-xs text-gray-400 mt-2">
+          Your payment information is encrypted and secure. This account will be used
+          to receive your earnings from campaigns once you reach the minimum payout threshold.
+        </p>
       </div>
     );
   };
