@@ -570,6 +570,36 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
             <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
             
             <div className="flex justify-between items-center">
+              <h3 className="text-lg font-bold mb-4">Add Payment Method</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <motion.button
+                  className="border p-4 rounded-lg flex items-center gap-4"
+                  whileHover={{ scale: 1.01, backgroundColor: "rgba(255,255,255,0.05)" }}
+                >
+                  <CreditCard className="h-6 w-6" />
+                  <div className="text-left">
+                    <p className="font-medium">Add Bank Account</p>
+                    <p className="text-sm opacity-70">Connect directly to your bank</p>
+                  </div>
+                </motion.button>
+                
+                <motion.button
+                  className="border p-4 rounded-lg flex items-center gap-4"
+                  whileHover={{ scale: 1.01, backgroundColor: "rgba(255,255,255,0.05)" }}
+                >
+                  <svg className="h-6 w-6 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M7.144 19.532l1.049-5.751A5.978 5.978 0 016.3 10.286c0-3.316 2.694-6 6.022-6 3.328 0 6.022 2.684 6.022 6 0 3.316-2.694 6-6.022 6-1.269 0-2.447-.395-3.41-1.059l-6.051 1.343a.391.391 0 01-.448-.432l.732-2.606z" />
+                  </svg>
+                  <div className="text-left">
+                    <p className="font-medium">Add PayPal</p>
+                    <p className="text-sm opacity-70">Link your PayPal account</p>
+                  </div>
+                </motion.button>
+              </div>
+            </div>
+            
+            <div className="mt-8 pt-8 border-t">
               <h3 className="text-lg md:text-xl font-bold">Campaign Details</h3>
               
               <div className="flex items-center gap-2">
@@ -1206,72 +1236,6 @@ const ActiveCampaigns: React.FC<{
   </div>
 );
 
-// Mobile optimized header
-const DashboardHeader: React.FC<{
-  timeFilter: string;
-  setTimeFilter: (filter: string) => void;
-  onLogout: () => void;
-  userProfile: UserProfile;
-}> = memo(({ timeFilter, setTimeFilter, onLogout, userProfile }) => {
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  
-  return (
-    <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-      <div>
-        <h1 className="text-2xl md:text-4xl font-bold mb-2">DASHBOARD</h1>
-        <div className="flex items-center gap-4">
-          <motion.div
-            className="flex items-center gap-2 border px-3 py-1 rounded"
-            whileHover={{ scale: 1.02, borderColor: "#4287f5" }}
-          >
-            <Calendar className="h-4 w-4" />
-            <select
-              className="bg-transparent border-none outline-none text-sm md:text-base"
-              value={timeFilter}
-              onChange={(e) => setTimeFilter(e.target.value)}
-            >
-              <option value="7D">7 Days</option>
-              <option value="1M">1 Month</option>
-              <option value="3M">3 Months</option>
-              <option value="6M">6 Months</option>
-              <option value="1Y">1 Year</option>
-              <option value="ALL">Lifetime</option>
-            </select>
-          </motion.div>
-        </div>
-      </div>
-
-      <div className="relative">
-        <motion.div className="flex items-center gap-3">
-          <motion.button
-            className="flex items-center gap-2 border px-4 py-2 rounded bg-black"
-            whileHover={{ scale: 1.02, borderColor: "#FF4444" }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-          >
-            <img src={userProfile.avatar} alt="Profile" className="w-6 h-6 rounded-full" />
-            <span className="hidden md:inline">{userProfile.name}</span>
-            <ChevronDown className="h-4 w-4" />
-          </motion.button>
-        </motion.div>
-        
-        <AnimatePresence>
-          {isProfileMenuOpen && (
-            <ProfileMenu 
-              isOpen={isProfileMenuOpen} 
-              setIsOpen={setIsProfileMenuOpen} 
-              userProfile={userProfile}
-              onLogout={onLogout}
-            />
-          )}
-        </AnimatePresence>
-      </div>
-    </div>
-  );
-});
-
-DashboardHeader.displayName = 'DashboardHeader';
-
 // Mobile optimized stats component
 const StatsOverview: React.FC<{ totalPendingPayout: number }> = memo(({ totalPendingPayout }) => {
   const stats = [
@@ -1770,6 +1734,9 @@ const SettingsView = () => {
           </motion.div>
         );
       
+      default:
+        return null;
+      
       case 'accounts':
         return (
           <motion.div
@@ -1897,7 +1864,7 @@ const SettingsView = () => {
             </div>
             
             <div>
-              <h3 className="text-lg font-bold mb-4">Add Payment Method</h3>
+            <h3 className="text-lg font-bold mb-4">Add Payment Method</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <motion.button
@@ -1966,10 +1933,9 @@ const SettingsView = () => {
         </motion.div>
       );
     
-    default:
       return null;
-  }
-};
+    }
+  };
 
 return (
   <div className="relative z-10">
@@ -2030,6 +1996,53 @@ return (
 );
 };
 
+// NEW HEADER COMPONENT
+const DashboardHeader: React.FC<{
+  timeFilter: string;
+  setTimeFilter: (filter: string) => void;
+  onLogout: () => void;
+}> = memo(({ timeFilter, setTimeFilter, onLogout }) => {
+  return (
+    <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+      <div>
+        <h1 className="text-2xl md:text-4xl font-bold mb-2">DASHBOARD</h1>
+        <div className="flex items-center gap-4">
+          <motion.div
+            className="flex items-center gap-2 border px-3 py-1 rounded"
+            whileHover={{ scale: 1.02, borderColor: "#4287f5" }}
+          >
+            <Calendar className="h-4 w-4" />
+            <select
+              className="bg-transparent border-none outline-none text-sm md:text-base"
+              value={timeFilter}
+              onChange={(e) => setTimeFilter(e.target.value)}
+            >
+              <option value="7D">7 Days</option>
+              <option value="1M">1 Month</option>
+              <option value="3M">3 Months</option>
+              <option value="6M">6 Months</option>
+              <option value="1Y">1 Year</option>
+              <option value="ALL">Lifetime</option>
+            </select>
+          </motion.div>
+        </div>
+      </div>
+      {/* Simple logout button */}
+      <motion.button
+        className="border px-4 py-2 rounded flex items-center gap-2 text-sm md:text-base"
+        whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)", borderColor: "#FF4444" }}
+        whileTap={{ scale: 0.98 }}
+        onClick={onLogout}
+      >
+        <LogOut className="h-4 w-4" />
+        <span>Logout</span>
+      </motion.button>
+    </div>
+  );
+});
+
+DashboardHeader.displayName = 'DashboardHeader';
+
 // Main component with fixed errors
 export default function CreatorDashboard() {
 const router = useRouter();
@@ -2037,7 +2050,6 @@ const [timeFilter, setTimeFilter] = useState('6M');
 const [searchTerm, setSearchTerm] = useState('');
 const [selectedCampaign, setSelectedCampaign] = useState<Campaign | AvailableCampaign | null>(null);
 const [activeView, setActiveView] = useState<'campaigns' | 'analytics' | 'payments' | 'settings'>('campaigns');
-const [userProfile, setUserProfile] = useState<UserProfile>(defaultUserProfile);
 
 // Check authentication on component mount
 useEffect(() => {
@@ -2046,22 +2058,6 @@ useEffect(() => {
   if (!isLoggedIn) {
     router.push('/');
     return;
-  }
-  
-  // Load user data if available
-  const userData = localStorage.getItem('userData');
-  if (userData) {
-    try {
-      const parsedData = JSON.parse(userData);
-      // Merge with default profile
-      setUserProfile(prevProfile => ({
-        ...prevProfile,
-        name: parsedData.name || prevProfile.name,
-        email: parsedData.email || prevProfile.email,
-      }));
-    } catch (error) {
-      console.error('Error parsing user data:', error);
-    }
   }
 }, [router]);
 
@@ -2142,12 +2138,11 @@ return (
   <div className="min-h-screen bg-black p-3 md:p-6 relative">
     <BackgroundPattern />
     
-    {/* Header with Profile */}
+    {/* Updated Header with simple logout */}
     <DashboardHeader 
       timeFilter={timeFilter} 
       setTimeFilter={setTimeFilter}
       onLogout={handleLogout}
-      userProfile={userProfile}
     />
 
     {/* Stats Overview */}
