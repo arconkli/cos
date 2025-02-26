@@ -37,7 +37,7 @@ const Navigation: React.FC<NavigationProps> = ({ isLoggedIn = false }) => {
   };
 
   const handleLogin = () => {
-    // Open onboarding flow instead of direct login
+    // Always redirect to the full onboarding page
     router.push('/onboarding');
   };
 

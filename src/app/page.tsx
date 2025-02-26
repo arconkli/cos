@@ -261,14 +261,14 @@ export default function HomePage() {
     };
   }, []);
   
-  const handleJoinCreator = () => {
-    if (isLoggedIn) {
-      router.push('/dashboard');
-    } else {
-      // Direct navigation to onboarding page
-      router.push('/onboarding');
-    }
-  };
+const handleJoinCreator = () => {
+  if (isLoggedIn) {
+    router.push('/dashboard');
+  } else {
+    // Always redirect to the full onboarding page
+    router.push('/onboarding');
+  }
+};
 
   return (
     <div className="min-h-screen bg-black relative">
