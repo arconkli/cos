@@ -348,32 +348,11 @@ const OnboardingPage: React.FC = () => {
         )}
         
         <div className="mt-5 pt-5 border-t border-gray-700">
-          <motion.button
-            onClick={() => {
-              // Set skipPayment to true and complete onboarding in one step
-              setFormData({...formData, skipPayment: true});
-              handleComplete();
-            }}
-            className="w-full p-3 border border-gray-600 rounded-lg text-gray-400 font-medium hover:text-white flex items-center justify-center gap-2"
-            whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            Skip payment setup for now
-          </motion.button>
-          <p className="text-xs text-gray-500 text-center mt-2">
-            You can set this up later in your account settings
+          <p className="text-xs text-gray-400 mt-2 mb-4">
+            Your payment information is encrypted and secure. This account will be used
+            to receive your earnings from campaigns once you reach the minimum payout threshold.
           </p>
         </div>
-        
-        <p className="text-xs text-gray-400 mt-2">
-          Your payment information is encrypted and secure. This account will be used
-          to receive your earnings from campaigns once you reach the minimum payout threshold.
-        </p>
       </div>
     );
   };
@@ -511,21 +490,37 @@ const OnboardingPage: React.FC = () => {
             </motion.div>
           </AnimatePresence>
           
-          {/* Next button */}
-          <motion.button
-            onClick={handleNext}
-            className={`w-full p-4 mt-6 flex items-center justify-center gap-2 rounded-lg font-bold text-xl transition-colors ${
-              isNextEnabled() 
-                ? 'bg-gradient-to-r from-red-500 to-red-700 text-white' 
-                : 'bg-gray-800 text-gray-500 cursor-not-allowed'
-            }`}
-            whileHover={isNextEnabled() ? { scale: 1.02 } : {}}
-            whileTap={isNextEnabled() ? { scale: 0.98 } : {}}
-            disabled={!isNextEnabled()}
-          >
-            {steps[step].nextText || 'Continue'} 
-            <ArrowRight className="h-5 w-5" />
-          </motion.button>
+          {/* Next and Skip buttons */}
+          <div className="flex flex-col space-y-3">
+            <motion.button
+              onClick={handleNext}
+              className={`w-full p-4 flex items-center justify-center gap-2 rounded-lg font-bold text-xl transition-colors ${
+                isNextEnabled() 
+                  ? 'bg-gradient-to-r from-red-500 to-red-700 text-white' 
+                  : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+              }`}
+              whileHover={isNextEnabled() ? { scale: 1.02 } : {}}
+              whileTap={isNextEnabled() ? { scale: 0.98 } : {}}
+              disabled={!isNextEnabled()}
+            >
+              {steps[step].nextText || 'Continue'} 
+              <ArrowRight className="h-5 w-5" />
+            </motion.button>
+            
+            {step === 5 && ( // Only show skip button on payment step
+              <motion.button
+                onClick={() => {
+                  setFormData({...formData, skipPayment: true});
+                  handleComplete();
+                }}
+                className="text-gray-400 py-2 hover:text-gray-200 transition-colors text-center"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Skip payment setup for now
+              </motion.button>
+            )}
+          </div>
           
           {/* Additional tips or help text */}
           <div className="mt-4 text-center text-gray-500 text-sm">
@@ -534,7 +529,7 @@ const OnboardingPage: React.FC = () => {
             {step === 2 && "Your phone helps secure your account and receive notifications"}
             {step === 3 && "Use at least 6 characters for a secure password"}
             {step === 4 && "You can connect more platforms later in your settings"}
-            {step === 5 && "Your payment details are securely encrypted"}
+            {step === 5 && "You can always set up your payment method later in settings"}
           </div>
         </div>
       </main>
