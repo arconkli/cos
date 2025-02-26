@@ -1,6 +1,5 @@
 'use client';
 
-// src/components/OnboardingProvider.tsx
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import Onboarding from './Onboarding';
@@ -10,12 +9,14 @@ interface OnboardingContextType {
   showOnboarding: boolean;
   completeOnboarding: () => void;
   resetOnboarding: () => void;
+  showTutorial: () => void;
 }
 
 const OnboardingContext = createContext<OnboardingContextType>({
   showOnboarding: false,
   completeOnboarding: () => {},
   resetOnboarding: () => {},
+  showTutorial: () => {}
 });
 
 // Custom hook to use the onboarding context
@@ -32,6 +33,7 @@ const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
   autoShow = true
 }) => {
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isTutorial, setIsTutorial] = useState(false);
   
   // Check if this is the user's first visit
   useEffect(() => {
@@ -44,7 +46,8 @@ const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
       if (!hasCompletedOnboarding && !isLoggedIn) {
         // Show onboarding after a brief delay to let the page load
         const timer = setTimeout(() => {
-          setShowOnboarding(true);
+          // Don't automatically show the onboarding - wait for user to click "Join as Creator"
+          // setShowOnboarding(true);
         }, 800);
         
         return () => clearTimeout(timer);
@@ -58,14 +61,19 @@ const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
       localStorage.setItem('hasCompletedOnboarding', 'true');
     }
     setShowOnboarding(false);
+    setIsTutorial(false);
   };
   
-  // Reset onboarding (for testing or when user clicks "How It Works")
+  // Reset onboarding to show signup form
   const resetOnboarding = () => {
-    if (typeof window !== 'undefined') {
-      // We don't remove the completed flag, just force the onboarding to show
-      setShowOnboarding(true);
-    }
+    setShowOnboarding(true);
+    setIsTutorial(false);
+  };
+  
+  // Show more detailed platform tutorial 
+  const showTutorial = () => {
+    setShowOnboarding(true);
+    setIsTutorial(true);
   };
   
   return (
@@ -73,7 +81,8 @@ const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
       value={{ 
         showOnboarding, 
         completeOnboarding, 
-        resetOnboarding 
+        resetOnboarding,
+        showTutorial 
       }}
     >
       {children}

@@ -1,11 +1,9 @@
 'use client';
 
-// src/components/Navigation.tsx
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Zap, LogOut, Home, BarChart2, User, Settings, ArrowUpRight, Building } from 'lucide-react';
+import { Menu, X, LogOut, ArrowUpRight, User } from 'lucide-react';
 import { useOnboarding } from './OnboardingProvider';
 
 interface NavigationProps {
@@ -41,8 +39,10 @@ const Navigation: React.FC<NavigationProps> = ({ isLoggedIn = false }) => {
 
   const handleLogin = () => {
     // For demo purposes, set logged in state
-    localStorage.setItem('isLoggedIn', 'true');
-    setAuthStatus(true);
+    resetOnboarding(); // Open onboarding flow instead of direct login
+  };
+
+  const goToDashboard = () => {
     router.push('/dashboard');
   };
   
@@ -63,82 +63,59 @@ const Navigation: React.FC<NavigationProps> = ({ isLoggedIn = false }) => {
           <div className="flex items-center gap-4">
             {authStatus ? (
               <>
-                <div className="hidden md:flex items-center gap-4">
-                  <NavLink href="/dashboard" label="Dashboard" />
-                  <NavLink href="/campaigns" label="Campaigns" />
-                  <NavLink href="/analytics" label="Analytics" />
-                  <NavLink href="/settings" label="Settings" />
-                </div>
+                {/* Creator is logged in - show minimal options */}
+                <motion.button
+                  onClick={goToDashboard}
+                  className="px-3 py-1 md:px-4 md:py-2 border rounded flex items-center gap-2 text-sm md:text-base"
+                  whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)", borderColor: "#FF4444" }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Dashboard <User className="h-4 w-4" />
+                </motion.button>
                 
                 <motion.button
                   onClick={handleLogout}
                   className="px-3 py-1 md:px-4 md:py-2 border rounded flex items-center gap-2 text-sm md:text-base"
                   whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)", borderColor: "#FF4444" }}
                   whileTap={{ scale: 0.95 }}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 >
                   Logout <LogOut className="h-4 w-4" />
                 </motion.button>
               </>
             ) : (
               <>
-                <div className="hidden md:flex items-center gap-6">
-                  <motion.button
-                    className="text-white hover:text-red-400 transition-colors"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => resetOnboarding()}
-                  >
-                    How It Works
-                  </motion.button>
-                  <motion.button
-                    className="text-white hover:text-red-400 transition-colors"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => router.push('/#campaigns')}
-                  >
-                    Campaigns
-                  </motion.button>
-                  <motion.button
-                    className="text-white hover:text-red-400 transition-colors"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => router.push('/#creator')}
-                  >
-                    For Brands
-                  </motion.button>
-                </div>
-                
+                {/* User is not logged in - show join option */}
                 <motion.button
                   onClick={handleLogin}
-                  className="px-3 py-1 md:px-4 md:py-2 border rounded flex items-center gap-2 text-sm md:text-base"
-                  whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)", borderColor: "#FF4444" }}
+                  className="px-3 py-1 md:px-6 md:py-2 border border-red-500 rounded flex items-center gap-2 text-sm md:text-base"
+                  whileHover={{ scale: 1.05, backgroundColor: "rgba(255,68,68,0.1)" }}
                   whileTap={{ scale: 0.95 }}
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 >
-                  Login <ArrowUpRight className="h-4 w-4" />
+                  Join as Creator <ArrowUpRight className="h-4 w-4" />
                 </motion.button>
               </>
             )}
             
-            <button
-              onClick={toggleMenu}
-              className="block md:hidden p-2 focus:outline-none"
-              aria-label="Toggle Menu"
-            >
-              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
+            {/* Mobile menu toggle - only shown for logged in creators */}
+            {authStatus && (
+              <button
+                onClick={toggleMenu}
+                className="block md:hidden p-2 focus:outline-none"
+                aria-label="Toggle Menu"
+              >
+                {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </button>
+            )}
           </div>
         </div>
       </div>
       
-      {/* Mobile Menu */}
+      {/* Mobile Menu - simplified for creators only */}
       <AnimatePresence>
-        {isMenuOpen && (
+        {isMenuOpen && authStatus && (
           <motion.div
             className="fixed inset-0 z-40 bg-black bg-opacity-95 md:hidden pt-20"
             initial={{ opacity: 0, height: 0 }}
@@ -147,143 +124,38 @@ const Navigation: React.FC<NavigationProps> = ({ isLoggedIn = false }) => {
             transition={{ duration: 0.3 }}
           >
             <div className="flex flex-col p-6 space-y-6">
-              {authStatus ? (
-                <>
-                  <MobileNavLink 
-                    icon={<Home />} 
-                    label="Dashboard" 
-                    href="/dashboard" 
-                    onClick={() => setIsMenuOpen(false)}
-                  />
-                  <MobileNavLink 
-                    icon={<Zap />} 
-                    label="Campaigns" 
-                    href="/dashboard" 
-                    onClick={() => setIsMenuOpen(false)}
-                  />
-                  <MobileNavLink 
-                    icon={<BarChart2 />} 
-                    label="Analytics" 
-                    href="/dashboard" 
-                    onClick={() => setIsMenuOpen(false)}
-                  />
-                  <MobileNavLink 
-                    icon={<Settings />} 
-                    label="Settings" 
-                    href="/dashboard" 
-                    onClick={() => setIsMenuOpen(false)}
-                  />
-                  <div className="pt-6 border-t border-white border-opacity-20">
-                    <MobileNavLink 
-                      icon={<LogOut />} 
-                      label="Log Out" 
-                      onClick={() => {
-                        handleLogout();
-                        setIsMenuOpen(false);
-                      }}
-                    />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <MobileNavLink 
-                    icon={<Zap />} 
-                    label="How It Works" 
-                    onClick={() => {
-                      resetOnboarding();
-                      setIsMenuOpen(false);
-                    }}
-                  />
-                  <MobileNavLink 
-                    icon={<BarChart2 />} 
-                    label="Campaigns" 
-                    href="/#campaigns" 
-                    onClick={() => setIsMenuOpen(false)}
-                  />
-                  <MobileNavLink 
-                    icon={<Building />} 
-                    label="For Brands" 
-                    href="/#creator" 
-                    onClick={() => setIsMenuOpen(false)}
-                  />
-                  <div className="pt-6 mt-auto">
-                    <motion.button
-                      onClick={() => {
-                        handleLogin();
-                        setIsMenuOpen(false);
-                      }}
-                      className="w-full py-3 border rounded flex items-center justify-center gap-2"
-                      whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      Login <ArrowUpRight className="h-4 w-4" />
-                    </motion.button>
-                  </div>
-                </>
-              )}
+              <motion.div
+                className="flex items-center gap-4 py-3 px-2"
+                whileHover={{ x: 5, backgroundColor: "rgba(255,255,255,0.05)" }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  goToDashboard();
+                  setIsMenuOpen(false);
+                }}
+              >
+                <div className="text-red-400"><User className="h-5 w-5" /></div>
+                <span className="text-lg">Dashboard</span>
+              </motion.div>
+              
+              <div className="pt-6 border-t border-white border-opacity-20">
+                <motion.div
+                  className="flex items-center gap-4 py-3 px-2"
+                  whileHover={{ x: 5, backgroundColor: "rgba(255,255,255,0.05)" }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    handleLogout();
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  <div className="text-red-400"><LogOut className="h-5 w-5" /></div>
+                  <span className="text-lg">Log Out</span>
+                </motion.div>
+              </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
     </>
-  );
-};
-
-// Helper component for navigation links
-interface NavLinkProps {
-  href: string;
-  label: string;
-}
-
-const NavLink: React.FC<NavLinkProps> = ({ href, label }) => {
-  // Use client-side navigation
-  const router = useRouter();
-  const isActive = typeof window !== 'undefined' && window.location.pathname === href;
-
-  return (
-    <div
-      onClick={() => router.push(href)}
-      className={`relative px-2 py-1 cursor-pointer hover:text-red-400 transition-colors ${
-        isActive ? 'text-red-400' : 'text-white'
-      }`}
-    >
-      {label}
-      {isActive && (
-        <motion.div
-          className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500"
-          layoutId="navIndicator"
-        />
-      )}
-    </div>
-  );
-};
-
-// Helper component for mobile navigation
-interface MobileNavLinkProps {
-  icon: React.ReactNode;
-  label: string;
-  href?: string;
-  onClick?: () => void;
-}
-
-const MobileNavLink: React.FC<MobileNavLinkProps> = ({ icon, label, href, onClick }) => {
-  const router = useRouter();
-  
-  const handleClick = () => {
-    if (onClick) onClick();
-    if (href) router.push(href);
-  };
-  
-  return (
-    <motion.div
-      className="flex items-center gap-4 py-3 px-2"
-      whileHover={{ x: 5, backgroundColor: "rgba(255,255,255,0.05)" }}
-      whileTap={{ scale: 0.98 }}
-      onClick={handleClick}
-    >
-      <div className="text-red-400">{icon}</div>
-      <span className="text-lg">{label}</span>
-    </motion.div>
   );
 };
 
