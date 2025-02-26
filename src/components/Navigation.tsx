@@ -14,15 +14,19 @@ const Navigation: React.FC<NavigationProps> = ({ isLoggedIn = false }) => {
   const router = useRouter();
   const { resetOnboarding } = useOnboarding();
   
-  // Check localStorage on component mount to determine login status
+  // Start with a definitive authStatus value - either from props or false
   const [authStatus, setAuthStatus] = useState(isLoggedIn);
   
+  // Use a second state variable to track if we've checked localStorage
+  // This prevents any flash of incorrect UI
+  const [hasCheckedStorage, setHasCheckedStorage] = useState(false);
+  
+  // Force immediate check of localStorage on client side
   useEffect(() => {
-    // Check if user is logged in from localStorage when component mounts
-    const storedLoginStatus = localStorage.getItem('isLoggedIn');
-    if (storedLoginStatus === 'true') {
-      setAuthStatus(true);
-    }
+    // This will only run on the client
+    const storedLoginStatus = localStorage.getItem('isLoggedIn') === 'true';
+    setAuthStatus(storedLoginStatus);
+    setHasCheckedStorage(true);
   }, []);
   
   const handleLogout = () => {
@@ -41,6 +45,7 @@ const Navigation: React.FC<NavigationProps> = ({ isLoggedIn = false }) => {
     router.push('/dashboard');
   };
   
+  // Only render once we've checked localStorage
   return (
     <div className="sticky top-0 z-50 bg-black bg-opacity-80 backdrop-blur-sm border-b">
       <div className="flex justify-between items-center p-4 max-w-7xl mx-auto">
@@ -55,45 +60,64 @@ const Navigation: React.FC<NavigationProps> = ({ isLoggedIn = false }) => {
         </motion.h1>
         
         <div className="flex items-center gap-4">
-          {authStatus ? (
+          {authStatus && (
             <>
-              {/* User is logged in - show dashboard + logout with highly specific styling */}
-              <motion.button
-                onClick={goToDashboard}
-                style={{ color: 'white' }} // Inline style for maximum specificity
-                className="px-3 py-1 md:px-4 md:py-2 border border-white rounded flex items-center gap-2 text-sm md:text-base text-white font-bold bg-black hover:bg-gray-900"
-                whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)", borderColor: "#FF4444" }}
-                whileTap={{ scale: 0.95 }}
+              {/* Always render dashboard button with maximum visibility guarantees */}
+              <a 
+                href="/dashboard"
+                onClick={(e) => {
+                  e.preventDefault();
+                  goToDashboard();
+                }}
+                className="px-3 py-1 md:px-4 md:py-2 border-2 border-white rounded flex items-center gap-2 text-white font-bold"
+                style={{ 
+                  color: 'white', 
+                  backgroundColor: '#000',
+                  borderColor: '#FFF',
+                  boxShadow: '0 0 0 1px white',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
               >
-                <span style={{ color: 'white' }}>Dashboard</span> <User className="h-4 w-4 text-white" />
-              </motion.button>
+                <span style={{ color: 'white', fontWeight: 'bold' }}>Dashboard</span>
+                <User color="white" size={16} />
+              </a>
               
-              <motion.button
-                onClick={handleLogout}
-                style={{ color: 'white' }} // Inline style for maximum specificity
-                className="px-3 py-1 md:px-4 md:py-2 border border-white rounded flex items-center gap-2 text-sm md:text-base text-white bg-black hover:bg-gray-900"
-                whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)", borderColor: "#FF4444" }}
-                whileTap={{ scale: 0.95 }}
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleLogout();
+                }}
+                className="px-3 py-1 md:px-4 md:py-2 border-2 border-white rounded flex items-center gap-2 text-white"
+                style={{ 
+                  color: 'white', 
+                  backgroundColor: '#000',
+                  borderColor: '#FFF',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
               >
-                <span style={{ color: 'white' }}>Logout</span> <LogOut className="h-4 w-4 text-white" />
-              </motion.button>
+                <span style={{ color: 'white' }}>Logout</span>
+                <LogOut color="white" size={16} />
+              </a>
             </>
-          ) : (
-            <>
-              {/* User is not logged in - show join button */}
-              <motion.button
-                onClick={handleLogin}
-                style={{ color: 'white' }} // Inline style for maximum specificity
-                className="px-3 py-1 md:px-6 md:py-2 border border-red-500 rounded flex items-center gap-2 text-sm md:text-base text-white"
-                whileHover={{ scale: 1.05, backgroundColor: "rgba(255,68,68,0.1)" }}
-                whileTap={{ scale: 0.95 }}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              >
-                <span style={{ color: 'white' }}>Join as Creator</span> <ArrowUpRight className="h-4 w-4 text-white" />
-              </motion.button>
-            </>
+          )}
+          
+          {!authStatus && (
+            <motion.button
+              onClick={handleLogin}
+              className="px-3 py-1 md:px-6 md:py-2 border-2 border-red-500 rounded flex items-center gap-2 text-white"
+              style={{ color: 'white', backgroundColor: '#000' }}
+              whileHover={{ scale: 1.05, backgroundColor: "rgba(255,68,68,0.1)" }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
+              <span style={{ color: 'white' }}>Join as Creator</span>
+              <ArrowUpRight color="white" size={16} />
+            </motion.button>
           )}
         </div>
       </div>
