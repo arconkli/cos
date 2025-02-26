@@ -351,7 +351,10 @@ const OnboardingPage: React.FC = () => {
             
             <div className="mt-5 pt-5 border-t border-gray-700">
               <motion.button
-                onClick={() => handleChange(true, 'skipPayment')}
+                onClick={() => {
+                  handleChange(true, 'skipPayment');
+                  handleComplete(); // Immediately complete onboarding
+                }}
                 className="w-full p-3 border border-gray-600 rounded-lg text-gray-400 font-medium hover:text-white flex items-center justify-center gap-2"
                 whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                 whileTap={{ scale: 0.98 }}
