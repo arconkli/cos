@@ -33,10 +33,13 @@ const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
   
   // Check if this is the user's first visit
   useEffect(() => {
-    if (autoShow) {
+    // Only run on client-side
+    if (typeof window !== 'undefined' && autoShow) {
       const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding');
+      const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
       
-      if (!hasCompletedOnboarding) {
+      // Don't show onboarding if the user is already logged in
+      if (!hasCompletedOnboarding && !isLoggedIn) {
         // Show onboarding after a brief delay to let the page load
         const timer = setTimeout(() => {
           setShowOnboarding(true);
@@ -49,14 +52,18 @@ const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
   
   // Mark onboarding as complete
   const completeOnboarding = () => {
-    localStorage.setItem('hasCompletedOnboarding', 'true');
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('hasCompletedOnboarding', 'true');
+    }
     setShowOnboarding(false);
   };
   
-  // Reset onboarding (for testing)
+  // Reset onboarding (for testing or when user clicks "How It Works")
   const resetOnboarding = () => {
-    localStorage.removeItem('hasCompletedOnboarding');
-    setShowOnboarding(true);
+    if (typeof window !== 'undefined') {
+      // We don't remove the completed flag, just force the onboarding to show
+      setShowOnboarding(true);
+    }
   };
   
   return (

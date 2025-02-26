@@ -5,7 +5,7 @@ import {
   X, ArrowRight, ArrowLeft, Check, Zap,
   Eye, DollarSign, Building, Users, ArrowUpRight
 } from 'lucide-react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 // Onboarding steps data
 const steps = [
@@ -91,7 +91,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onSkip }) => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      onComplete();
+      handleComplete();
     }
   };
   
@@ -123,7 +123,18 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onSkip }) => {
   
   const handleComplete = () => {
     // Here you would typically submit the form data to your backend
-    console.log('Form data submitted:', formData);
+    // For demo, we'll just store in localStorage as a user object
+    const userData = {
+      name: formData.name || 'Demo User',
+      email: formData.email || 'demo@create-os.com',
+      platforms: Object.entries(formData.platforms)
+        .filter(([_, enabled]) => enabled)
+        .map(([platform]) => platform)
+    };
+    
+    localStorage.setItem('userData', JSON.stringify(userData));
+    localStorage.setItem('isLoggedIn', 'true');
+    
     onComplete();
     router.push('/dashboard');
   };
@@ -146,7 +157,6 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onSkip }) => {
             onChange={handleChange}
             className="w-full p-3 bg-transparent border rounded focus:border-red-500 outline-none transition-colors"
             placeholder="Enter your name"
-            required
           />
         </div>
         
@@ -159,7 +169,6 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onSkip }) => {
             onChange={handleChange}
             className="w-full p-3 bg-transparent border rounded focus:border-red-500 outline-none transition-colors"
             placeholder="your@email.com"
-            required
           />
         </div>
         
@@ -172,7 +181,6 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onSkip }) => {
             onChange={handleChange}
             className="w-full p-3 bg-transparent border rounded focus:border-red-500 outline-none transition-colors"
             placeholder="••••••••"
-            required
           />
         </div>
         
@@ -185,7 +193,6 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onSkip }) => {
             onChange={handleChange}
             className="w-full p-3 bg-transparent border rounded focus:border-red-500 outline-none transition-colors"
             placeholder="••••••••"
-            required
           />
         </div>
         
@@ -331,12 +338,16 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onSkip }) => {
               transition={{ duration: 0.4 }}
             >
               {currentStep === 0 && (
-                <motion.img 
-                  src="/api/placeholder/500/300" 
-                  alt="Platform Overview" 
-                  className="rounded-lg border border-white border-opacity-20 max-w-full h-auto"
+                <motion.div
+                  className="w-full flex justify-center" 
                   whileHover={{ scale: 1.02 }}
-                />
+                >
+                  <img 
+                    src="/api/placeholder/500/300" 
+                    alt="Platform Overview" 
+                    className="rounded-lg border border-white border-opacity-20 max-w-full h-auto"
+                  />
+                </motion.div>
               )}
               
               {currentStep === 1 && (

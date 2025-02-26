@@ -1,7 +1,7 @@
-// page.tsx
+// src/app/page.tsx
 'use client';
 
-import React, { useState, useEffect, memo, lazy, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   XIcon, ArrowUpRight, Zap, Eye, DollarSign, 
@@ -9,6 +9,10 @@ import {
   Twitter, Youtube, Instagram, Clock
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import Navigation from '@/components/Navigation';
+import LoginModal from '@/components/LoginModal';
+import { useRouter } from 'next/navigation';
+import { useOnboarding } from '@/components/OnboardingProvider';
 
 // Sample data for the growth chart with enhanced structure
 const growthData = [
@@ -117,6 +121,37 @@ const AnimatedNumber = ({ value, label }: { value: string; label: string }) => {
 
 // Campaign Modal Component with improved animations
 function CampaignModal({ campaign, onClose }: CampaignModalProps) {
+  const router = useRouter();
+  
+  // Add effect to handle ESC key
+  useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => {
+      window.removeEventListener('keydown', handleEsc);
+    };
+  }, [onClose]);
+  
+  const handleApply = () => {
+    // Check if user is logged in
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    
+    if (isLoggedIn) {
+      // Redirect to dashboard if logged in
+      router.push('/dashboard');
+    } else {
+      // Close the modal and open login
+      onClose();
+      // This should be handled by the parent component
+      // which should open the login modal
+      document.dispatchEvent(new CustomEvent('openLogin'));
+    }
+  };
+
   return (
     <AnimatePresence>
       <motion.div
@@ -124,6 +159,7 @@ function CampaignModal({ campaign, onClose }: CampaignModalProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
+        onClick={onClose} // Close when clicking outside
       >
         <motion.div
           className="border p-6 rounded-lg w-full max-w-md relative bg-black"
@@ -131,6 +167,7 @@ function CampaignModal({ campaign, onClose }: CampaignModalProps) {
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.8, y: 20 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
         >
           <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
           
@@ -187,7 +224,7 @@ function CampaignModal({ campaign, onClose }: CampaignModalProps) {
           
           <motion.button
             className="mt-6 border px-6 py-2 rounded w-full flex items-center justify-center gap-2"
-            onClick={onClose}
+            onClick={handleApply}
             whileHover={{ backgroundColor: "rgba(255,255,255,0.1)", borderColor: "#FF4444" }}
             whileTap={{ scale: 0.98 }}
           >
@@ -200,134 +237,45 @@ function CampaignModal({ campaign, onClose }: CampaignModalProps) {
   );
 }
 
-// Login modal component
-function LoginModal({ onClose }: { onClose: () => void }) {
-  return (
-    <motion.div
-      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm z-50 p-4"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      <motion.div
-        className="border p-6 md:p-8 rounded-lg w-full max-w-md relative bg-black overflow-hidden"
-        initial={{ scale: 0.8, y: 20 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.8, y: 20 }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      >
-        <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl" />
-        
-        <motion.h2 
-          className="text-2xl font-bold mb-6"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          Login to CREATE_OS
-        </motion.h2>
-        
-        <form className="space-y-4">
-          <motion.div
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <label className="block mb-2 text-sm">Email</label>
-            <input
-              type="email"
-              className="w-full p-2 border rounded bg-transparent"
-              placeholder="your@email.com"
-            />
-          </motion.div>
-          
-          <motion.div
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <label className="block mb-2 text-sm">Password</label>
-            <input
-              type="password"
-              className="w-full p-2 border rounded bg-transparent"
-              placeholder="••••••••"
-            />
-          </motion.div>
-          
-          <motion.button
-            type="submit"
-            className="w-full py-3 border rounded flex items-center justify-center gap-2"
-            whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)", borderColor: "#FF4444" }}
-            whileTap={{ scale: 0.98 }}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-          >
-            Login <ArrowUpRight className="h-4 w-4" />
-          </motion.button>
-        </form>
-        
-        <motion.div 
-          className="mt-4 flex justify-between items-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-        >
-          <motion.button
-            className="text-sm hover:underline"
-            onClick={onClose}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Cancel
-          </motion.button>
-          <motion.button 
-            className="text-sm hover:underline"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Forgot Password?
-          </motion.button>
-        </motion.div>
-      </motion.div>
-    </motion.div>
-  );
-}
-
 // Main HomePage component
 export default function HomePage() {
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [showLogin, setShowLogin] = useState(false);
+  const router = useRouter();
+  const { resetOnboarding } = useOnboarding();
+  
+  // Check login status on component mount
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
+  useEffect(() => {
+    // Check if user is logged in from localStorage
+    const loginStatus = localStorage.getItem('isLoggedIn') === 'true';
+    setIsLoggedIn(loginStatus);
+    
+    // Listen for custom event to open login modal from campaign modal
+    const handleOpenLogin = () => setShowLogin(true);
+    document.addEventListener('openLogin', handleOpenLogin);
+    
+    return () => {
+      document.removeEventListener('openLogin', handleOpenLogin);
+    };
+  }, []);
+  
+  const handleJoinCreator = () => {
+    if (isLoggedIn) {
+      router.push('/dashboard');
+    } else {
+      resetOnboarding();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black relative">
       <BackgroundPattern />
       
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-50 bg-black bg-opacity-80 backdrop-blur-sm border-b">
-        <div className="flex justify-between items-center p-4 max-w-7xl mx-auto">
-          <motion.h1 
-            className="text-2xl md:text-4xl font-bold"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          >
-            CREATE_OS
-          </motion.h1>
-          <motion.button
-            onClick={() => setShowLogin(true)}
-            className="px-3 py-1 md:px-4 md:py-2 border rounded flex items-center gap-2 text-sm md:text-base"
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)", borderColor: "#FF4444" }}
-            whileTap={{ scale: 0.95 }}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          >
-            Login <ArrowUpRight className="h-4 w-4" />
-          </motion.button>
-        </div>
-      </div>
-
+      {/* Navigation */}
+      <Navigation isLoggedIn={isLoggedIn} />
+      
       {/* Business Campaign Banner */}
       <motion.div
         className="bg-gradient-to-r from-indigo-900 to-orange-900 p-4 md:p-6 relative"
@@ -353,6 +301,7 @@ export default function HomePage() {
             className="px-6 py-2 bg-white text-black rounded-full font-medium flex items-center gap-2 w-full md:w-auto justify-center"
             whileHover={{ scale: 1.05, boxShadow: "0 0 15px rgba(255,255,255,0.3)" }}
             whileTap={{ scale: 0.95 }}
+            onClick={() => router.push('/dashboard')}
           >
             Start a Campaign <ArrowUpRight className="h-4 w-4" />
           </motion.button>
@@ -366,6 +315,7 @@ export default function HomePage() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
+          id="hero"
         >
           <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl" />
           <motion.div
@@ -415,6 +365,7 @@ export default function HomePage() {
               {/* Main button */}
               <button 
                 className="relative w-auto px-8 py-4 rounded-lg bg-black text-white flex items-center justify-center gap-2 border border-transparent"
+                onClick={handleJoinCreator}
               >
                 <span className="font-bold text-lg">Join as Creator</span>
               </button>
@@ -467,6 +418,7 @@ export default function HomePage() {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
+          id="how-it-works"
         >
           <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
           
@@ -544,6 +496,7 @@ export default function HomePage() {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
+          id="campaigns"
         >
           <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">EXAMPLE CAMPAIGNS_</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
@@ -628,6 +581,7 @@ export default function HomePage() {
               className="px-6 py-3 border rounded-full inline-flex items-center gap-2"
               whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)" }}
               whileTap={{ scale: 0.98 }}
+              onClick={() => isLoggedIn ? router.push('/dashboard') : setShowLogin(true)}
             >
               Browse All Campaigns <ArrowUpRight className="h-4 w-4" />
             </motion.button>
@@ -707,6 +661,7 @@ export default function HomePage() {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
+          id="creator"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-blue-900 to-red-900 opacity-20 rounded-lg"></div>
           <div className="border rounded-lg relative z-10">
@@ -737,7 +692,7 @@ export default function HomePage() {
                       <Instagram className="h-4 w-4 text-blue-400" />
                     </div>
                     <div className="p-1 rounded-full border border-cyan-500">
-                      <svg className="h-4 w-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16.5 7.3c-.4-.1-.8-.1-1.2-.1-3 0-5.6 2-6.7 4.7-.3.7-.4 1.5-.4 2.3 0 3.3 2.7 6 6 6 .8 0 1.6-.1 2.3-.4.8-.3 1.5-.8 2-1.3.1-.1.1-.3.2-.4V9.9c0-.1 0-.3-.1-.4-.5-2.2-2.4-3.8-4.7-3.8-.4 0-.8 0-1.2.1-.3.1-.7.2-1 .4-.2.2-.4.4-.5.7-.1.3-.2.7-.2 1 0 1.4 1 2.6 2.4 2.6h.1V15c-.9 0-1.7-.1-2.5-.4-1.7-.6-3-2-3.6-3.7-.2-.6-.3-1.3-.3-2 0-1.5.5-2.9 1.4-4C7 3 8.4 2.3 9.9 2.1c1.5-.2 3.1 0 4.5.7 1.3.6 2.4 1.7 3 3 .1.1.2.2.3.2.1.1.3.1.4.1l.1-.1c.4-.4.6-.9.8-1.4.1-.5.2-1.1.1-1.6 0-.1-.1-.2-.3-.2zm-.5 11.1c-.1.2-.4.3-.6.3-1.7 0-3.1-1.4-3.1-3.1 0-.2.1-.4.3-.6.1-.1.3-.2.5-.1 1.7 0 3.1 1.4 3.1 3.1 0 .2-.1.4-.3.6 0 .1-.1.1-.2.1z"/></svg>
+                      <svg className="h-4 w-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16.5 7.3c-.4-.1-.8-.1-1.2-.1-3 0-5.6 2-6.7 4.7-.3.7-.4 1.5-.4 2.3 0 3.3 2.7 6 6 6 .8 0 1.6-.1 2.3-.4.8-.3 1.5-.8 2-1.3.1-.1.1-.3.2-.4V9.9c0-.1 0-.3-.1-.4-.5-2.2-2.4-3.8-4.7-3.8-.4 0-.8 0-1.2.1-.3.1-.7.2-1 .4-.2.2-.4.4-.5.7-.1.3-.2.7-.2 1 0 1.4 1 2.6 2.4 2.6h.1V15c-.9 0-1.7-.1-2.5-.4-1.7-.6-3-2-3.6-3.7-.2-.6-.3-1.3-.3-2 0-1.5.5-2.9 1.4-4C7 3 8.4 2.3 9.9 2.1c1.5-.2 3.1 0 4.5.7 1.3.6 2.4 1.7 3 3 .1.1.2.2.3.2.1.1.3.1.4.1l.1-.1c.4-.4.6-.9.8-1.4.1-.5.2-1.1.1-1.6 0-.1-.1-.2-.3-.2z"/><path d="M16 18.4c-.1.2-.4.3-.6.3-1.7 0-3.1-1.4-3.1-3.1 0-.2.1-.4.3-.6.1-.1.3-.2.5-.1 1.7 0 3.1 1.4 3.1 3.1 0 .2-.1.4-.3.6 0 .1-.1.1-.2.1z"/></svg>
                     </div>
                     <div className="p-1 rounded-full border border-red-500">
                       <Youtube className="h-4 w-4 text-red-400" />
@@ -784,6 +739,7 @@ export default function HomePage() {
                       className="px-4 py-2 border rounded flex items-center justify-center gap-2"
                       whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
                       whileTap={{ scale: 0.98 }}
+                      onClick={() => isLoggedIn ? router.push('/dashboard') : setShowLogin(true)}
                     >
                       View Creator Profile <ArrowUpRight className="h-4 w-4" />
                     </motion.button>
@@ -791,6 +747,7 @@ export default function HomePage() {
                       className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 border-none rounded flex items-center justify-center gap-2"
                       whileHover={{ scale: 1.02, boxShadow: "0 0 15px rgba(66,135,245,0.5)" }}
                       whileTap={{ scale: 0.98 }}
+                      onClick={handleJoinCreator}
                     >
                       Become a Creator <Zap className="h-4 w-4" />
                     </motion.button>

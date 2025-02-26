@@ -1,6 +1,6 @@
 // src/components/Navigation.tsx
-import React, { useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Zap, LogOut, Home, BarChart2, User, Settings, ArrowUpRight, Building } from 'lucide-react';
@@ -13,22 +13,34 @@ interface NavigationProps {
 const Navigation: React.FC<NavigationProps> = ({ isLoggedIn = false }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
-  const pathname = usePathname();
   const { resetOnboarding } = useOnboarding();
+  
+  // Check localStorage on component mount to determine login status
+  const [authStatus, setAuthStatus] = useState(isLoggedIn);
+  
+  useEffect(() => {
+    // Check if user is logged in from localStorage when component mounts
+    const storedLoginStatus = localStorage.getItem('isLoggedIn');
+    if (storedLoginStatus === 'true') {
+      setAuthStatus(true);
+    }
+  }, []);
   
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
   
   const handleLogout = () => {
-    // Here you would normally clear authentication tokens
+    // Clear authentication tokens
     localStorage.removeItem('isLoggedIn');
+    setAuthStatus(false);
     router.push('/');
   };
 
   const handleLogin = () => {
     // For demo purposes, set logged in state
     localStorage.setItem('isLoggedIn', 'true');
+    setAuthStatus(true);
     router.push('/dashboard');
   };
   
@@ -47,13 +59,13 @@ const Navigation: React.FC<NavigationProps> = ({ isLoggedIn = false }) => {
           </motion.h1>
           
           <div className="flex items-center gap-4">
-            {isLoggedIn ? (
+            {authStatus ? (
               <>
                 <div className="hidden md:flex items-center gap-4">
-                  <NavLink href="/dashboard" isActive={pathname === '/dashboard'}>Dashboard</NavLink>
-                  <NavLink href="/campaigns" isActive={pathname === '/campaigns'}>Campaigns</NavLink>
-                  <NavLink href="/analytics" isActive={pathname === '/analytics'}>Analytics</NavLink>
-                  <NavLink href="/settings" isActive={pathname === '/settings'}>Settings</NavLink>
+                  <NavLink href="/dashboard" label="Dashboard" />
+                  <NavLink href="/campaigns" label="Campaigns" />
+                  <NavLink href="/analytics" label="Analytics" />
+                  <NavLink href="/settings" label="Settings" />
                 </div>
                 
                 <motion.button
@@ -133,7 +145,7 @@ const Navigation: React.FC<NavigationProps> = ({ isLoggedIn = false }) => {
             transition={{ duration: 0.3 }}
           >
             <div className="flex flex-col p-6 space-y-6">
-              {isLoggedIn ? (
+              {authStatus ? (
                 <>
                   <MobileNavLink 
                     icon={<Home />} 
@@ -144,19 +156,19 @@ const Navigation: React.FC<NavigationProps> = ({ isLoggedIn = false }) => {
                   <MobileNavLink 
                     icon={<Zap />} 
                     label="Campaigns" 
-                    href="/campaigns" 
+                    href="/dashboard" 
                     onClick={() => setIsMenuOpen(false)}
                   />
                   <MobileNavLink 
                     icon={<BarChart2 />} 
                     label="Analytics" 
-                    href="/analytics" 
+                    href="/dashboard" 
                     onClick={() => setIsMenuOpen(false)}
                   />
                   <MobileNavLink 
                     icon={<Settings />} 
                     label="Settings" 
-                    href="/settings" 
+                    href="/dashboard" 
                     onClick={() => setIsMenuOpen(false)}
                   />
                   <div className="pt-6 border-t border-white border-opacity-20">
@@ -218,18 +230,22 @@ const Navigation: React.FC<NavigationProps> = ({ isLoggedIn = false }) => {
 // Helper component for navigation links
 interface NavLinkProps {
   href: string;
-  isActive: boolean;
-  children: React.ReactNode;
+  label: string;
 }
 
-const NavLink: React.FC<NavLinkProps> = ({ href, isActive, children }) => (
-  <Link href={href} passHref>
+const NavLink: React.FC<NavLinkProps> = ({ href, label }) => {
+  // Use client-side navigation
+  const router = useRouter();
+  const isActive = typeof window !== 'undefined' && window.location.pathname === href;
+
+  return (
     <div
+      onClick={() => router.push(href)}
       className={`relative px-2 py-1 cursor-pointer hover:text-red-400 transition-colors ${
         isActive ? 'text-red-400' : 'text-white'
       }`}
     >
-      {children}
+      {label}
       {isActive && (
         <motion.div
           className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500"
@@ -237,8 +253,8 @@ const NavLink: React.FC<NavLinkProps> = ({ href, isActive, children }) => (
         />
       )}
     </div>
-  </Link>
-);
+  );
+};
 
 // Helper component for mobile navigation
 interface MobileNavLinkProps {
@@ -249,23 +265,24 @@ interface MobileNavLinkProps {
 }
 
 const MobileNavLink: React.FC<MobileNavLinkProps> = ({ icon, label, href, onClick }) => {
-  const content = (
+  const router = useRouter();
+  
+  const handleClick = () => {
+    if (onClick) onClick();
+    if (href) router.push(href);
+  };
+  
+  return (
     <motion.div
       className="flex items-center gap-4 py-3 px-2"
       whileHover={{ x: 5, backgroundColor: "rgba(255,255,255,0.05)" }}
       whileTap={{ scale: 0.98 }}
-      onClick={onClick}
+      onClick={handleClick}
     >
       <div className="text-red-400">{icon}</div>
       <span className="text-lg">{label}</span>
     </motion.div>
   );
-  
-  if (href) {
-    return <Link href={href}>{content}</Link>;
-  }
-  
-  return content;
 };
 
 export default Navigation;
