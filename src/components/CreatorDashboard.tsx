@@ -569,37 +569,7 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
           >
             <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
             
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-bold mb-4">Add Payment Method</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <motion.button
-                  className="border p-4 rounded-lg flex items-center gap-4"
-                  whileHover={{ scale: 1.01, backgroundColor: "rgba(255,255,255,0.05)" }}
-                >
-                  <CreditCard className="h-6 w-6" />
-                  <div className="text-left">
-                    <p className="font-medium">Add Bank Account</p>
-                    <p className="text-sm opacity-70">Connect directly to your bank</p>
-                  </div>
-                </motion.button>
-                
-                <motion.button
-                  className="border p-4 rounded-lg flex items-center gap-4"
-                  whileHover={{ scale: 1.01, backgroundColor: "rgba(255,255,255,0.05)" }}
-                >
-                  <svg className="h-6 w-6 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M7.144 19.532l1.049-5.751A5.978 5.978 0 016.3 10.286c0-3.316 2.694-6 6.022-6 3.328 0 6.022 2.684 6.022 6 0 3.316-2.694 6-6.022 6-1.269 0-2.447-.395-3.41-1.059l-6.051 1.343a.391.391 0 01-.448-.432l.732-2.606z" />
-                  </svg>
-                  <div className="text-left">
-                    <p className="font-medium">Add PayPal</p>
-                    <p className="text-sm opacity-70">Link your PayPal account</p>
-                  </div>
-                </motion.button>
-              </div>
-            </div>
-            
-            <div className="mt-8 pt-8 border-t">
+            <div>
               <h3 className="text-lg md:text-xl font-bold">Campaign Details</h3>
               
               <div className="flex items-center gap-2">
@@ -1801,7 +1771,7 @@ const ImprovedSettingsView = () => {
                         whileHover={{ backgroundColor: "rgba(255,0,0,0.1)", borderColor: "rgba(255,0,0,0.5)" }}
                       >
                         Disconnect
-                        </motion.button>
+                      </motion.button>
                     </div>
                   </motion.div>
                 );
@@ -1816,143 +1786,145 @@ const ImprovedSettingsView = () => {
                   className="px-4 py-2 border rounded inline-flex items-center gap-2"
                   whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
                   whileTap={{ scale: 0.98 }}
-                ><Zap className="h-4 w-4" />
-                Connect New Platform
-              </motion.button>
-            </motion.div>
-          </div>
-        </motion.div>
-      );
+                >
+                  <Zap className="h-4 w-4" />
+                  Connect New Platform
+                </motion.button>
+              </motion.div>
+            </div>
+          </motion.div>
+        );
     
-    case 'payments':
-      return (
-        <motion.div
-          key="payments-settings"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-        >
-          <h2 className="text-xl font-bold mb-6">Payment Methods</h2>
-          
-          <div className="space-y-4">
-            {defaultUserProfile.paymentMethods.map((method, index) => (
-              <motion.div
-                key={index}
-                className="border p-4 rounded-lg"
-                whileHover={{ scale: 1.01, borderColor: method.default ? "#31a952" : "#FFFFFF" }}
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <CreditCard className="h-5 w-5" />
-                  <div>
-                    <p className="font-medium">
-                      {method.type === 'bank' ? `Bank Account ****${method.last4}` : `PayPal ${method.email}`}
-                    </p>
-                    {method.default && (
-                      <span className="text-xs bg-green-900 bg-opacity-30 text-green-400 px-2 py-0.5 rounded-full">
-                        Default
-                      </span>
-                    )}
+      case 'payments':
+        return (
+          <motion.div
+            key="payments-settings"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <h2 className="text-xl font-bold mb-6">Payment Methods</h2>
+            
+            <div className="space-y-4">
+              {defaultUserProfile.paymentMethods.map((method, index) => (
+                <motion.div
+                  key={index}
+                  className="border p-4 rounded-lg"
+                  whileHover={{ scale: 1.01, borderColor: method.default ? "#31a952" : "#FFFFFF" }}
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <CreditCard className="h-5 w-5" />
+                    <div>
+                      <p className="font-medium">
+                        {method.type === 'bank' ? `Bank Account ****${method.last4}` : `PayPal ${method.email}`}
+                      </p>
+                      {method.default && (
+                        <span className="text-xs bg-green-900 bg-opacity-30 text-green-400 px-2 py-0.5 rounded-full">
+                          Default
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="flex gap-2 flex-wrap">
+                  <div className="flex gap-2 flex-wrap">
                   <motion.button
-                    className="px-3 py-1 border rounded text-sm"
-                    whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                    onClick={() => handlePaymentMethodAction(method, index)}
-                  >
-                    Edit
-                  </motion.button>
-                  {!method.default && (
-                    <motion.button
                       className="px-3 py-1 border rounded text-sm"
                       whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
                       onClick={() => handlePaymentMethodAction(method, index)}
                     >
-                      Make Default
+                      Edit
                     </motion.button>
-                  )}
-                  <motion.button
-                    className="px-3 py-1 border rounded text-sm"
-                    whileHover={{ backgroundColor: "rgba(255,0,0,0.1)", borderColor: "rgba(255,0,0,0.5)" }}
-                    onClick={() => handlePaymentMethodAction(method, index)}
-                  >
-                    Remove
-                  </motion.button>
-                </div>
-              </motion.div>
-            ))}
-            
-            <div>
-              <h3 className="text-lg font-bold mb-4">Add Payment Method</h3>
-              
-              <div className="grid grid-cols-1 gap-4">
-                <motion.button
-                  className="border p-4 rounded-lg flex items-center gap-4"
-                  whileHover={{ scale: 1.01, backgroundColor: "rgba(255,255,255,0.05)" }}
-                >
-                  <CreditCard className="h-6 w-6" />
-                  <div className="text-left">
-                    <p className="font-medium">Add Bank Account</p>
-                    <p className="text-sm opacity-70">Connect directly to your bank</p>
+                    {!method.default && (
+                      <motion.button
+                        className="px-3 py-1 border rounded text-sm"
+                        whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                        onClick={() => handlePaymentMethodAction(method, index)}
+                      >
+                        Make Default
+                      </motion.button>
+                    )}
+                    <motion.button
+                      className="px-3 py-1 border rounded text-sm"
+                      whileHover={{ backgroundColor: "rgba(255,0,0,0.1)", borderColor: "rgba(255,0,0,0.5)" }}
+                      onClick={() => handlePaymentMethodAction(method, index)}
+                    >
+                      Remove
+                    </motion.button>
                   </div>
-                </motion.button>
-                
-                <motion.button
-                  className="border p-4 rounded-lg flex items-center gap-4"
-                  whileHover={{ scale: 1.01, backgroundColor: "rgba(255,255,255,0.05)" }}
-                >
-                  <svg className="h-6 w-6 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M7.144 19.532l1.049-5.751A5.978 5.978 0 016.3 10.286c0-3.316 2.694-6 6.022-6 3.328 0 6.022 2.684 6.022 6 0 3.316-2.694 6-6.022 6-1.269 0-2.447-.395-3.41-1.059l-6.051 1.343a.391.391 0 01-.448-.432l.732-2.606z" />
-                  </svg>
-                  <div className="text-left">
-                    <p className="font-medium">Add PayPal</p>
-                    <p className="text-sm opacity-70">Link your PayPal account</p>
-                  </div>
-                </motion.button>
-              </div>
-            </div>
-            
-            <div className="mt-6 pt-6 border-t">
-              <h3 className="text-lg font-bold mb-4">Payout Preferences</h3>
+                </motion.div>
+              ))}
               
               <div>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm opacity-70 mb-1">Minimum Payout Amount</label>
-                    <select className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors">
-                      <option>$50</option>
-                      <option>$100</option>
-                      <option>$250</option>
-                      <option>$500</option>
-                    </select>
-                  </div>
+                <h3 className="text-lg font-bold mb-4">Add Payment Method</h3>
+                
+                <div className="grid grid-cols-1 gap-4">
+                  <motion.button
+                    className="border p-4 rounded-lg flex items-center gap-4"
+                    whileHover={{ scale: 1.01, backgroundColor: "rgba(255,255,255,0.05)" }}
+                  >
+                    <CreditCard className="h-6 w-6" />
+                    <div className="text-left">
+                      <p className="font-medium">Add Bank Account</p>
+                      <p className="text-sm opacity-70">Connect directly to your bank</p>
+                    </div>
+                  </motion.button>
                   
-                  <div>
-                    <label className="block text-sm opacity-70 mb-1">Payout Frequency</label>
-                    <select className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors">
-                      <option>Monthly (15th)</option>
-                      <option>Bi-weekly</option>
-                      <option>Weekly</option>
-                    </select>
-                  </div>
-                  
-                  <div className="pt-4">
-                    <motion.button
-                      className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded font-bold"
-                      whileHover={{ scale: 1.02, boxShadow: "0 0 10px rgba(255,68,68,0.5)" }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      Save Preferences
-                    </motion.button>
+                  <motion.button
+                    className="border p-4 rounded-lg flex items-center gap-4"
+                    whileHover={{ scale: 1.01, backgroundColor: "rgba(255,255,255,0.05)" }}
+                  >
+                    <svg className="h-6 w-6 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M7.144 19.532l1.049-5.751A5.978 5.978 0 016.3 10.286c0-3.316 2.694-6 6.022-6 3.328 0 6.022 2.684 6.022 6 0 3.316-2.694 6-6.022 6-1.269 0-2.447-.395-3.41-1.059l-6.051 1.343a.391.391 0 01-.448-.432l.732-2.606z" />
+                    </svg>
+                    <div className="text-left">
+                      <p className="font-medium">Add PayPal</p>
+                      <p className="text-sm opacity-70">Link your PayPal account</p>
+                    </div>
+                  </motion.button>
+                </div>
+              </div>
+              
+              <div className="mt-6 pt-6 border-t">
+                <h3 className="text-lg font-bold mb-4">Payout Preferences</h3>
+                
+                <div>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm opacity-70 mb-1">Minimum Payout Amount</label>
+                      <select className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors">
+                        <option>$50</option>
+                        <option>$100</option>
+                        <option>$250</option>
+                        <option>$500</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm opacity-70 mb-1">Payout Frequency</label>
+                      <select className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors">
+                        <option>Monthly (15th)</option>
+                        <option>Bi-weekly</option>
+                        <option>Weekly</option>
+                      </select>
+                    </div>
+                    
+                    <div className="pt-4">
+                      <motion.button
+                        className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded font-bold"
+                        whileHover={{ scale: 1.02, boxShadow: "0 0 10px rgba(255,68,68,0.5)" }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        Save Preferences
+                      </motion.button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </motion.div>
-      );
-    
-      return null;
+          </motion.div>
+        );
+      
+      default:
+        return null;
     }
   };
 
@@ -1978,119 +1950,6 @@ const ImprovedSettingsView = () => {
   );
 };
 
-// ENHANCED DASHBOARD HEADER - with animated title
-const EnhancedDashboardHeader: React.FC<{
-  timeFilter: string;
-  setTimeFilter: (filter: string) => void;
-  handleLogout: () => void;
-}> = memo(({ timeFilter, setTimeFilter, handleLogout }) => {
-  return (
-    <div className="mb-6 md:mb-8">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
-        <div>
-          <h1 className="text-2xl md:text-4xl font-bold mb-2">
-            <span>CREATOR_</span>
-            <motion.span
-              className="inline-block"
-              animate={{ 
-                color: ['#FFFFFF', '#FF4444', '#FFFFFF'],
-                transition: { duration: 3, repeat: Infinity }
-              }}
-            >
-              DASHBOARD
-            </motion.span>
-          </h1>
-          <div className="flex items-center gap-4">
-            <motion.div
-              className="flex items-center gap-2 border px-3 py-1 rounded"
-              whileHover={{ scale: 1.02, borderColor: "#4287f5" }}
-            >
-              <Calendar className="h-4 w-4" />
-              <select
-                className="bg-transparent border-none outline-none text-sm md:text-base"
-                value={timeFilter}
-                onChange={(e) => setTimeFilter(e.target.value)}
-              >
-                <option value="7D">7 Days</option>
-                <option value="1M">1 Month</option>
-                <option value="3M">3 Months</option>
-                <option value="6M">6 Months</option>
-                <option value="1Y">1 Year</option>
-                <option value="ALL">Lifetime</option>
-              </select>
-            </motion.div>
-          </div>
-        </div>
-        {/* Desktop-only logout button */}
-        <div className="hidden md:block">
-          <motion.button
-            className="border px-4 py-2 rounded flex items-center gap-2 text-sm md:text-base"
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)", borderColor: "#FF4444" }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleLogout}
-          >
-            <LogOut className="h-4 w-4" />
-            <span>Logout</span>
-          </motion.button>
-        </div>
-      </div>
-    </div>
-  );
-});
-
-EnhancedDashboardHeader.displayName = 'EnhancedDashboardHeader';
-
-// Mobile logout button and confirmation modal
-const MobileLogoutButton = ({ onClick }: { onClick: () => void }) => (
-  <motion.button
-    className="fixed bottom-6 right-6 z-50 bg-black bg-opacity-70 backdrop-blur-sm shadow-lg rounded-full w-12 h-12 flex items-center justify-center border border-red-500"
-    onClick={onClick}
-    whileHover={{ scale: 1.1, borderColor: "#FF4444" }}
-    whileTap={{ scale: 0.9 }}
-  >
-    <LogOut className="h-5 w-5 text-red-500" />
-  </motion.button>
-);
-
-// Logout confirmation modal
-const LogoutConfirmModal = ({ onConfirm, onCancel }: { onConfirm: () => void, onCancel: () => void }) => (
-  <motion.div
-    className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm z-50 p-4"
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-    onClick={onCancel}
-  >
-    <motion.div
-      className="border p-6 rounded-lg w-full max-w-xs relative bg-black"
-      initial={{ scale: 0.8, y: 20 }}
-      animate={{ scale: 1, y: 0 }}
-      exit={{ scale: 0.8, y: 20 }}
-      onClick={(e) => e.stopPropagation()}
-    >
-      <h3 className="text-lg font-bold mb-4">Log Out</h3>
-      <p className="mb-6">Are you sure you want to log out?</p>
-      <div className="flex gap-3">
-        <motion.button
-          className="flex-1 px-4 py-2 border rounded"
-          onClick={onCancel}
-          whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-        >
-          Cancel
-        </motion.button>
-        <motion.button
-          className="flex-1 px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded"
-          onClick={onConfirm}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          Log Out
-        </motion.button>
-      </div>
-    </motion.div>
-  </motion.div>
-);
-
 // MAIN COMPONENT - CreatorDashboard with all improvements
 export default function CreatorDashboard() {
   const router = useRouter();
@@ -2098,6 +1957,8 @@ export default function CreatorDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | AvailableCampaign | null>(null);
   const [activeView, setActiveView] = useState<'campaigns' | 'analytics' | 'payments' | 'settings'>('campaigns');
+  // For the settings view, we'll maintain a persistent state even when switching tabs
+  const [settingsContent, setSettingsContent] = useState<React.ReactNode | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   
   // Filter available campaigns based on search term
@@ -2110,6 +1971,13 @@ export default function CreatorDashboard() {
       campaign.requirements.platforms.some(platform => platform.toLowerCase().includes(term))
     );
   }, [searchTerm, availableCampaigns]);
+
+  // Store the settings content when it's rendered
+  useEffect(() => {
+    if (activeView === 'settings') {
+      setSettingsContent(<ImprovedSettingsView />);
+    }
+  }, [activeView]);
 
   // Check authentication on component mount
   useEffect(() => {
@@ -2138,11 +2006,56 @@ export default function CreatorDashboard() {
       <BackgroundPattern />
       
       {/* Enhanced Header with animated title */}
-      <EnhancedDashboardHeader 
-        timeFilter={timeFilter} 
-        setTimeFilter={setTimeFilter}
-        handleLogout={() => setShowLogoutConfirm(true)}
-      />
+      <div className="mb-6 md:mb-8">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
+          <div>
+            <h1 className="text-2xl md:text-4xl font-bold mb-2">
+              <span>CREATOR_</span>
+              <motion.span
+                className="inline-block"
+                animate={{ 
+                  color: ['#FFFFFF', '#FF4444', '#FFFFFF'],
+                  transition: { duration: 3, repeat: Infinity }
+                }}
+              >
+                DASHBOARD
+              </motion.span>
+            </h1>
+            <div className="flex items-center gap-4">
+              <motion.div
+                className="flex items-center gap-2 border px-3 py-1 rounded"
+                whileHover={{ scale: 1.02, borderColor: "#4287f5" }}
+              >
+                <Calendar className="h-4 w-4" />
+                <select
+                  className="bg-transparent border-none outline-none text-sm md:text-base"
+                  value={timeFilter}
+                  onChange={(e) => setTimeFilter(e.target.value)}
+                >
+                  <option value="7D">7 Days</option>
+                  <option value="1M">1 Month</option>
+                  <option value="3M">3 Months</option>
+                  <option value="6M">6 Months</option>
+                  <option value="1Y">1 Year</option>
+                  <option value="ALL">Lifetime</option>
+                </select>
+              </motion.div>
+            </div>
+          </div>
+          {/* Desktop-only logout button */}
+          <div className="hidden md:block">
+            <motion.button
+              className="border px-4 py-2 rounded flex items-center gap-2 text-sm md:text-base"
+              whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)", borderColor: "#FF4444" }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowLogoutConfirm(true)}
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Logout</span>
+            </motion.button>
+          </div>
+        </div>
+      </div>
 
       {/* Stats Overview */}
       <StatsOverview totalPendingPayout={totalPendingPayout} />
@@ -2251,23 +2164,61 @@ export default function CreatorDashboard() {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
           >
-            <ImprovedSettingsView />
+            {settingsContent || <ImprovedSettingsView />}
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Mobile-only logout button */}
       <div className="md:hidden">
-        <MobileLogoutButton onClick={() => setShowLogoutConfirm(true)} />
+        <motion.button
+          className="fixed bottom-6 right-6 z-50 bg-black bg-opacity-70 backdrop-blur-sm shadow-lg rounded-full w-12 h-12 flex items-center justify-center border border-red-500"
+          onClick={() => setShowLogoutConfirm(true)}
+          whileHover={{ scale: 1.1, borderColor: "#FF4444" }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <LogOut className="h-5 w-5 text-red-500" />
+        </motion.button>
       </div>
 
       {/* Logout confirmation modal */}
       <AnimatePresence>
         {showLogoutConfirm && (
-          <LogoutConfirmModal 
-            onConfirm={handleLogout} 
-            onCancel={() => setShowLogoutConfirm(false)}
-          />
+          <motion.div
+            className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm z-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowLogoutConfirm(false)}
+          >
+            <motion.div
+              className="border p-6 rounded-lg w-full max-w-xs relative bg-black"
+              initial={{ scale: 0.8, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.8, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-bold mb-4">Log Out</h3>
+              <p className="mb-6">Are you sure you want to log out?</p>
+              <div className="flex gap-3">
+                <motion.button
+                  className="flex-1 px-4 py-2 border rounded"
+                  onClick={() => setShowLogoutConfirm(false)}
+                  whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                >
+                  Cancel
+                </motion.button>
+                <motion.button
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded"
+                  onClick={handleLogout}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Log Out
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 
