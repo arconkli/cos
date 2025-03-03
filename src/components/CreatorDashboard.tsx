@@ -1974,10 +1974,12 @@ export default function CreatorDashboard() {
 
   // Store the settings content when it's rendered
   useEffect(() => {
-    if (activeView === 'settings') {
+    if (activeView !== 'settings') {
+      setSettingsContent(null);
+    } else if (activeView === 'settings' && !settingsContent) {
       setSettingsContent(<ImprovedSettingsView />);
     }
-  }, [activeView]);
+  }, [activeView, settingsContent]);
 
   // Check authentication on component mount
   useEffect(() => {
@@ -2063,16 +2065,16 @@ export default function CreatorDashboard() {
       {/* Navigation Tabs */}
       <NavigationTabs activeView={activeView} setActiveView={setActiveView} />
 
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" initial={false}>
         {activeView === 'campaigns' && (
-          <motion.div
-            key="campaigns"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
-            className="relative z-10"
-          >
+         <motion.div
+          key="campaigns"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.3 }}
+           className="relative z-10"
+        >
             {/* Active Campaigns */}
             <div className="mb-6 md:mb-8">
               <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 flex items-center gap-2">
@@ -2164,9 +2166,9 @@ export default function CreatorDashboard() {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
           >
-            {settingsContent || <ImprovedSettingsView />}
-          </motion.div>
-        )}
+        <ImprovedSettingsView />
+  </motion.div>
+)}
       </AnimatePresence>
 
       {/* Mobile-only logout button */}
