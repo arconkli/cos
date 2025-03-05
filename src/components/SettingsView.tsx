@@ -2,11 +2,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   User, Shield, Link, CreditCard, Check, X, Upload,
-  Smartphone, Bell, ArrowUpRight, LogOut, AlertTriangle,
-  ArrowDownSquare
+  Smartphone, Bell, ArrowUpRight, LogOut, AlertTriangle
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -112,12 +111,6 @@ const SettingsView: React.FC = () => {
     minAmount: '100',
     frequency: 'monthly'
   });
-  
-  // Session activity (for security tab)
-  const [sessions, setSessions] = useState([
-    { device: 'MacBook Pro', location: 'New York, USA', lastActive: 'Just now', current: true },
-    { device: 'iPhone 15', location: 'New York, USA', lastActive: '2 hours ago', current: false }
-  ]);
   
   // Form flags
   const [isSaving, setIsSaving] = useState(false);
@@ -350,889 +343,781 @@ const SettingsView: React.FC = () => {
     router.push('/');
   };
   
-  // Dynamic content based on active section
-  const renderContent = () => {
-    switch (activeSection) {
-      case 'profile':
-        return (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl md:text-2xl font-bold">Profile Settings</h2>
-              
-              {/* Success notification */}
-              <AnimatePresence>
-                {showSuccess && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="flex items-center gap-2 px-3 py-1 bg-green-900 bg-opacity-20 text-green-400 text-sm rounded"
-                  >
-                    <Check className="h-4 w-4" />
-                    <span>Saved successfully</span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+  // Get content for profile section
+  const renderProfileContent = () => (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl md:text-2xl font-bold">Profile Settings</h2>
+        
+        {/* Success notification */}
+        {showSuccess && (
+          <div className="flex items-center gap-2 px-3 py-1 bg-green-900 bg-opacity-20 text-green-400 text-sm rounded">
+            <Check className="h-4 w-4" />
+            <span>Saved successfully</span>
+          </div>
+        )}
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Profile photo */}
+        <div className="flex flex-col items-center">
+          <div className="mb-4 relative group">
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-2 border-white border-opacity-20">
+              <img 
+                src={userProfile.avatar} 
+                alt="Profile" 
+                className="w-full h-full object-cover"
+              />
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Profile photo */}
-              <div className="flex flex-col items-center">
-                <div className="mb-4 relative group">
-                  <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-2 border-white border-opacity-20">
-                    <img 
-                      src={userProfile.avatar} 
-                      alt="Profile" 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <motion.button
-                    className="absolute bottom-0 right-0 bg-black border border-white border-opacity-20 rounded-full p-2"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <Upload className="h-4 w-4" />
-                  </motion.button>
-                </div>
-                <p className="text-xs md:text-sm opacity-60 text-center max-w-xs">
-                  Upload a square image (JPG or PNG) for best results. Maximum size 5MB.
-                </p>
+            <motion.button
+              className="absolute bottom-0 right-0 bg-black border border-white border-opacity-20 rounded-full p-2"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <Upload className="h-4 w-4" />
+            </motion.button>
+          </div>
+          <p className="text-xs md:text-sm opacity-60 text-center max-w-xs">
+            Upload a square image (JPG or PNG) for best results. Maximum size 5MB.
+          </p>
+        </div>
+        
+        {/* Profile form */}
+        <div className="md:col-span-2 space-y-4">
+          <div className="space-y-1">
+            <label className="block text-sm opacity-70">Display Name</label>
+            <input
+              type="text"
+              name="name"
+              value={userProfile.name}
+              onChange={handleInputChange}
+              className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
+            />
+          </div>
+          
+          <div className="space-y-1">
+            <label className="block text-sm opacity-70">Email Address</label>
+            <input
+              type="email"
+              name="email"
+              value={userProfile.email}
+              onChange={handleInputChange}
+              className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
+            />
+          </div>
+          
+          <div className="space-y-1">
+            <label className="block text-sm opacity-70">Phone Number <span className="text-xs opacity-60">(Optional)</span></label>
+            <input
+              type="tel"
+              name="phone"
+              value={userProfile.phone}
+              onChange={handleInputChange}
+              className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
+              placeholder="+1 (555) 123-4567"
+            />
+          </div>
+          
+          <div className="space-y-1">
+            <label className="block text-sm opacity-70">Creator Bio</label>
+            <textarea
+              name="bio"
+              value={userProfile.bio}
+              onChange={handleInputChange}
+              className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
+              rows={4}
+              placeholder="Tell brands a bit about yourself..."
+            />
+          </div>
+          
+          <motion.button
+            onClick={saveProfile}
+            className="px-4 py-2 mt-2 bg-gradient-to-r from-red-500 to-red-700 rounded-lg flex items-center justify-center gap-2"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <div className="flex items-center gap-2">
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                <span>Saving...</span>
               </div>
-              
-              {/* Profile form */}
-              <div className="md:col-span-2 space-y-4">
-                <div className="space-y-1">
-                  <label className="block text-sm opacity-70">Display Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={userProfile.name}
-                    onChange={handleInputChange}
-                    className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
-                  />
-                </div>
-                
-                <div className="space-y-1">
-                  <label className="block text-sm opacity-70">Email Address</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={userProfile.email}
-                    onChange={handleInputChange}
-                    className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
-                  />
-                </div>
-                
-                <div className="space-y-1">
-                  <label className="block text-sm opacity-70">Phone Number <span className="text-xs opacity-60">(Optional)</span></label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={userProfile.phone}
-                    onChange={handleInputChange}
-                    className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
-                    placeholder="+1 (555) 123-4567"
-                  />
-                </div>
-                
-                <div className="space-y-1">
-                  <label className="block text-sm opacity-70">Creator Bio</label>
-                  <textarea
-                    name="bio"
-                    value={userProfile.bio}
-                    onChange={handleInputChange}
-                    className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
-                    rows={4}
-                    placeholder="Tell brands a bit about yourself..."
-                  />
-                </div>
-                
-                <motion.button
-                  onClick={saveProfile}
-                  className="px-4 py-2 mt-2 bg-gradient-to-r from-red-500 to-red-700 rounded-lg flex items-center justify-center gap-2"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  disabled={isSaving}
-                >
-                  {isSaving ? (
-                    <div className="flex items-center gap-2">
-                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      <span>Saving...</span>
-                    </div>
-                  ) : (
-                    <span>Save Changes</span>
-                  )}
-                </motion.button>
-              </div>
+            ) : (
+              <span>Save Changes</span>
+            )}
+          </motion.button>
+        </div>
+      </div>
+      
+      {/* Notification preferences */}
+      <div className="mt-8 pt-6 border-t border-white border-opacity-10">
+        <h3 className="text-lg font-bold mb-4">Notification Preferences</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex items-center justify-between p-3 border border-white border-opacity-10 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Bell className="h-5 w-5 text-blue-400" />
+              <span>Email Notifications</span>
             </div>
-            
-            {/* Notification preferences */}
-            <div className="mt-8 pt-6 border-t border-white border-opacity-10">
-              <h3 className="text-lg font-bold mb-4">Notification Preferences</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center justify-between p-3 border border-white border-opacity-10 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Bell className="h-5 w-5 text-blue-400" />
-                    <span>Email Notifications</span>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      name="notification.email"
-                      checked={userProfile.notificationPreferences.email}
-                      onChange={handleInputChange}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-                  </label>
-                </div>
-                
-                <div className="flex items-center justify-between p-3 border border-white border-opacity-10 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Smartphone className="h-5 w-5 text-purple-400" />
-                    <span>Push Notifications</span>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      name="notification.push"
-                      checked={userProfile.notificationPreferences.push}
-                      onChange={handleInputChange}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-                  </label>
-                </div>
-                
-                <div className="flex items-center justify-between p-3 border border-white border-opacity-10 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <ArrowUpRight className="h-5 w-5 text-green-400" />
-                    <span>New Campaign Alerts</span>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      name="notification.campaigns"
-                      checked={userProfile.notificationPreferences.campaigns}
-                      onChange={handleInputChange}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-                  </label>
-                </div>
-                
-                <div className="flex items-center justify-between p-3 border border-white border-opacity-10 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="h-5 w-5 text-yellow-400" />
-                    <span>Payment Notifications</span>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      name="notification.payments"
-                      checked={userProfile.notificationPreferences.payments}
-                      onChange={handleInputChange}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-                  </label>
-                </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                name="notification.email"
+                checked={userProfile.notificationPreferences.email}
+                onChange={handleInputChange}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+            </label>
+          </div>
+          
+          <div className="flex items-center justify-between p-3 border border-white border-opacity-10 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Smartphone className="h-5 w-5 text-purple-400" />
+              <span>Push Notifications</span>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                name="notification.push"
+                checked={userProfile.notificationPreferences.push}
+                onChange={handleInputChange}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+            </label>
+          </div>
+          
+          <div className="flex items-center justify-between p-3 border border-white border-opacity-10 rounded-lg">
+            <div className="flex items-center gap-2">
+              <ArrowUpRight className="h-5 w-5 text-green-400" />
+              <span>New Campaign Alerts</span>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                name="notification.campaigns"
+                checked={userProfile.notificationPreferences.campaigns}
+                onChange={handleInputChange}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+            </label>
+          </div>
+          
+          <div className="flex items-center justify-between p-3 border border-white border-opacity-10 rounded-lg">
+            <div className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-yellow-400" />
+              <span>Payment Notifications</span>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                name="notification.payments"
+                checked={userProfile.notificationPreferences.payments}
+                onChange={handleInputChange}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+            </label>
+          </div>
+        </div>
+        
+        <motion.button
+          onClick={saveProfile}
+          className="px-4 py-2 mt-4 bg-gradient-to-r from-red-500 to-red-700 rounded-lg flex items-center justify-center gap-2"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          disabled={isSaving}
+        >
+          Save Notifications
+        </motion.button>
+      </div>
+    </div>
+  );
+
+  // Get content for security section
+  const renderSecurityContent = () => (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl md:text-2xl font-bold">Security Settings</h2>
+        
+        {/* Success notification */}
+        {showSuccess && (
+          <div className="flex items-center gap-2 px-3 py-1 bg-green-900 bg-opacity-20 text-green-400 text-sm rounded">
+            <Check className="h-4 w-4" />
+            <span>Password updated</span>
+          </div>
+        )}
+      </div>
+      
+      {/* Password change form */}
+      <div>
+        <h3 className="text-lg font-bold mb-4">Change Password</h3>
+        
+        <form onSubmit={updatePassword} className="space-y-4 max-w-md">
+          <div className="space-y-1">
+            <label className="block text-sm opacity-70">Current Password</label>
+            <input
+              type="password"
+              name="password.current"
+              value={passwordForm.current}
+              onChange={handleInputChange}
+              className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
+            />
+          </div>
+          
+          <div className="space-y-1">
+            <label className="block text-sm opacity-70">New Password</label>
+            <input
+              type="password"
+              name="password.new"
+              value={passwordForm.new}
+              onChange={handleInputChange}
+              className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
+            />
+          </div>
+          
+          <div className="space-y-1">
+            <label className="block text-sm opacity-70">Confirm New Password</label>
+            <input
+              type="password"
+              name="password.confirm"
+              value={passwordForm.confirm}
+              onChange={handleInputChange}
+              className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
+            />
+          </div>
+          
+          <ul className="text-xs space-y-1 opacity-60 list-disc pl-5">
+            <li>Password must be at least 8 characters</li>
+            <li>Include at least one uppercase letter</li>
+            <li>Include at least one number</li>
+            <li>Include at least one special character</li>
+          </ul>
+          
+          <motion.button
+            type="submit"
+            className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded-lg flex items-center justify-center gap-2"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <div className="flex items-center gap-2">
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                <span>Updating...</span>
               </div>
-              
+            ) : (
+              <span>Update Password</span>
+            )}
+          </motion.button>
+        </form>
+      </div>
+      
+      {/* Two-factor authentication */}
+      <div className="mt-8 pt-6 border-t border-white border-opacity-10">
+        <h3 className="text-lg font-bold mb-4">Two-Factor Authentication</h3>
+        
+        <div className="p-4 border border-white border-opacity-10 rounded-lg max-w-md">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-green-400" />
+              <span className="font-bold">Two-Factor Authentication</span>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" className="sr-only peer" />
+              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+            </label>
+          </div>
+          
+          <p className="text-sm opacity-70 mb-4">
+            Protect your account with an additional verification step each time you log in.
+          </p>
+          
+          <motion.button
+            className="px-4 py-2 border border-white border-opacity-20 rounded-lg text-sm"
+            whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+          >
+            Setup Two-Factor Authentication
+          </motion.button>
+        </div>
+      </div>
+      
+      {/* Account deletion */}
+      <div className="mt-8 pt-6 border-t border-white border-opacity-10">
+        <h3 className="text-lg font-bold mb-4">Danger Zone</h3>
+        
+        <div className="p-4 border border-red-500 border-opacity-40 rounded-lg bg-red-900 bg-opacity-10">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-1" />
+            <div>
+              <p className="font-bold text-red-400 mb-2">Delete Account</p>
+              <p className="text-sm mb-3 opacity-70">
+                Permanently delete your account and all associated data. This action cannot be undone.
+              </p>
               <motion.button
-                onClick={saveProfile}
-                className="px-4 py-2 mt-4 bg-gradient-to-r from-red-500 to-red-700 rounded-lg flex items-center justify-center gap-2"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                disabled={isSaving}
+                className="px-4 py-1.5 border border-red-500 text-red-400 rounded text-sm"
+                whileHover={{ backgroundColor: "rgba(239,68,68,0.1)" }}
               >
-                Save Notifications
+                Delete Account
               </motion.button>
             </div>
           </div>
-        );
-        
-      case 'security':
-        return (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl md:text-2xl font-bold">Security Settings</h2>
-              
-              {/* Success notification */}
-              <AnimatePresence>
-                {showSuccess && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="flex items-center gap-2 px-3 py-1 bg-green-900 bg-opacity-20 text-green-400 text-sm rounded"
-                  >
-                    <Check className="h-4 w-4" />
-                    <span>Password updated</span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-            
-            {/* Password change form */}
-            <div>
-              <h3 className="text-lg font-bold mb-4">Change Password</h3>
-              
-              <form onSubmit={updatePassword} className="space-y-4 max-w-md">
-                <div className="space-y-1">
-                  <label className="block text-sm opacity-70">Current Password</label>
-                  <input
-                    type="password"
-                    name="password.current"
-                    value={passwordForm.current}
-                    onChange={handleInputChange}
-                    className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
-                  />
+        </div>
+      </div>
+    </div>
+  );
+
+  // Get content for connected accounts section
+  const renderAccountsContent = () => (
+    <div className="space-y-6">
+      <h2 className="text-xl md:text-2xl font-bold">Connected Accounts</h2>
+      
+      {/* Connected platforms */}
+      <div className="grid grid-cols-1 gap-4">
+        {connectedAccounts.map((account, index) => (
+          <motion.div 
+            key={index}
+            className="p-4 border border-white border-opacity-10 rounded-lg"
+            whileHover={{ borderColor: 'rgba(255,255,255,0.3)' }}
+          >
+            <div className="flex flex-col md:flex-row md:items-center gap-4 justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-full bg-white bg-opacity-5">
+                  {getPlatformIcon(account.platform)}
                 </div>
-                
-                <div className="space-y-1">
-                  <label className="block text-sm opacity-70">New Password</label>
-                  <input
-                    type="password"
-                    name="password.new"
-                    value={passwordForm.new}
-                    onChange={handleInputChange}
-                    className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
-                  />
-                </div>
-                
-                <div className="space-y-1">
-                  <label className="block text-sm opacity-70">Confirm New Password</label>
-                  <input
-                    type="password"
-                    name="password.confirm"
-                    value={passwordForm.confirm}
-                    onChange={handleInputChange}
-                    className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
-                  />
-                </div>
-                
-                <ul className="text-xs space-y-1 opacity-60 list-disc pl-5">
-                  <li>Password must be at least 8 characters</li>
-                  <li>Include at least one uppercase letter</li>
-                  <li>Include at least one number</li>
-                  <li>Include at least one special character</li>
-                </ul>
-                
-                <motion.button
-                  type="submit"
-                  className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded-lg flex items-center justify-center gap-2"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  disabled={isSaving}
-                >
-                  {isSaving ? (
-                    <div className="flex items-center gap-2">
-                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      <span>Updating...</span>
-                    </div>
-                  ) : (
-                    <span>Update Password</span>
-                  )}
-                </motion.button>
-              </form>
-            </div>
-            
-            {/* Two-factor authentication */}
-            <div className="mt-8 pt-6 border-t border-white border-opacity-10">
-              <h3 className="text-lg font-bold mb-4">Two-Factor Authentication</h3>
-              
-              <div className="p-4 border border-white border-opacity-10 rounded-lg max-w-md">
-                <div className="flex justify-between items-center mb-4">
+                <div>
                   <div className="flex items-center gap-2">
-                    <Shield className="h-5 w-5 text-green-400" />
-                    <span className="font-bold">Two-Factor Authentication</span>
+                    <span className="font-bold capitalize">{account.platform}</span>
+                    {account.isVerified && (
+                      <span className="text-xs bg-green-900 bg-opacity-20 text-green-400 px-2 py-0.5 rounded-full">
+                        Verified
+                      </span>
+                    )}
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" />
-                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-                  </label>
+                  <p className="text-sm">
+                    <span className="opacity-70">@{account.username}</span> • {account.followers} followers
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3 ml-auto">
+                <span className="text-xs opacity-60">
+                  Last synced: {account.lastSync}
+                </span>
+                <div className="flex gap-2">
+                  <motion.button
+                    className="text-sm border border-white border-opacity-20 px-3 py-1 rounded"
+                    whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                  >
+                    Refresh
+                  </motion.button>
+                  <motion.button
+                    className="text-sm border border-red-500 border-opacity-40 text-red-400 px-3 py-1 rounded"
+                    whileHover={{ backgroundColor: "rgba(239,68,68,0.1)" }}
+                    onClick={() => disconnectPlatform(account.platform)}
+                  >
+                    Disconnect
+                  </motion.button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+        
+        {/* Add new platform */}
+        <motion.div
+          className="p-4 border border-dashed border-white border-opacity-10 rounded-lg"
+          whileHover={{ borderColor: 'rgba(255,255,255,0.3)', backgroundColor: "rgba(255,255,255,0.03)" }}
+        >
+          <div className="flex flex-col items-center justify-center py-6">
+            <Link className="h-8 w-8 mb-3 opacity-60" />
+            <p className="mb-4 font-medium">Connect Additional Platform</p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <motion.button
+                className="px-4 py-2 border border-white border-opacity-20 rounded-lg flex items-center gap-2"
+                whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+              >
+                {getPlatformIcon('youtube')}
+                <span>YouTube</span>
+              </motion.button>
+              <motion.button
+                className="px-4 py-2 border border-white border-opacity-20 rounded-lg flex items-center gap-2"
+                whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+              >
+                {getPlatformIcon('instagram')}
+                <span>Instagram</span>
+              </motion.button>
+              <motion.button
+                className="px-4 py-2 border border-white border-opacity-20 rounded-lg flex items-center gap-2"
+                whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+              >
+                {getPlatformIcon('tiktok')}
+                <span>TikTok</span>
+              </motion.button>
+              <motion.button
+                className="px-4 py-2 border border-white border-opacity-20 rounded-lg flex items-center gap-2"
+                whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+              >
+                {getPlatformIcon('twitter')}
+                <span>X (Twitter)</span>
+              </motion.button>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+
+  // Get content for payments section
+  const renderPaymentsContent = () => (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl md:text-2xl font-bold">Payment Settings</h2>
+        
+        {/* Success notification */}
+        {showSuccess && (
+          <div className="flex items-center gap-2 px-3 py-1 bg-green-900 bg-opacity-20 text-green-400 text-sm rounded">
+            <Check className="h-4 w-4" />
+            <span>Settings updated</span>
+          </div>
+        )}
+      </div>
+      
+      {/* Payment methods */}
+      <div>
+        <h3 className="text-lg font-bold mb-4">Payment Methods</h3>
+        
+        <div className="grid grid-cols-1 gap-4">
+          {paymentMethods.map((method) => (
+            <motion.div 
+              key={method.id}
+              className={`p-4 border ${method.default ? 'border-green-500 border-opacity-40 bg-green-900 bg-opacity-5' : 'border-white border-opacity-10'} rounded-lg`}
+              whileHover={{ borderColor: method.default ? 'rgba(52, 211, 153, 0.5)' : 'rgba(255,255,255,0.3)' }}
+            >
+              <div className="flex flex-col md:flex-row md:items-center gap-4 justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-full ${method.default ? 'bg-green-900 bg-opacity-10' : 'bg-white bg-opacity-5'}`}>
+                    {method.type === 'bank' ? (
+                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2 22H22" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M12 6V2" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M12 6C13.1 6 14 6.9 14 8V10C14 11.1 13.1 12 12 12C10.9 12 10 11.1 10 10V8C10 6.9 10.9 6 12 6Z" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M16 17H8C5 17 3 15 3 12V10C3 7 5 5 8 5H16C19 5 21 7 21 10V12C21 15 19 17 16 17Z" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M3.5 13.9597C4.6 16.6597 7.5 18.5997 12 18.5997C16.5 18.5997 19.4 16.6597 20.5 13.9597" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    ) : (
+                      <svg className="h-5 w-5 text-blue-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9.5 13.75C9.5 14.72 10.25 15.5 11.17 15.5H13.05C13.85 15.5 14.5 14.82 14.5 13.97C14.5 13.06 14.1 12.73 13.51 12.52L10.5 11.47C9.91 11.26 9.51001 10.94 9.51001 10.02C9.51001 9.17999 10.16 8.48999 10.96 8.48999H12.84C13.76 8.48999 14.51 9.26999 14.51 10.24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M12 7.5V16.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M22 12C22 17.52 17.52 22 12 22C6.48 22 2 17.52 2 12C2 6.48 6.48 2 12 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M17 3V7H21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M22 2L17 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold">
+                        {method.type === 'bank' ? 'Bank Account' : 'PayPal'}
+                      </span>
+                      {method.default && (
+                        <span className="text-xs bg-green-900 bg-opacity-20 text-green-400 px-2 py-0.5 rounded-full">
+                          Default
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm opacity-70">
+                      {method.type === 'bank' ? `****${method.last4}` : method.email}
+                      <span className="ml-2">• Added {method.addedOn}</span>
+                    </p>
+                  </div>
                 </div>
                 
-                <p className="text-sm opacity-70 mb-4">
-                  Protect your account with an additional verification step each time you log in.
-                </p>
-                
+                <div className="flex flex-wrap gap-2 ml-auto">
+                  {!method.default && (
+                    <motion.button
+                      className="text-sm border border-white border-opacity-20 px-3 py-1 rounded"
+                      whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                      onClick={() => setDefaultPaymentMethod(method.id)}
+                    >
+                      Make Default
+                    </motion.button>
+                  )}
+                  <motion.button
+                    className="text-sm border border-white border-opacity-20 px-3 py-1 rounded"
+                    whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                  >
+                    Edit
+                  </motion.button>
+                  <motion.button
+                    className="text-sm border border-red-500 border-opacity-40 text-red-400 px-3 py-1 rounded"
+                    whileHover={{ backgroundColor: "rgba(239,68,68,0.1)" }}
+                    onClick={() => removePaymentMethod(method.id)}
+                  >
+                    Remove
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+          
+          {/* Add new payment method */}
+          {!showPaymentForm ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <motion.button
+                className="p-4 border border-dashed border-white border-opacity-10 rounded-lg flex items-center gap-3"
+                whileHover={{ borderColor: 'rgba(255,255,255,0.3)', backgroundColor: "rgba(255,255,255,0.03)" }}
+                onClick={() => addPaymentMethod('bank')}
+              >
+                <div className="p-2 rounded-full bg-white bg-opacity-5">
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2 22H22" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M12 6V2" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M12 6C13.1 6 14 6.9 14 8V10C14 11.1 13.1 12 12 12C10.9 12 10 11.1 10 10V8C10 6.9 10.9 6 12 6Z" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M16 17H8C5 17 3 15 3 12V10C3 7 5 5 8 5H16C19 5 21 7 21 10V12C21 15 19 17 16 17Z" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M3.5 13.9597C4.6 16.6597 7.5 18.5997 12 18.5997C16.5 18.5997 19.4 16.6597 20.5 13.9597" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <div className="text-left">
+                  <p className="font-bold">Add Bank Account</p>
+                  <p className="text-xs opacity-70">Direct deposit to your bank account</p>
+                </div>
+              </motion.button>
+              
+              <motion.button
+                className="p-4 border border-dashed border-white border-opacity-10 rounded-lg flex items-center gap-3"
+                whileHover={{ borderColor: 'rgba(255,255,255,0.3)', backgroundColor: "rgba(255,255,255,0.03)" }}
+                onClick={() => addPaymentMethod('paypal')}
+              >
+                <div className="p-2 rounded-full bg-white bg-opacity-5">
+                  <svg className="h-5 w-5 text-blue-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9.5 13.75C9.5 14.72 10.25 15.5 11.17 15.5H13.05C13.85 15.5 14.5 14.82 14.5 13.97C14.5 13.06 14.1 12.73 13.51 12.52L10.5 11.47C9.91 11.26 9.51001 10.94 9.51001 10.02C9.51001 9.17999 10.16 8.48999 10.96 8.48999H12.84C13.76 8.48999 14.51 9.26999 14.51 10.24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M12 7.5V16.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M22 12C22 17.52 17.52 22 12 22C6.48 22 2 17.52 2 12C2 6.48 6.48 2 12 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M17 3V7H21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M22 2L17 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <div className="text-left">
+                  <p className="font-bold">Add PayPal</p>
+                  <p className="text-xs opacity-70">Get paid directly to your PayPal account</p>
+                </div>
+              </motion.button>
+            </div>
+          ) : (
+            // Payment method form
+            <div className="p-4 border border-white border-opacity-10 rounded-lg">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="font-bold flex items-center gap-2">
+                  {showPaymentForm === 'bank' ? (
+                    <>
+                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2 22H22" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M12 6V2" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M12 6C13.1 6 14 6.9 14 8V10C14 11.1 13.1 12 12 12C10.9 12 10 11.1 10 10V8C10 6.9 10.9 6 12 6Z" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M16 17H8C5 17 3 15 3 12V10C3 7 5 5 8 5H16C19 5 21 7 21 10V12C21 15 19 17 16 17Z" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M3.5 13.9597C4.6 16.6597 7.5 18.5997 12 18.5997C16.5 18.5997 19.4 16.6597 20.5 13.9597" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      Add Bank Account
+                    </>
+                  ) : (
+                    <>
+                      <svg className="h-5 w-5 text-blue-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9.5 13.75C9.5 14.72 10.25 15.5 11.17 15.5H13.05C13.85 15.5 14.5 14.82 14.5 13.97C14.5 13.06 14.1 12.73 13.51 12.52L10.5 11.47C9.91 11.26 9.51001 10.94 9.51001 10.02C9.51001 9.17999 10.16 8.48999 10.96 8.48999H12.84C13.76 8.48999 14.51 9.26999 14.51 10.24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M12 7.5V16.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M22 12C22 17.52 17.52 22 12 22C6.48 22 2 17.52 2 12C2 6.48 6.48 2 12 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M17 3V7H21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M22 2L17 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      Add PayPal
+                    </>
+                  )}
+                </h4>
                 <motion.button
-                  className="px-4 py-2 border border-white border-opacity-20 rounded-lg text-sm"
-                  whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                  onClick={() => setShowPaymentForm(null)}
+                  className="p-1 rounded-full hover:bg-white hover:bg-opacity-10"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
                 >
-                  Setup Two-Factor Authentication
+                  <X className="h-5 w-5" />
                 </motion.button>
               </div>
-            </div>
-            
-            {/* Active sessions */}
-            <div className="mt-8 pt-6 border-t border-white border-opacity-10">
-              <h3 className="text-lg font-bold mb-4">Active Sessions</h3>
               
-              <div className="space-y-3">
-                {sessions.map((session, index) => (
-                  <motion.div 
-                    key={index}
-                    className="p-4 border border-white border-opacity-10 rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-4"
-                    whileHover={{ borderColor: session.current ? 'rgba(52, 211, 153, 0.5)' : 'rgba(255,255,255,0.3)' }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-full ${session.current ? 'bg-green-900 bg-opacity-20' : 'bg-white bg-opacity-5'}`}>
-                        {session.device.toLowerCase().includes('mac') || session.device.toLowerCase().includes('macbook') ? (
-                          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M15.41 6.29C14.72 7.05 13.59 7.55 12.59 7.55C12.5 7.55 12.41 7.55 12.33 7.54C12.28 7.46 12.13 7.18 12.13 6.82C12.13 6.09 12.54 5.35 13.09 4.84C13.78 4.09 14.95 3.55 15.87 3.55C15.95 3.55 16.03 3.55 16.1 3.56C16.14 3.64 16.29 3.92 16.29 4.27C16.29 4.99 15.89 5.72 15.41 6.29Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M18.25 13.26C18.25 13.89 18.11 14.5 17.85 15.05C17.32 16.18 16.3 17.01 15.09 17.3C14.67 17.4 14.23 17.45 13.78 17.45C13.36 17.45 12.95 17.41 12.56 17.33C11.16 17.04 9.94 16.15 9.23 14.9C8.83 14.22 8.61 13.44 8.61 12.59C8.61 11.93 8.75 11.31 9 10.75C9.54 9.62 10.56 8.79 11.77 8.5C12.19 8.4 12.63 8.35 13.08 8.35C13.28 8.35 13.48 8.36 13.67 8.39C14.35 8.48 14.99 8.7 15.55 9.02C16.57 9.58 17.36 10.49 17.76 11.61C18.08 12.13 18.25 12.68 18.25 13.26Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M22 12C22 17.52 17.52 22 12 22C6.48 22 2 17.52 2 12C2 6.48 6.48 2 12 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        ) : (
-                          <Smartphone className="h-5 w-5" />
-                        )}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold">{session.device}</span>
-                          {session.current && (
-                            <span className="text-xs bg-green-900 bg-opacity-20 text-green-400 px-2 py-0.5 rounded-full">
-                              Current
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-sm opacity-70">
-                          {session.location} • {session.lastActive}
-                        </div>
-                      </div>
+              <form onSubmit={handlePaymentFormSubmit} className="space-y-4">
+                {showPaymentForm === 'bank' ? (
+                  <>
+                    <div className="space-y-1">
+                      <label className="block text-sm opacity-70">Account Holder Name</label>
+                      <input
+                        type="text"
+                        className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
+                        placeholder="Full name on account"
+                        required
+                      />
                     </div>
                     
-                    {!session.current && (
-                      <motion.button
-                        className="text-sm border border-white border-opacity-20 px-3 py-1 rounded"
-                        whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                    <div className="space-y-1">
+                      <label className="block text-sm opacity-70">Routing Number</label>
+                      <input
+                        type="text"
+                        className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
+                        placeholder="9 digits"
+                        maxLength={9}
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-1">
+                      <label className="block text-sm opacity-70">Account Number</label>
+                      <input
+                        type="text"
+                        className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
+                        placeholder="Account number"
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-1">
+                      <label className="block text-sm opacity-70">Account Type</label>
+                      <select
+                        className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
+                        required
                       >
-                        Log Out Device
-                      </motion.button>
-                    )}
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-            
-            {/* Account deletion */}
-            <div className="mt-8 pt-6 border-t border-white border-opacity-10">
-              <h3 className="text-lg font-bold mb-4">Danger Zone</h3>
-              
-              <div className="p-4 border border-red-500 border-opacity-40 rounded-lg bg-red-900 bg-opacity-10">
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-1" />
-                  <div>
-                    <p className="font-bold text-red-400 mb-2">Delete Account</p>
-                    <p className="text-sm mb-3 opacity-70">
-                      Permanently delete your account and all associated data. This action cannot be undone.
-                    </p>
-                    <motion.button
-                      className="px-4 py-1.5 border border-red-500 text-red-400 rounded text-sm"
-                      whileHover={{ backgroundColor: "rgba(239,68,68,0.1)" }}
-                    >
-                      Delete Account
-                    </motion.button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-        
-      case 'accounts':
-        return (
-          <div className="space-y-6">
-            <h2 className="text-xl md:text-2xl font-bold">Connected Accounts</h2>
-            
-            {/* Connected platforms */}
-            <div className="grid grid-cols-1 gap-4">
-              {connectedAccounts.map((account, index) => (
-                <motion.div 
-                  key={index}
-                  className="p-4 border border-white border-opacity-10 rounded-lg"
-                  whileHover={{ borderColor: 'rgba(255,255,255,0.3)' }}
-                >
-                  <div className="flex flex-col md:flex-row md:items-center gap-4 justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-full bg-white bg-opacity-5">
-                        {getPlatformIcon(account.platform)}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold capitalize">{account.platform}</span>
-                          {account.isVerified && (
-                            <span className="text-xs bg-green-900 bg-opacity-20 text-green-400 px-2 py-0.5 rounded-full">
-                              Verified
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm">
-                          <span className="opacity-70">@{account.username}</span> • {account.followers} followers
-                        </p>
-                      </div>
+                        <option value="">Select account type</option>
+                        <option value="checking">Checking</option>
+                        <option value="savings">Savings</option>
+                      </select>
                     </div>
-                    
-                    <div className="flex items-center gap-3 ml-auto">
-                      <span className="text-xs opacity-60">
-                        Last synced: {account.lastSync}
-                      </span>
-                      <div className="flex gap-2">
-                        <motion.button
-                          className="text-sm border border-white border-opacity-20 px-3 py-1 rounded"
-                          whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                        >
-                          Refresh
-                        </motion.button>
-                        <motion.button
-                          className="text-sm border border-red-500 border-opacity-40 text-red-400 px-3 py-1 rounded"
-                          whileHover={{ backgroundColor: "rgba(239,68,68,0.1)" }}
-                          onClick={() => disconnectPlatform(account.platform)}
-                        >
-                          Disconnect
-                        </motion.button>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-              
-              {/* Add new platform */}
-              <motion.div
-                className="p-4 border border-dashed border-white border-opacity-10 rounded-lg"
-                whileHover={{ borderColor: 'rgba(255,255,255,0.3)', backgroundColor: "rgba(255,255,255,0.03)" }}
-              >
-                <div className="flex flex-col items-center justify-center py-6">
-                  <Link className="h-8 w-8 mb-3 opacity-60" />
-                  <p className="mb-4 font-medium">Connect Additional Platform</p>
-                  <div className="flex flex-wrap justify-center gap-3">
-                    <motion.button
-                      className="px-4 py-2 border border-white border-opacity-20 rounded-lg flex items-center gap-2"
-                      whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                    >
-                      {getPlatformIcon('youtube')}
-                      <span>YouTube</span>
-                    </motion.button>
-                    <motion.button
-                      className="px-4 py-2 border border-white border-opacity-20 rounded-lg flex items-center gap-2"
-                      whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                    >
-                      {getPlatformIcon('instagram')}
-                      <span>Instagram</span>
-                    </motion.button>
-                    <motion.button
-                      className="px-4 py-2 border border-white border-opacity-20 rounded-lg flex items-center gap-2"
-                      whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                    >
-                      {getPlatformIcon('tiktok')}
-                      <span>TikTok</span>
-                    </motion.button>
-                    <motion.button
-                      className="px-4 py-2 border border-white border-opacity-20 rounded-lg flex items-center gap-2"
-                      whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                    >
-                      {getPlatformIcon('twitter')}
-                      <span>X (Twitter)</span>
-                    </motion.button>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-            
-            {/* Account benefits */}
-            <div className="mt-8 pt-6 border-t border-white border-opacity-10">
-              <h3 className="text-lg font-bold mb-4">Platform Benefits</h3>
-              
-              <div className="p-4 bg-white bg-opacity-5 rounded-lg">
-                <p className="text-sm mb-3">
-                  Connect more platforms to increase your earnings potential and access more campaigns:
-                </p>
-                
-                <ul className="list-disc pl-5 text-sm space-y-2 opacity-80">
-                  <li>Reach more audiences across multiple platforms</li>
-                  <li>Qualify for cross-platform campaigns with higher payouts</li>
-                  <li>Repurpose content across platforms to maximize earnings</li>
-                  <li>Get priority access to platform-specific campaigns</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        );
-        
-      case 'payments':
-        return (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl md:text-2xl font-bold">Payment Settings</h2>
-              
-              {/* Success notification */}
-              <AnimatePresence>
-                {showSuccess && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="flex items-center gap-2 px-3 py-1 bg-green-900 bg-opacity-20 text-green-400 text-sm rounded"
-                  >
-                    <Check className="h-4 w-4" />
-                    <span>Settings updated</span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-            
-            {/* Payment methods */}
-            <div>
-              <h3 className="text-lg font-bold mb-4">Payment Methods</h3>
-              
-              <div className="grid grid-cols-1 gap-4">
-                {paymentMethods.map((method, index) => (
-                  <motion.div 
-                    key={method.id}
-                    className={`p-4 border ${method.default ? 'border-green-500 border-opacity-40 bg-green-900 bg-opacity-5' : 'border-white border-opacity-10'} rounded-lg`}
-                    whileHover={{ borderColor: method.default ? 'rgba(52, 211, 153, 0.5)' : 'rgba(255,255,255,0.3)' }}
-                  >
-                    <div className="flex flex-col md:flex-row md:items-center gap-4 justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-full ${method.default ? 'bg-green-900 bg-opacity-10' : 'bg-white bg-opacity-5'}`}>
-                          {method.type === 'bank' ? (
-                            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M2 22H22" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M12 6V2" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M12 6C13.1 6 14 6.9 14 8V10C14 11.1 13.1 12 12 12C10.9 12 10 11.1 10 10V8C10 6.9 10.9 6 12 6Z" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M16 17H8C5 17 3 15 3 12V10C3 7 5 5 8 5H16C19 5 21 7 21 10V12C21 15 19 17 16 17Z" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M3.5 13.9597C4.6 16.6597 7.5 18.5997 12 18.5997C16.5 18.5997 19.4 16.6597 20.5 13.9597" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          ) : (
-                            <svg className="h-5 w-5 text-blue-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M9.5 13.75C9.5 14.72 10.25 15.5 11.17 15.5H13.05C13.85 15.5 14.5 14.82 14.5 13.97C14.5 13.06 14.1 12.73 13.51 12.52L10.5 11.47C9.91 11.26 9.51001 10.94 9.51001 10.02C9.51001 9.17999 10.16 8.48999 10.96 8.48999H12.84C13.76 8.48999 14.51 9.26999 14.51 10.24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M12 7.5V16.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M22 12C22 17.52 17.52 22 12 22C6.48 22 2 17.52 2 12C2 6.48 6.48 2 12 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M17 3V7H21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M22 2L17 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          )}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold">
-                              {method.type === 'bank' ? 'Bank Account' : 'PayPal'}
-                            </span>
-                            {method.default && (
-                              <span className="text-xs bg-green-900 bg-opacity-20 text-green-400 px-2 py-0.5 rounded-full">
-                                Default
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm opacity-70">
-                            {method.type === 'bank' ? `****${method.last4}` : method.email}
-                            <span className="ml-2">• Added {method.addedOn}</span>
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-2 ml-auto">
-                        {!method.default && (
-                          <motion.button
-                            className="text-sm border border-white border-opacity-20 px-3 py-1 rounded"
-                            whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                            onClick={() => setDefaultPaymentMethod(method.id)}
-                          >
-                            Make Default
-                          </motion.button>
-                        )}
-                        <motion.button
-                          className="text-sm border border-white border-opacity-20 px-3 py-1 rounded"
-                          whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                        >
-                          Edit
-                        </motion.button>
-                        <motion.button
-                          className="text-sm border border-red-500 border-opacity-40 text-red-400 px-3 py-1 rounded"
-                          whileHover={{ backgroundColor: "rgba(239,68,68,0.1)" }}
-                          onClick={() => removePaymentMethod(method.id)}
-                        >
-                          Remove
-                        </motion.button>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-                
-                {/* Add new payment method */}
-                {!showPaymentForm ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <motion.button
-                      className="p-4 border border-dashed border-white border-opacity-10 rounded-lg flex items-center gap-3"
-                      whileHover={{ borderColor: 'rgba(255,255,255,0.3)', backgroundColor: "rgba(255,255,255,0.03)" }}
-                      onClick={() => addPaymentMethod('bank')}
-                    >
-                      <div className="p-2 rounded-full bg-white bg-opacity-5">
-                        <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M2 22H22" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M12 6V2" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M12 6C13.1 6 14 6.9 14 8V10C14 11.1 13.1 12 12 12C10.9 12 10 11.1 10 10V8C10 6.9 10.9 6 12 6Z" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M16 17H8C5 17 3 15 3 12V10C3 7 5 5 8 5H16C19 5 21 7 21 10V12C21 15 19 17 16 17Z" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M3.5 13.9597C4.6 16.6597 7.5 18.5997 12 18.5997C16.5 18.5997 19.4 16.6597 20.5 13.9597" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </div>
-                      <div className="text-left">
-                        <p className="font-bold">Add Bank Account</p>
-                        <p className="text-xs opacity-70">Direct deposit to your bank account</p>
-                      </div>
-                    </motion.button>
-                    
-                    <motion.button
-                      className="p-4 border border-dashed border-white border-opacity-10 rounded-lg flex items-center gap-3"
-                      whileHover={{ borderColor: 'rgba(255,255,255,0.3)', backgroundColor: "rgba(255,255,255,0.03)" }}
-                      onClick={() => addPaymentMethod('paypal')}
-                    >
-                      <div className="p-2 rounded-full bg-white bg-opacity-5">
-                        <svg className="h-5 w-5 text-blue-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M9.5 13.75C9.5 14.72 10.25 15.5 11.17 15.5H13.05C13.85 15.5 14.5 14.82 14.5 13.97C14.5 13.06 14.1 12.73 13.51 12.52L10.5 11.47C9.91 11.26 9.51001 10.94 9.51001 10.02C9.51001 9.17999 10.16 8.48999 10.96 8.48999H12.84C13.76 8.48999 14.51 9.26999 14.51 10.24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M12 7.5V16.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M22 12C22 17.52 17.52 22 12 22C6.48 22 2 17.52 2 12C2 6.48 6.48 2 12 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M17 3V7H21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M22 2L17 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </div>
-                      <div className="text-left">
-                        <p className="font-bold">Add PayPal</p>
-                        <p className="text-xs opacity-70">Get paid directly to your PayPal account</p>
-                      </div>
-                    </motion.button>
-                  </div>
+                  </>
                 ) : (
-                  // Payment method form
-                  <motion.div
-                    className="p-4 border border-white border-opacity-10 rounded-lg"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    <div className="flex justify-between items-center mb-4">
-                      <h4 className="font-bold flex items-center gap-2">
-                        {showPaymentForm === 'bank' ? (
-                          <>
-                            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M2 22H22" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M12 6V2" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M12 6C13.1 6 14 6.9 14 8V10C14 11.1 13.1 12 12 12C10.9 12 10 11.1 10 10V8C10 6.9 10.9 6 12 6Z" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M16 17H8C5 17 3 15 3 12V10C3 7 5 5 8 5H16C19 5 21 7 21 10V12C21 15 19 17 16 17Z" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M3.5 13.9597C4.6 16.6597 7.5 18.5997 12 18.5997C16.5 18.5997 19.4 16.6597 20.5 13.9597" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                            Add Bank Account
-                          </>
-                        ) : (
-                          <>
-                            <svg className="h-5 w-5 text-blue-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M9.5 13.75C9.5 14.72 10.25 15.5 11.17 15.5H13.05C13.85 15.5 14.5 14.82 14.5 13.97C14.5 13.06 14.1 12.73 13.51 12.52L10.5 11.47C9.91 11.26 9.51001 10.94 9.51001 10.02C9.51001 9.17999 10.16 8.48999 10.96 8.48999H12.84C13.76 8.48999 14.51 9.26999 14.51 10.24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M12 7.5V16.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M22 12C22 17.52 17.52 22 12 22C6.48 22 2 17.52 2 12C2 6.48 6.48 2 12 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M17 3V7H21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M22 2L17 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                            Add PayPal
-                          </>
-                        )}
-                      </h4>
-                      <motion.button
-                        onClick={() => setShowPaymentForm(null)}
-                        className="p-1 rounded-full hover:bg-white hover:bg-opacity-10"
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                      >
-                        <X className="h-5 w-5" />
-                      </motion.button>
-                    </div>
-                    
-                    <form onSubmit={handlePaymentFormSubmit} className="space-y-4">
-                      {showPaymentForm === 'bank' ? (
-                        <>
-                          <div className="space-y-1">
-                            <label className="block text-sm opacity-70">Account Holder Name</label>
-                            <input
-                              type="text"
-                              className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
-                              placeholder="Full name on account"
-                              required
-                            />
-                          </div>
-                          
-                          <div className="space-y-1">
-                            <label className="block text-sm opacity-70">Routing Number</label>
-                            <input
-                              type="text"
-                              className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
-                              placeholder="9 digits"
-                              maxLength={9}
-                              required
-                            />
-                          </div>
-                          
-                          <div className="space-y-1">
-                            <label className="block text-sm opacity-70">Account Number</label>
-                            <input
-                              type="text"
-                              className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
-                              placeholder="Account number"
-                              required
-                            />
-                          </div>
-                          
-                          <div className="space-y-1">
-                            <label className="block text-sm opacity-70">Account Type</label>
-                            <select
-                              className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
-                              required
-                            >
-                              <option value="">Select account type</option>
-                              <option value="checking">Checking</option>
-                              <option value="savings">Savings</option>
-                            </select>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="space-y-1">
-                          <label className="block text-sm opacity-70">PayPal Email</label>
-                          <input
-                            type="email"
-                            defaultValue={userProfile.email}
-                            className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
-                            placeholder="your@email.com"
-                            required
-                          />
-                          <p className="text-xs opacity-60 mt-1">
-                            Make sure this email is registered with PayPal.
-                          </p>
-                        </div>
-                      )}
-                      
-                      <div className="pt-2 flex gap-3">
-                        <motion.button
-                          type="submit"
-                          className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded-lg"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          Add Payment Method
-                        </motion.button>
-                        <motion.button
-                          type="button"
-                          className="px-4 py-2 border border-white border-opacity-20 rounded-lg"
-                          whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                          onClick={() => setShowPaymentForm(null)}
-                        >
-                          Cancel
-                        </motion.button>
-                      </div>
-                    </form>
-                  </motion.div>
+                  <div className="space-y-1">
+                    <label className="block text-sm opacity-70">PayPal Email</label>
+                    <input
+                      type="email"
+                      defaultValue={userProfile.email}
+                      className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
+                      placeholder="your@email.com"
+                      required
+                    />
+                    <p className="text-xs opacity-60 mt-1">
+                      Make sure this email is registered with PayPal.
+                    </p>
+                  </div>
                 )}
-              </div>
-            </div>
-            
-            {/* Payout preferences */}
-            <div className="mt-8 pt-6 border-t border-white border-opacity-10">
-              <h3 className="text-lg font-bold mb-4">Payout Preferences</h3>
-              
-              <form onSubmit={savePayoutSettings} className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
-                <div className="space-y-1">
-                  <label className="block text-sm opacity-70">Minimum Payout Amount</label>
-                  <select
-                    name="payout.minAmount"
-                    value={payoutSettings.minAmount}
-                    onChange={handleInputChange}
-                    className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
-                  >
-                    <option value="50">$50</option>
-                    <option value="100">$100</option>
-                    <option value="250">$250</option>
-                    <option value="500">$500</option>
-                  </select>
-                  <p className="text-xs opacity-60 mt-1">
-                    We'll hold your earnings until they reach this amount.
-                  </p>
-                </div>
                 
-                <div className="space-y-1">
-                  <label className="block text-sm opacity-70">Payout Frequency</label>
-                  <select
-                    name="payout.frequency"
-                    value={payoutSettings.frequency}
-                    onChange={handleInputChange}
-                    className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
-                  >
-                    <option value="monthly">Monthly (15th)</option>
-                    <option value="biweekly">Bi-weekly</option>
-                    <option value="weekly">Weekly</option>
-                  </select>
-                  <p className="text-xs opacity-60 mt-1">
-                    How often you want to receive payouts when above the minimum.
-                  </p>
-                </div>
-                
-                <div className="pt-2 md:col-span-2">
+                <div className="pt-2 flex gap-3">
                   <motion.button
                     type="submit"
                     className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded-lg"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    disabled={isSaving}
                   >
-                    {isSaving ? (
-                      <div className="flex items-center gap-2">
-                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                        <span>Saving...</span>
-                      </div>
-                    ) : (
-                      <span>Save Preferences</span>
-                    )}
+                    Add Payment Method
+                  </motion.button>
+                  <motion.button
+                    type="button"
+                    className="px-4 py-2 border border-white border-opacity-20 rounded-lg"
+                    whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                    onClick={() => setShowPaymentForm(null)}
+                  >
+                    Cancel
                   </motion.button>
                 </div>
               </form>
             </div>
-            
-            {/* Tax information - collapsed by default */}
-            <div className="mt-8 pt-6 border-t border-white border-opacity-10">
-              <div className="flex items-center justify-between cursor-pointer">
-                <h3 className="text-lg font-bold">Tax Information</h3>
-                <ArrowDownSquare className="h-5 w-5" />
-              </div>
-              
-              <motion.div
-                className="mt-4 p-4 border border-dashed border-white border-opacity-10 rounded-lg text-center"
-                whileHover={{ borderColor: 'rgba(255,255,255,0.3)', backgroundColor: "rgba(255,255,255,0.03)" }}
-              >
-                <p className="mb-3">You haven't submitted your tax information yet.</p>
-                <motion.button
-                  className="px-4 py-2 border border-white border-opacity-20 rounded-lg inline-flex items-center gap-2"
-                  whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                >
-                  Add Tax Information
-                </motion.button>
-              </motion.div>
-            </div>
-          </div>
-        );
+          )}
+        </div>
+      </div>
+      
+      {/* Payout preferences */}
+      <div className="mt-8 pt-6 border-t border-white border-opacity-10">
+        <h3 className="text-lg font-bold mb-4">Payout Preferences</h3>
         
+        <form onSubmit={savePayoutSettings} className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+          <div className="space-y-1">
+            <label className="block text-sm opacity-70">Minimum Payout Amount</label>
+            <select
+              name="payout.minAmount"
+              value={payoutSettings.minAmount}
+              onChange={handleInputChange}
+              className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
+            >
+              <option value="50">$50</option>
+              <option value="100">$100</option>
+              <option value="250">$250</option>
+              <option value="500">$500</option>
+            </select>
+            <p className="text-xs opacity-60 mt-1">
+              We'll hold your earnings until they reach this amount.
+            </p>
+          </div>
+          
+          <div className="space-y-1">
+            <label className="block text-sm opacity-70">Payout Frequency</label>
+            <select
+              name="payout.frequency"
+              value={payoutSettings.frequency}
+              onChange={handleInputChange}
+              className="w-full bg-black bg-opacity-50 border border-white border-opacity-20 p-2 rounded-lg focus:border-red-500 focus:outline-none transition-colors"
+            >
+              <option value="monthly">Monthly (15th)</option>
+              <option value="biweekly">Bi-weekly</option>
+              <option value="weekly">Weekly</option>
+            </select>
+            <p className="text-xs opacity-60 mt-1">
+              How often you want to receive payouts when above the minimum.
+            </p>
+          </div>
+          
+          <div className="pt-2 md:col-span-2">
+            <motion.button
+              type="submit"
+              className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded-lg"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <div className="flex items-center gap-2">
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  <span>Saving...</span>
+                </div>
+              ) : (
+                <span>Save Preferences</span>
+              )}
+            </motion.button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+
+  // Dynamic content based on active section
+  const renderContent = () => {
+    switch (activeSection) {
+      case 'profile':
+        return renderProfileContent();
+      case 'security':
+        return renderSecurityContent();
+      case 'accounts':
+        return renderAccountsContent();
+      case 'payments':
+        return renderPaymentsContent();
       case 'logout':
-        // Trigger logout immediately
+        // Handle logout immediately
         handleLogout();
         return null;
-        
       default:
         return (
           <div className="text-center p-12">
@@ -1241,12 +1126,11 @@ const SettingsView: React.FC = () => {
         );
     }
   };
-  
-  // Main component render
+
   return (
-    <div className="w-full flex flex-col md:flex-row gap-6 relative">
-      {/* Settings navigation */}
-      <div className="md:w-64 flex-shrink-0 relative">
+    <div className="w-full flex flex-col md:flex-row gap-6">
+      {/* Settings navigation sidebar */}
+      <div className="md:w-64 flex-shrink-0">
         <div className="h-full border border-white border-opacity-10 rounded-lg overflow-hidden bg-black bg-opacity-70 backdrop-blur-sm">
           <nav className="space-y-1 p-1">
             {[
@@ -1284,18 +1168,8 @@ const SettingsView: React.FC = () => {
       
       {/* Main content area */}
       <div className="flex-grow">
-        <div className="h-full border border-white border-opacity-10 rounded-lg p-6 bg-black bg-opacity-70 backdrop-blur-sm overflow-y-auto">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeSection}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-            >
-              {renderContent()}
-            </motion.div>
-          </AnimatePresence>
+        <div className="border border-white border-opacity-10 rounded-lg p-6 bg-black bg-opacity-70 backdrop-blur-sm">
+          {renderContent()}
         </div>
       </div>
     </div>
