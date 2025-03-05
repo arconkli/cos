@@ -1,6 +1,7 @@
+// CreatorDashboard.tsx
 'use client';
 
-import React, { useState, useEffect, memo, lazy, Suspense, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, memo, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LineChart, Line, BarChart, Bar, AreaChart, Area,
@@ -689,7 +690,7 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
                         </motion.div>
                       )}
                     </div>
-                  </motion.div>
+                    </motion.div>
                 ))}
               </div>
             </motion.div>
@@ -1307,7 +1308,7 @@ const AnalyticsView = () => {
         <div className="flex justify-between items-center mb-4 md:mb-6">
           <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
             <Users className="h-5 w-5 text-purple-400" />
-            AUDIENCE DEMOGRAPHICS
+            AUD            IENCE DEMOGRAPHICS
           </h2>
           <motion.div
             className="flex items-center gap-2 border px-3 py-1 rounded text-xs"
@@ -1989,179 +1990,169 @@ export default function CreatorDashboard() {
       </div>
 
       {/* Stats Overview */}
-      <StatsOverview totalPendingPayout={totalPendingPayout} />
+      <StatsOverview totalPendingPayout={totalPendingPayout}
+            />
 
-      {/* Navigation Tabs */}
-      <NavigationTabs activeView={activeView} setActiveView={setActiveView} />
-
-      <AnimatePresence mode="wait" initial={false}>
-        {activeView === 'campaigns' && (
-          <motion.div
-            key="campaigns"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
-            className="relative z-10"
-          >
-            {/* Active Campaigns */}
-            <div className="mb-6 md:mb-8">
-              <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 flex items-center gap-2">
-                <Zap className="h-5 w-5 text-yellow-400" />
-                ACTIVE CAMPAIGNS
-              </h2>
-              <ActiveCampaigns campaigns={activeCampaigns} onCampaignClick={setSelectedCampaign} />
-            </div>
-
-            {/* Available Campaigns */}
-            <div className="mb-6 md:mb-8">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 gap-3">
-                <h2 className="text-xl md:text-2xl font-bold flex items-center gap-2">
-                  <Layers className="h-5 w-5 text-blue-400" />
-                  AVAILABLE CAMPAIGNS
-                </h2>
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <motion.div
-                    className="relative flex-1 sm:flex-none"
-                    whileHover={{ scale: 1.02 }}
-                  >
-                    <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                    <input
-                      type="text"
-                      placeholder="Search campaigns..."
-                      className="pl-10 pr-4 py-2 border rounded bg-transparent w-full sm:w-auto"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
+            {/* Navigation Tabs */}
+            <NavigationTabs activeView={activeView} setActiveView={setActiveView} />
+      
+            <AnimatePresence mode="wait" initial={false}>
+              {activeView === 'campaigns' && (
+                <motion.div
+                  key="campaigns"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                  className="relative z-10"
+                >
+                  {/* Active Campaigns */}
+                  <div className="mb-6 md:mb-8">
+                    <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 flex items-center gap-2">
+                      <Zap className="h-5 w-5 text-yellow-400" />
+                      ACTIVE CAMPAIGNS
+                    </h2>
+                    <ActiveCampaigns campaigns={activeCampaigns} onCampaignClick={setSelectedCampaign} />
+                  </div>
+      
+                  {/* Available Campaigns */}
+                  <div className="mb-6 md:mb-8">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 gap-3">
+                      <h2 className="text-xl md:text-2xl font-bold flex items-center gap-2">
+                        <Layers className="h-5 w-5 text-blue-400" />
+                        AVAILABLE CAMPAIGNS
+                      </h2>
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <motion.div
+                          className="relative flex-1 sm:flex-none"
+                          whileHover={{ scale: 1.02 }}
+                        >
+                          <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                          <input
+                            type="text"
+                            placeholder="Search campaigns..."
+                            className="pl-10 pr-4 py-2 border rounded bg-transparent w-full sm:w-auto"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                          />
+                        </motion.div>
+                        <motion.button
+                          className="border p-2 rounded"
+                          whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <Filter className="h-4 w-4" />
+                        </motion.button>
+                      </div>
+                    </div>
+                    <AvailableCampaignsSection
+                      campaigns={filteredAvailableCampaigns}
+                      onCampaignClick={setSelectedCampaign}
                     />
-                  </motion.div>
-                  <motion.button
-                    className="border p-2 rounded"
-                    whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Filter className="h-4 w-4" />
-                  </motion.button>
-                </div>
-              </div>
-              <AvailableCampaignsSection
-                campaigns={filteredAvailableCampaigns}
-                onCampaignClick={setSelectedCampaign}
-              />
+                  </div>
+                </motion.div>
+              )}
+      
+              {activeView === 'analytics' && (
+                <motion.div
+                  key="analytics"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {/* No need for Suspense, we're not lazy-loading here anymore */}
+                  <AnalyticsView />
+                </motion.div>
+              )}
+      
+              {activeView === 'payments' && (
+                <motion.div
+                  key="payments"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <PaymentsView />
+                </motion.div>
+              )}
+      
+              {activeView === 'settings' && (
+                <motion.div
+                  key="settings"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <ImprovedSettingsView />
+                </motion.div>
+              )}
+            </AnimatePresence>
+      
+            {/* Mobile-only logout button */}
+            <div className="md:hidden">
+              <motion.button
+                className="fixed bottom-6 right-6 z-50 bg-black bg-opacity-70 backdrop-blur-sm shadow-lg rounded-full w-12 h-12 flex items-center justify-center border border-red-500"
+                onClick={() => setShowLogoutConfirm(true)}
+                whileHover={{ scale: 1.1, borderColor: "#FF4444" }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <LogOut className="h-5 w-5 text-red-500" />
+              </motion.button>
             </div>
-          </motion.div>
-        )}
-
-        {activeView === 'analytics' && (
-          <motion.div
-            key="analytics"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Suspense fallback={
-              <div className="w-full p-10 flex justify-center">
-                <div className="border p-6 rounded-lg inline-flex items-center gap-2">
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"                  />
-                  </svg>
-                  <span>Loading analytics...</span>
-                </div>
-              </div>
-            }>
-              <AnalyticsView />
-            </Suspense>
-          </motion.div>
-        )}
-
-        {activeView === 'payments' && (
-          <motion.div
-            key="payments"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
-          >
-            <PaymentsView />
-          </motion.div>
-        )}
-
-        {activeView === 'settings' && (
-          <motion.div
-            key="settings"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
-          >
-            <ImprovedSettingsView />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Mobile-only logout button */}
-      <div className="md:hidden">
-        <motion.button
-          className="fixed bottom-6 right-6 z-50 bg-black bg-opacity-70 backdrop-blur-sm shadow-lg rounded-full w-12 h-12 flex items-center justify-center border border-red-500"
-          onClick={() => setShowLogoutConfirm(true)}
-          whileHover={{ scale: 1.1, borderColor: "#FF4444" }}
-          whileTap={{ scale: 0.9 }}
-        >
-          <LogOut className="h-5 w-5 text-red-500" />
-        </motion.button>
-      </div>
-
-      {/* Logout confirmation modal */}
-      <AnimatePresence>
-        {showLogoutConfirm && (
-          <motion.div
-            className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm z-50 p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowLogoutConfirm(false)}
-          >
-            <motion.div
-              className="border p-6 rounded-lg w-full max-w-xs relative bg-black"
-              initial={{ scale: 0.8, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.8, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h3 className="text-lg font-bold mb-4">Log Out</h3>
-              <p className="mb-6">Are you sure you want to log out?</p>
-              <div className="flex gap-3">
-                <motion.button
-                  className="flex-1 px-4 py-2 border rounded"
+      
+            {/* Logout confirmation modal */}
+            <AnimatePresence>
+              {showLogoutConfirm && (
+                <motion.div
+                  className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm z-50 p-4"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                   onClick={() => setShowLogoutConfirm(false)}
-                  whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
                 >
-                  Cancel
-                </motion.button>
-                <motion.button
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded"
-                  onClick={handleLogout}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  Log Out
-                </motion.button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Campaign Detail Modal */}
-      <AnimatePresence>
-        {selectedCampaign && (
-          <CampaignDetail
-            campaign={selectedCampaign}
-            onClose={() => setSelectedCampaign(null)}
-          />
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
+                  <motion.div
+                    className="border p-6 rounded-lg w-full max-w-xs relative bg-black"
+                    initial={{ scale: 0.8, y: 20 }}
+                    animate={{ scale: 1, y: 0 }}
+                    exit={{ scale: 0.8, y: 20 }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <h3 className="text-lg font-bold mb-4">Log Out</h3>
+                    <p className="mb-6">Are you sure you want to log out?</p>
+                    <div className="flex gap-3">
+                      <motion.button
+                        className="flex-1 px-4 py-2 border rounded"
+                        onClick={() => setShowLogoutConfirm(false)}
+                        whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                      >
+                        Cancel
+                      </motion.button>
+                      <motion.button
+                        className="flex-1 px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded"
+                        onClick={handleLogout}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        Log Out
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+      
+            {/* Campaign Detail Modal */}
+            <AnimatePresence>
+              {selectedCampaign && (
+                <CampaignDetail
+                  campaign={selectedCampaign}
+                  onClose={() => setSelectedCampaign(null)}
+                />
+              )}
+            </AnimatePresence>
+          </div>
+        );
+      }
