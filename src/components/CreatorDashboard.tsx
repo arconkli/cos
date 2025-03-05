@@ -1,18 +1,17 @@
-// CreatorDashboard.tsx - Optimized Version
+// CreatorDashboard.tsx - Optimized for accessibility and usability
 'use client';
 
 import React, { useState, useEffect, memo, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  LineChart, Line, BarChart, Bar, AreaChart, Area,
+  LineChart, Line, BarChart, Bar, 
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
-  PieChart, Pie, Cell, Legend
+  PieChart, Pie, Cell
 } from 'recharts';
 import {
-  DollarSign, Eye, Calendar, TrendingUp, Filter, Search,
-  ArrowUpRight, Clock, Youtube, Instagram, Twitter, CreditCard,
-  LogOut, ChevronDown, X, AlertCircle, Zap, Building, Layers,
-  PieChartIcon, BarChart2, TrendingDown, Users
+  DollarSign, Eye, Calendar, TrendingUp, Search,
+  ArrowUpRight, Clock, Youtube, Instagram, Twitter, 
+  LogOut, X, AlertCircle, Layers, Users, Plus
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import NavigationTabs from './NavigationTabs';
@@ -24,17 +23,13 @@ interface Post {
   views: string;
   earned: number;
   status: 'approved' | 'pending' | 'denied';
-  postUrl?: string;
   postDate?: string;
-  hashtags?: string[];
-  denialReason?: string;
   contentType: 'original' | 'repurposed';
 }
 
 interface CampaignRequirements {
   platforms: string[];
   contentGuidelines: string[];
-  hashtags?: string[];
   minViewsForPayout?: string;
   totalBudget?: string;
   payoutRate: {
@@ -70,7 +65,7 @@ interface AvailableCampaign {
   requirements: AvailableCampaignRequirements;
 }
 
-// Sample data - moved outside component to prevent recreation on each render
+// Sample data (reduced and simplified)
 const viewsData = [
   { date: 'Jan', views: 2.1, earnings: 4200 },
   { date: 'Feb', views: 3.4, earnings: 6800 },
@@ -81,21 +76,15 @@ const viewsData = [
 ];
 
 const platformData = [
-  { platform: 'TikTok', views: 14.5, percentage: 51.2 },
-  { platform: 'Instagram', views: 8.3, percentage: 29.3 },
-  { platform: 'YouTube', views: 4.2, percentage: 14.8 },
-  { platform: 'X', views: 1.3, percentage: 4.7 }
-];
-
-const platformPieData = [
-  { name: 'TikTok', value: 51.2 },
-  { name: 'Instagram', value: 29.3 },
-  { name: 'YouTube', value: 14.8 },
-  { name: 'X', value: 4.7 }
+  { platform: 'TikTok', views: 14.5, percentage: 51 },
+  { platform: 'Instagram', views: 8.3, percentage: 29 },
+  { platform: 'YouTube', views: 4.2, percentage: 15 },
+  { platform: 'X', views: 1.3, percentage: 5 }
 ];
 
 const COLORS = ['#FF4444', '#4287f5', '#31a952', '#b026ff'];
 
+// Sample campaigns (reduced content)
 const activeCampaigns = [
   {
     id: 1,
@@ -112,7 +101,6 @@ const activeCampaigns = [
         "Use official hashtags #NetflixNewSeries",
         "Minimum 30s duration"
       ],
-      hashtags: ["#NetflixAd", "#NetflixNewSeries"],
       minViewsForPayout: "100K",
       totalBudget: "$25,000",
       payoutRate: {
@@ -126,9 +114,7 @@ const activeCampaigns = [
         views: "500K",
         earned: 250,
         status: "approved",
-        postUrl: "https://tiktok.com/...",
         postDate: "2025-02-15",
-        hashtags: ["#NetflixAd"],
         contentType: "original"
       },
       {
@@ -136,21 +122,8 @@ const activeCampaigns = [
         views: "320K",
         earned: 150,
         status: "pending",
-        postUrl: "https://instagram.com/...",
         postDate: "2025-02-16",
-        hashtags: ["#NetflixAd"],
         contentType: "original"
-      },
-      {
-        platform: "TikTok",
-        views: "150K",
-        earned: 25,
-        status: "denied",
-        postUrl: "https://tiktok.com/...",
-        postDate: "2025-02-17",
-        hashtags: ["#NetflixAd"],
-        denialReason: "Doesn't follow guidelines",
-        contentType: "repurposed"
       }
     ]
   },
@@ -169,7 +142,6 @@ const activeCampaigns = [
         "Showcase at least 3 items from collection",
         "Include brand tag in description"
       ],
-      hashtags: ["#SummerFashion", "#BrandPartner"],
       minViewsForPayout: "250K",
       totalBudget: "$50,000",
       payoutRate: {
@@ -182,19 +154,7 @@ const activeCampaigns = [
         views: "750K",
         earned: 450,
         status: "approved",
-        postUrl: "https://tiktok.com/...",
         postDate: "2025-02-12",
-        hashtags: ["#SummerFashion"],
-        contentType: "original"
-      },
-      {
-        platform: "Instagram",
-        views: "500K",
-        earned: 300,
-        status: "pending",
-        postUrl: "https://instagram.com/...",
-        postDate: "2025-02-14",
-        hashtags: ["#SummerFashion", "#BrandPartner"],
         contentType: "original"
       }
     ]
@@ -214,10 +174,8 @@ const availableCampaigns = [
       postCount: 4,
       contentGuidelines: [
         "Use artist's music in background",
-        "Include #NewAlbumDrop hashtag",
-        "Minimum 15s duration"
+        "Include #NewAlbumDrop hashtag"
       ],
-      hashtags: ["#NewAlbumDrop"],
       minViewsForPayout: "100K",
       totalBudget: "$50,000",
       payoutRate: {
@@ -238,11 +196,8 @@ const availableCampaigns = [
       postCount: 6,
       contentGuidelines: [
         "Show movie trailer clips",
-        "Personal reaction/review",
-        "Use official hashtags",
-        "Mention release date"
+        "Personal reaction/review"
       ],
-      hashtags: ["#MoviePremiere", "#OfficialHashtag"],
       minViewsForPayout: "500K",
       totalBudget: "$100,000",
       payoutRate: {
@@ -252,12 +207,12 @@ const availableCampaigns = [
   }
 ];
 
-// Background pattern component - memoized
+// Background pattern component (subtle version)
 const BackgroundPattern = memo(() => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none">
-    <svg width="100%" height="100%" className="opacity-5">
-      <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="1" />
+  <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+    <svg width="100%" height="100%" className="opacity-3">
+      <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+        <path d="M 60 0 L 0 0 0 60" fill="none" stroke="white" strokeWidth="0.5"/>
       </pattern>
       <rect width="100%" height="100%" fill="url(#grid)" />
     </svg>
@@ -266,15 +221,15 @@ const BackgroundPattern = memo(() => (
 
 BackgroundPattern.displayName = 'BackgroundPattern';
 
-// Custom tooltip component - memoized
+// Accessible tooltip component
 const CustomTooltip = memo(({ active, payload, label }: any) => {
   if (!active || !payload || !payload.length) return null;
   
   return (
-    <div className="p-3 border border-white bg-black">
-      <p className="text-white font-bold">{label}</p>
+    <div className="p-4 border border-white bg-black rounded-md shadow-lg" role="tooltip">
+      <p className="font-bold text-base text-white mb-2" aria-label={`Month: ${label}`}>{label}</p>
       {payload.map((entry: any, index: number) => (
-        <p key={`item-${index}`} style={{ color: entry.color || '#FFFFFF' }}>
+        <p key={`item-${index}`} className="text-sm mb-1" style={{ color: entry.color || '#FFFFFF' }}>
           {entry.name}: {entry.value} {entry.name === 'views' ? 'M' : entry.unit || ''}
         </p>
       ))}
@@ -300,148 +255,43 @@ function isActiveCampaign(campaign: Campaign | AvailableCampaign): campaign is C
   return 'posts' in campaign && Array.isArray(campaign.posts);
 }
 
-// Campaign Detail Component - Memoized and properly typed props
+// Campaign Detail Component - Simplified and accessible
 interface CampaignDetailProps {
   campaign: Campaign | AvailableCampaign;
   onClose: () => void;
 }
 
 const CampaignDetail = memo(({ campaign, onClose }: CampaignDetailProps) => {
-  // Content Type Rates Component - Extracted and memoized
-  const ContentTypeRates = useMemo(() => {
-    const [selectedContentType, setSelectedContentType] = useState<'original' | 'repurposed'>(
-      isActiveCampaign(campaign) 
-        ? (campaign.contentType === 'both' ? 'original' : campaign.contentType) 
-        : 'original'
-    );
+  const isActive = isActiveCampaign(campaign);
   
-    const isActive = isActiveCampaign(campaign);
-    const isPotCampaign = campaign.id === 4;
-  
-    const showOriginal = !isActive || 
-      (isActive && (campaign.contentType === 'original' || campaign.contentType === 'both') && selectedContentType === 'original');
-  
-    const showRepurposed = (!isActive && campaign.requirements.payoutRate.repurposed) ||
-      (isActive && (campaign.contentType === 'repurposed' || campaign.contentType === 'both') && selectedContentType === 'repurposed');
-  
-    return (
-      <div className="space-y-4 border rounded-lg p-4 bg-black bg-opacity-50 backdrop-blur-sm relative overflow-hidden">
-        <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
-  
-        <h4 className="font-bold">{isPotCampaign ? 'Content Types & Pot Campaign' : 'Content Types & Rates'}</h4>
-  
-        {!isActive && (
-          <p className="text-sm opacity-80 italic mb-2">
-            Please review all campaign details below before applying. You can only select one content type per campaign.
-          </p>
-        )}
-  
-        <div className="space-y-4">
-          {showOriginal && (
-            <motion.div
-              className={`border rounded-lg p-4 bg-opacity-10 bg-white relative overflow-hidden ${selectedContentType === 'original' ? 'border-green-500' : ''}`}
-              whileHover={!isActive ? { borderColor: "#31a952" } : {}}
-              onClick={() => !isActive && setSelectedContentType('original')}
-            >
-              <div className="absolute -right-20 -top-20 w-32 h-32 bg-green-500 opacity-5 rounded-full blur-xl" />
-              <div className="flex items-center gap-2 mb-2">
-                {!isActive && (
-                  <input
-                    type="radio"
-                    id="original"
-                    name="contentType"
-                    checked={selectedContentType === 'original'}
-                    onChange={() => setSelectedContentType('original')}
-                    className="text-green-500 focus:ring-green-500"
-                  />
-                )}
-                <label htmlFor="original" className="font-bold">Original Content</label>
-                <span className="ml-auto border border-green-500 text-green-500 px-2 py-1 rounded text-sm">
-                  {isActive ? 'Active' : 'Available'}
-                </span>
-              </div>
-              <p className="text-sm opacity-70 mb-2">Create unique content specifically for this campaign</p>
-              {isPotCampaign ? (
-                <div className="font-bold flex items-center gap-1">
-                  <span className="text-yellow-500">
-                    <svg className="inline-block h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M12 16V12M12 8H12.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </span>
-                  <span>Variable payout (pot campaign)</span>
-                </div>
-              ) : (
-                <p className="font-bold">{campaign.requirements.payoutRate.original}</p>
-              )}
-            </motion.div>
-          )}
-  
-          {showRepurposed && campaign.requirements.payoutRate.repurposed && (
-            <motion.div
-              className={`border rounded-lg p-4 bg-opacity-10 bg-white relative overflow-hidden ${selectedContentType === 'repurposed' ? 'border-blue-500' : ''}`}
-              whileHover={!isActive ? { borderColor: "#4287f5" } : {}}
-              onClick={() => !isActive && setSelectedContentType('repurposed')}
-            >
-              <div className="absolute -right-20 -top-20 w-32 h-32 bg-blue-500 opacity-5 rounded-full blur-xl" />
-              <div className="flex items-center gap-2 mb-2">
-                {!isActive && (
-                  <input
-                    type="radio"
-                    id="repurposed"
-                    name="contentType"
-                    checked={selectedContentType === 'repurposed'}
-                    onChange={() => setSelectedContentType('repurposed')}
-                    className="text-blue-500 focus:ring-blue-500"
-                  />
-                )}
-                <label htmlFor="repurposed" className="font-bold">Repurposed Content</label>
-                <span className="ml-auto border border-blue-500 text-blue-500 px-2 py-1 rounded text-sm">
-                  {isActive ? 'Active' : 'Available'}
-                </span>
-              </div>
-              <p className="text-sm opacity-70 mb-2">Adapt existing content to fit campaign requirements</p>
-              {isPotCampaign ? (
-                <div className="font-bold flex items-center gap-1">
-                  <span className="text-yellow-500">
-                    <svg className="inline-block h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M12 16V12M12 8H12.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </span>
-                  <span>Variable payout (pot campaign)</span>
-                </div>
-              ) : (
-                <p className="font-bold">{campaign.requirements.payoutRate.repurposed}</p>
-              )}
-            </motion.div>
-          )}
-        </div>
-  
-        <div className="mt-4 pt-4 border-t">
-          <div className="flex items-center gap-2">
-            <span className="text-sm opacity-70">Minimum Views:</span>
-            <span className="font-bold">{campaign.requirements.minViewsForPayout}</span>
-          </div>
-  
-          {isPotCampaign && (
-            <div className="mt-2 text-sm text-yellow-400">
-              <span className="font-bold">⚠️ Pot Campaign:</span> Payout varies based on campaign performance. See details below.
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }, [campaign]);
-
-  // Get status color helper function
-  const getStatusColor = useCallback((status: string) => {
-    switch (status) {
-      case 'approved': return 'text-green-500 border-green-500';
-      case 'denied': return 'text-red-500 border-red-500';
-      default: return 'text-yellow-500 border-yellow-500';
+  // Status Label Component
+  const StatusLabel = ({ status }: { status: string }) => {
+    let bgColor, textColor;
+    
+    switch (status.toLowerCase()) {
+      case 'approved':
+        bgColor = 'bg-green-900 bg-opacity-20';
+        textColor = 'text-green-400';
+        break;
+      case 'denied':
+        bgColor = 'bg-red-900 bg-opacity-20';
+        textColor = 'text-red-400';
+        break;
+      case 'pending':
+        bgColor = 'bg-yellow-900 bg-opacity-20';
+        textColor = 'text-yellow-400';
+        break;
+      default:
+        bgColor = 'bg-gray-900 bg-opacity-20';
+        textColor = 'text-gray-400';
     }
-  }, []);
+    
+    return (
+      <span className={`px-3 py-1 rounded-full text-sm font-medium ${bgColor} ${textColor}`} role="status">
+        {status.toUpperCase()}
+      </span>
+    );
+  };
 
   // Handle ESC key for modal close
   useEffect(() => {
@@ -457,563 +307,453 @@ const CampaignDetail = memo(({ campaign, onClose }: CampaignDetailProps) => {
   }, [onClose]);
 
   return (
-    <motion.div
-      className="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center p-3 md:p-6 z-[100]"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center p-4 md:p-6 z-[100]"
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="campaign-title"
     >
-      <BackgroundPattern />
-
-      <motion.div
-        className="border p-4 md:p-8 rounded-lg w-full max-w-4xl bg-black custom-scrollbar overflow-y-auto max-h-[90vh] md:max-h-[85vh] relative"
-        initial={{ opacity: 0, y: 20, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 20, scale: 0.95 }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      <div
+        className="border p-6 md:p-8 rounded-lg w-full max-w-4xl bg-black custom-scrollbar overflow-y-auto max-h-[90vh] md:max-h-[85vh] relative"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
+        <button
+          className="absolute top-4 right-4 p-2 rounded-full hover:bg-white hover:bg-opacity-10 transition-colors"
+          onClick={onClose}
+          aria-label="Close campaign details"
+        >
+          <X className="h-6 w-6" />
+        </button>
 
-        <div className="flex justify-between items-start mb-4 md:mb-6">
-          <motion.h2
-            className="text-xl md:text-2xl font-bold pr-6"
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            {campaign.title}
-          </motion.h2>
-          <motion.button
-            className="border p-2 rounded hover:bg-white hover:bg-opacity-20 absolute top-4 right-4 md:static z-[200]"
-            onClick={onClose}
-            whileHover={{ scale: 1.1, rotate: 90 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <X className="h-5 w-5" />
-          </motion.button>
-        </div>
+        <h2 id="campaign-title" className="text-2xl md:text-3xl font-bold mb-6 pr-10">
+          {campaign.title}
+        </h2>
 
-        <div className="grid grid-cols-1 gap-4 md:gap-6 mb-4 md:mb-6">
-          {ContentTypeRates}
-
-          {/* Unified Campaign Details & Requirements */}
-          <motion.div
-            className="space-y-5 border p-4 rounded-lg bg-black bg-opacity-50 backdrop-blur-sm relative overflow-hidden"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
-
-            <div>
-              <h3 className="text-lg md:text-xl font-bold">Campaign Details</h3>
-
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 opacity-70" />
-                <span className="text-sm">
-                  Due: {new Date(campaign.endDate).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                  })}
-                </span>
-              </div>
+        <div className="space-y-8">
+          {/* Campaign Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <p className="text-sm text-gray-400">Type</p>
+              <p className="text-lg font-medium capitalize">{campaign.contentType === 'both' ? 'Original & Repurposed' : campaign.contentType}</p>
             </div>
-
-            {!isActiveCampaign(campaign) && (
-              <div className="p-3 border border-yellow-600 bg-yellow-900 bg-opacity-20 rounded-lg">
-                <p className="text-sm opacity-90">
-                  <span className="font-bold">Note:</span> Please review all campaign details before applying. You can only select one content type.
-                </p>
-              </div>
-            )}
-
-            {/* Brand Information */}
-            <div className="p-4 bg-white bg-opacity-5 rounded-lg">
-              <h4 className="font-bold text-base mb-2">About {campaign.id === 1 ? 'Netflix' : campaign.id === 2 ? 'Fashion Nova' : campaign.id === 3 ? 'Universal Music' : 'Paramount Pictures'}</h4>
-              <p className="text-sm">
-                {campaign.id === 1
-                  ? 'Netflix is a streaming service offering a wide variety of award-winning TV shows, movies, anime, documentaries, and more on thousands of internet-connected devices.'
-                  : campaign.id === 2
-                    ? 'Fashion Nova is an American fast fashion retail company known for its trendsetting styles and celebrity collaborations.'
-                    : campaign.id === 3
-                      ? 'Universal Music Group is a world leader in music-based entertainment, with a broad array of businesses engaged in recorded music, music publishing, and more.'
-                      : 'Paramount Pictures, one of the oldest Hollywood studios, produces and distributes feature films for worldwide entertainment.'}
-              </p>
-            </div>
-
-            {/* Campaign Brief */}
-            <div className="p-4 border-l-2 border-red-500 bg-white bg-opacity-5 rounded-lg">
-              <h4 className="font-bold text-base mb-2">Campaign Brief</h4>
-              <p className="text-sm">
-                {campaign.id === 1
-                  ? 'Promote the upcoming Netflix original series launch by creating authentic, engaging content that highlights what excites you most about the new show. Use your storytelling skills to generate anticipation and interest among your followers.'
-                  : campaign.id === 2
-                    ? 'Showcase the Summer Fashion Collection by creating stylish, trend-focused content that displays the versatility and quality of the pieces. Your content should inspire viewers to imagine themselves wearing these items.'
-                    : campaign.id === 3
-                      ? 'Help introduce this exciting new artist to your audience by creating content featuring their debut album. Your authentic reaction and creative interpretation of the music will help connect your followers with this emerging talent.'
-                      : 'Create buzz for our upcoming movie premiere by sharing your genuine excitement and reactions to the trailer. Your content should build anticipation for the film while showcasing your personal take on why your audience should see it.'}
-              </p>
-            </div>
-
-            {/* What You Need To Do */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="h-5 w-5 rounded-full bg-red-500 flex items-center justify-center text-sm font-bold">1</div>
-                <h4 className="font-bold text-base">What You Need To Create</h4>
-              </div>
-
-              <ul className="list-disc pl-8 space-y-2 text-sm md:text-base">
-                <li>Content must be published on: <span className="font-semibold">{campaign.requirements.platforms.join(', ')}</span></li>
-                <li>You need at least <span className="font-semibold">{campaign.requirements.minViewsForPayout}</span> views for payment</li>
-                {isActiveCampaign(campaign) ? (
-                  <li>Your content type: <span className="font-semibold">{campaign.contentType === 'both' ? 'Original or Repurposed' : campaign.contentType.charAt(0).toUpperCase() + campaign.contentType.slice(1)}</span></li>
-                ) : null}
-              </ul>
-            </div>
-
-            {/* Guidelines */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="h-5 w-5 rounded-full bg-red-500 flex items-center justify-center text-sm font-bold">2</div>
-                <h4 className="font-bold text-base">Content Guidelines</h4>
-              </div>
-
-              <ul className="list-disc pl-8 space-y-1 text-sm md:text-base">
-                {campaign.requirements.contentGuidelines.map((guideline, i) => (
-                  <li key={i}>{guideline}</li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Hashtags */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="h-5 w-5 rounded-full bg-red-500 flex items-center justify-center text-sm font-bold">3</div>
-                <h4 className="font-bold text-base">Required Hashtags</h4>
-              </div>
-
-              <div className="flex flex-wrap gap-2 ml-8">
-                {campaign.requirements.hashtags?.map((hashtag, index) => (
-                  <span
-                    key={hashtag}
-                    className="border px-2 py-1 rounded text-sm bg-white bg-opacity-5"
+            
+            <div className="space-y-2">
+              <p className="text-sm text-gray-400">Platforms</p>
+              <div className="flex flex-wrap gap-2">
+                {campaign.requirements.platforms.map(platform => (
+                  <span 
+                    key={platform} 
+                    className="px-3 py-1 rounded-full bg-white bg-opacity-5 text-sm"
                   >
-                    {hashtag}
+                    {platform}
                   </span>
                 ))}
               </div>
             </div>
-
-            {/* Only show budget for "pot" campaigns - campaign ID #4 */}
-            {campaign.id === 4 && (
-              <div className="border border-yellow-600 bg-yellow-900 bg-opacity-10 p-4 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="h-5 w-5 rounded-full bg-yellow-600 flex items-center justify-center text-xs font-bold">$</div>
-                  <h4 className="font-bold">Pot Campaign - Variable Payout</h4>
-                </div>
-                <p className="text-sm mb-2">Total Campaign Budget: <span className="font-bold">{campaign.requirements.totalBudget}</span></p>
-                <div className="space-y-2 text-sm">
-                  <p className="opacity-80">Unlike fixed-rate campaigns, pot campaigns distribute the total budget among all participating creators based on performance:</p>
-                  <ul className="list-disc pl-5 space-y-1 opacity-80">
-                    <li>Your earnings depend on your share of total campaign views</li>
-                    <li>More participants means the budget is split among more creators</li>
-                    <li>Your estimated payout = (Your Views ÷ Total Campaign Views) × Total Budget</li>
-                  </ul>
-                </div>
+            
+            <div className="space-y-2">
+              <p className="text-sm text-gray-400">Deadline</p>
+              <p className="text-lg font-medium">
+                {new Date(campaign.endDate).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric'
+                })}
+              </p>
+            </div>
+          </div>
+          
+          {/* Payout Rates */}
+          <div className="p-6 bg-gray-900 bg-opacity-30 rounded-lg border border-gray-800 space-y-4">
+            <h3 className="text-xl font-bold">Payout Rates</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="p-4 bg-gray-800 bg-opacity-30 rounded-lg">
+                <h4 className="font-medium mb-2">Original Content</h4>
+                <p className="text-xl font-bold text-green-400">{campaign.requirements.payoutRate.original}</p>
+                <p className="text-sm text-gray-400 mt-2">
+                  Create new content specifically for this campaign
+                </p>
               </div>
-            )}
-
-            {/* Apply Button - Only for Available Campaigns */}
-            {'postCount' in campaign.requirements && (
-              <motion.button
-                className="mt-4 w-full border p-2 rounded bg-gradient-to-r from-red-500 to-red-700 border-none text-white font-bold"
-                whileHover={{ scale: 1.02, boxShadow: "0 0 10px rgba(255,68,68,0.5)" }}
-                whileTap={{ scale: 0.98 }}
-              >
-                Apply For This Campaign
-              </motion.button>
-            )}
-          </motion.div>
-
-          {isActiveCampaign(campaign) && campaign.posts.length > 0 && (
-            <motion.div
-              className="space-y-4"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              <h3 className="text-lg md:text-xl font-bold">Posts</h3>
-              <div className="grid grid-cols-1 gap-3 md:gap-4">
+              
+              {campaign.requirements.payoutRate.repurposed && (
+                <div className="p-4 bg-gray-800 bg-opacity-30 rounded-lg">
+                  <h4 className="font-medium mb-2">Repurposed Content</h4>
+                  <p className="text-xl font-bold text-blue-400">{campaign.requirements.payoutRate.repurposed}</p>
+                  <p className="text-sm text-gray-400 mt-2">
+                    Adapt existing content to fit campaign requirements
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center p-3 bg-gray-800 bg-opacity-40 rounded-lg">
+              <Eye className="h-5 w-5 text-gray-400 mr-3" />
+              <span>Minimum views for payout: <strong>{campaign.requirements.minViewsForPayout}</strong></span>
+            </div>
+          </div>
+          
+          {/* Guidelines */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-bold">Campaign Guidelines</h3>
+            
+            <ul className="list-disc pl-5 space-y-2">
+              {campaign.requirements.contentGuidelines.map((guideline, i) => (
+                <li key={i} className="text-gray-300">{guideline}</li>
+              ))}
+            </ul>
+          </div>
+          
+          {/* Posts for active campaigns */}
+          {isActive && campaign.posts.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold">Your Posts</h3>
+              
+              <div className="grid grid-cols-1 gap-4">
                 {campaign.posts.map((post, i) => (
-                  <motion.div
+                  <div 
                     key={i}
-                    className="border p-3 md:p-4 rounded relative overflow-hidden"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 * i + 0.4 }}
-                    whileHover={{ scale: 1.01 }}
+                    className="p-5 border border-gray-800 rounded-lg bg-gray-900 bg-opacity-30"
                   >
-                    <div className="absolute -right-10 -top-10 w-32 h-32 bg-white opacity-5 rounded-full blur-xl" />
-
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="font-bold text-sm md:text-base">{post.platform}</span>
-                      <span className={`px-2 py-0.5 rounded text-xs md:text-sm border ${getStatusColor(post.status)}`}>
-                        {post.status.toUpperCase()}
-                      </span>
+                    <div className="flex flex-wrap justify-between items-center mb-4 gap-3">
+                      <div className="flex items-center">
+                        {post.platform === 'TikTok' && (
+                          <span className="mr-2 text-cyan-400">
+                            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                            </svg>
+                          </span>
+                        )}
+                        {post.platform === 'Instagram' && <Instagram className="h-5 w-5 text-pink-500 mr-2" />}
+                        {post.platform === 'YouTube' && <Youtube className="h-5 w-5 text-red-500 mr-2" />}
+                        {post.platform === 'Twitter' && <Twitter className="h-5 w-5 text-blue-400 mr-2" />}
+                        <span className="font-medium">{post.platform}</span>
+                      </div>
+                      <StatusLabel status={post.status} />
                     </div>
-
-                    <div className="grid grid-cols-2 gap-3 md:gap-4 mb-2">
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       <div>
-                        <p className="text-xs md:text-sm opacity-70">Views</p>
-                        <p className="font-bold text-sm md:text-base">{post.views}</p>
+                        <p className="text-sm text-gray-400 mb-1">Views</p>
+                        <p className="text-lg font-bold">{post.views}</p>
                       </div>
                       <div>
-                        <p className="text-xs md:text-sm opacity-70">Earned</p>
-                        <p className="font-bold text-sm md:text-base">${post.earned}</p>
+                        <p className="text-sm text-gray-400 mb-1">Earned</p>
+                        <p className="text-lg font-bold text-green-400">${post.earned}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-400 mb-1">Posted</p>
+                        <p className="text-base">
+                          {post.postDate && new Date(post.postDate).toLocaleDateString()}
+                        </p>
                       </div>
                     </div>
-
-                    <div className="text-xs md:text-sm space-y-1">
-                      <p>Content Type: <span className="capitalize">{post.contentType}</span></p>
-                      <p>Posted: {post.postDate && new Date(post.postDate).toLocaleDateString()}</p>
-                      <p>Hashtags: {post.hashtags?.join(", ")}</p>
-                      {post.status === 'denied' && post.denialReason && (
-                        <motion.div
-                          className="mt-2 p-2 border border-red-500 rounded flex items-start gap-2"
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" />
-                          <p className="text-red-500">{post.denialReason}</p>
-                        </motion.div>
-                      )}
-                    </div>
-                  </motion.div>
+                    
+                    {post.status === 'denied' && (
+                      <div className="mt-4 p-3 border border-red-500 rounded-lg bg-red-900 bg-opacity-10 flex items-start gap-2">
+                        <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                        <p className="text-red-400">Content doesn't follow campaign guidelines</p>
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
-            </motion.div>
+            </div>
+          )}
+          
+          {/* Join Button for Available Campaigns */}
+          {!isActive && (
+            <button
+              className="w-full py-4 bg-gradient-to-r from-red-500 to-red-700 rounded-lg text-white font-bold text-lg transition hover:shadow-lg hover:shadow-red-900/40"
+            >
+              Join This Campaign
+            </button>
           )}
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 });
 
 CampaignDetail.displayName = 'CampaignDetail';
 
-// StatsOverview Component - Memoized
+// StatsOverview Component - Simplified and accessible
 const StatsOverview = memo(({ totalPendingPayout }: { totalPendingPayout: number }) => {
   const stats = [
-    { icon: <Eye className="h-6 w-6 text-blue-400" />, label: "Total Views", value: "28.3M", trend: "+14.2%" },
-    { icon: <DollarSign className="h-6 w-6 text-green-400" />, label: "Total Earned", value: "$74,600", trend: "+23.5%" },
-    { icon: <Clock className="h-6 w-6 text-yellow-400" />, label: "Pending Payout", value: `$${totalPendingPayout}`, trend: "+8.7%" },
-    { icon: <TrendingUp className="h-6 w-6 text-red-400" />, label: "Active Campaigns", value: activeCampaigns.length.toString(), trend: "0%" }
+    { icon: <Eye className="h-6 w-6 text-blue-400" aria-hidden="true" />, label: "Total Views", value: "28.3M", trend: "+14%" },
+    { icon: <DollarSign className="h-6 w-6 text-green-400" aria-hidden="true" />, label: "Total Earned", value: "$74,600", trend: "+23%" },
+    { icon: <Clock className="h-6 w-6 text-yellow-400" aria-hidden="true" />, label: "Pending", value: `$${totalPendingPayout}`, trend: "+8%" }
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8 relative z-10">
-      {stats.map((stat, i) => (
-        <motion.div
-          key={i}
-          className="border p-4 md:p-6 rounded-lg relative overflow-hidden backdrop-blur-sm"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.1 }}
-          whileHover={{ scale: 1.02, borderColor: i === 0 ? '#4287f5' : i === 1 ? '#31a952' : i === 2 ? '#FFD700' : '#FF4444' }}
-        >
-          <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
-
-          <div className="flex items-center gap-3 mb-2 md:mb-4">
-            {stat.icon}
-            <span className="text-xs md:text-sm opacity-70">{stat.label}</span>
-          </div>
-          <div className="flex justify-between items-end">
-            <p className="text-xl md:text-3xl font-bold">{stat.value}</p>
-            <div className="text-xs md:text-sm flex items-center gap-1">
-              {stat.trend.startsWith('+') ? (
-                <TrendingUp className="h-3 w-3 md:h-4 md:w-4 text-green-400" />
-              ) : stat.trend.startsWith('-') ? (
-                <TrendingDown className="h-3 w-3 md:h-4 md:w-4 text-red-400" />
-              ) : (
-                <span className="h-3 w-3 md:h-4 md:w-4" />
-              )}
-              <span className={stat.trend.startsWith('+') ? 'text-green-400' : stat.trend.startsWith('-') ? 'text-red-400' : ''}>
-                {stat.trend}
-              </span>
+    <section aria-label="Performance overview" className="mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {stats.map((stat, i) => (
+          <div
+            key={i}
+            className="p-6 rounded-lg bg-gray-900 bg-opacity-50 border border-gray-800 hover:border-gray-700 transition-colors"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              {stat.icon}
+              <span className="text-gray-400">{stat.label}</span>
+            </div>
+            <div className="flex justify-between items-end">
+              <p className="text-3xl font-bold">{stat.value}</p>
+              <div className="text-sm flex items-center gap-1 text-green-400">
+                <TrendingUp className="h-4 w-4" aria-hidden="true" />
+                <span>{stat.trend}</span>
+              </div>
             </div>
           </div>
-        </motion.div>
-      ))}
-    </div>
+        ))}
+      </div>
+    </section>
   );
 });
 
 StatsOverview.displayName = 'StatsOverview';
 
-// ActiveCampaigns Component - Memoized
+// ActiveCampaigns Component - Simplified and more accessible
 interface CampaignsProps {
-  campaigns: any[];
+  campaigns: Campaign[] | AvailableCampaign[];
   onCampaignClick: (campaign: Campaign | AvailableCampaign) => void;
 }
 
 const ActiveCampaigns = memo(({ campaigns, onCampaignClick }: CampaignsProps) => (
   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-    {campaigns.map((campaign, index) => (
-      <motion.div
+    {campaigns.map((campaign) => (
+      <button
         key={campaign.id}
-        className="border p-6 rounded-lg cursor-pointer relative overflow-hidden overflow-x-hidden backdrop-blur-sm"
+        className="text-left p-6 rounded-lg bg-gray-900 bg-opacity-50 border border-gray-800 hover:border-gray-600 transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
         onClick={() => onCampaignClick(campaign)}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.1 }}
-        whileHover={{ scale: 1.02, borderColor: '#FF4444' }}
+        aria-label={`View details of ${campaign.title} campaign`}
       >
-        <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
-
         <div className="flex justify-between items-start mb-4">
           <h3 className="text-xl font-bold">{campaign.title}</h3>
-          <span className="border px-2 py-1 rounded text-sm bg-green-900 bg-opacity-20 border-green-500 text-green-400">
-            {campaign.status.toUpperCase()}
+          <span className="px-3 py-1 rounded-full bg-green-900 bg-opacity-20 text-green-400 text-sm">
+            ACTIVE
           </span>
         </div>
 
-        <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <p className="text-sm opacity-70">Earned</p>
-              <p className="text-xl font-bold">${campaign.earned}</p>
-            </div>
-            <div>
-              <p className="text-sm opacity-70">Pending</p>
-              <p className="text-xl font-bold">${campaign.pendingPayout}</p>
-            </div>
-            <div>
-              <p className="text-sm opacity-70">Views</p>
-              <p className="text-xl font-bold">{campaign.views}</p>
-            </div>
-          </div>
-
+        <div className="grid grid-cols-3 gap-4 mb-4">
           <div>
-            <p className="text-sm opacity-70">Content Type:</p>
-            <p className="capitalize font-medium">{campaign.contentType}</p>
+            <p className="text-sm text-gray-400 mb-1">Earned</p>
+            <p className="text-xl font-bold">${(campaign as Campaign).earned}</p>
           </div>
+          <div>
+            <p className="text-sm text-gray-400 mb-1">Pending</p>
+            <p className="text-xl font-bold">${(campaign as Campaign).pendingPayout}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-400 mb-1">Views</p>
+            <p className="text-xl font-bold">{campaign.views}</p>
+          </div>
+        </div>
 
+        <div className="flex justify-between items-end">
           <div className="flex flex-wrap gap-2">
-            {campaign.requirements.platforms.map((platform: string) => (
-              <motion.span
+            {campaign.requirements.platforms.slice(0, 2).map((platform) => (
+              <span
                 key={platform}
-                className="border px-2 py-1 rounded text-sm"
-                whileHover={{ borderColor: getColorForPlatform(platform) }}
+                className="px-3 py-1 rounded-full bg-white bg-opacity-5 text-sm"
               >
                 {platform}
-              </motion.span>
+              </span>
             ))}
+            {campaign.requirements.platforms.length > 2 && (
+              <span className="px-3 py-1 rounded-full bg-white bg-opacity-5 text-sm">
+                +{campaign.requirements.platforms.length - 2}
+              </span>
+            )}
           </div>
-
-          <p className="text-sm opacity-70 flex items-center gap-1">
-            <Calendar className="h-4 w-4" />
-            Ends: {new Date(campaign.endDate).toLocaleDateString()}
-          </p>
+          
+          <div className="flex items-center text-sm text-gray-400">
+            <Calendar className="h-4 w-4 mr-1" aria-hidden="true" />
+            <span>
+              {new Date(campaign.endDate).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric'
+              })}
+            </span>
+          </div>
         </div>
-      </motion.div>
+      </button>
     ))}
   </div>
 ));
 
 ActiveCampaigns.displayName = 'ActiveCampaigns';
 
-// AvailableCampaignsSection Component - Memoized
+// AvailableCampaignsSection Component - Simplified and more accessible
 const AvailableCampaignsSection = memo(({ campaigns, onCampaignClick }: CampaignsProps) => (
   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-    {campaigns.map((campaign, index) => (
-      <motion.div
+    {campaigns.map((campaign) => (
+      <button
         key={campaign.id}
-        className="border p-6 rounded-lg relative overflow-hidden overflow-x-hidden backdrop-blur-sm"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.1 }}
-        whileHover={{ scale: 1.02, borderColor: '#FF4444' }}
+        className="text-left p-6 rounded-lg bg-gray-900 bg-opacity-50 border border-gray-800 hover:border-gray-600 transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
         onClick={() => onCampaignClick(campaign)}
+        aria-label={`View details of ${campaign.title} campaign`}
       >
-        <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
-
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h3 className="text-xl font-bold">{campaign.title}</h3>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="px-2 py-0.5 bg-white bg-opacity-10 rounded-full text-xs text-green-400">
+            <h3 className="text-xl font-bold mb-2">{campaign.title}</h3>
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 rounded-full bg-white bg-opacity-5 text-sm text-blue-400">
+                NEW
+              </span>
+              <span className="px-3 py-1 rounded-full bg-white bg-opacity-5 text-sm">
                 {campaign.contentType === 'both' ? 'Original & Repurposed' : campaign.contentType.charAt(0).toUpperCase() + campaign.contentType.slice(1)}
               </span>
-              <span className="px-2 py-0.5 bg-white bg-opacity-10 rounded-full text-xs text-blue-400">
-                New
-              </span>
             </div>
           </div>
-          <motion.button
-            className="border px-4 py-2 rounded flex items-center gap-2"
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)" }}
-            whileTap={{ scale: 0.95 }}
-            onClick={(e) => {
-              e.stopPropagation();
-              onCampaignClick(campaign);
-            }}
-          >
-            Join <ArrowUpRight className="h-4 w-4" />
-          </motion.button>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 mb-4">
           <div>
-            <p className="text-sm opacity-70">Payout Rates:</p>
-            <p className="font-bold">Original: {campaign.requirements.payoutRate.original}</p>
-            {campaign.requirements.payoutRate.repurposed && (
-              <p className="font-bold">Repurposed: {campaign.requirements.payoutRate.repurposed}</p>
-            )}
+            <p className="text-sm text-gray-400 mb-1">Payout Rate</p>
+            <p className="text-lg font-bold">{campaign.requirements.payoutRate.original}</p>
           </div>
-
+          
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm opacity-70">Budget</p>
-              <p className="text-xl font-bold">{campaign.requirements.totalBudget}</p>
-            </div>
-            <div>
-              <p className="text-sm opacity-70">Min. Views</p>
+              <p className="text-sm text-gray-400 mb-1">Min. Views</p>
               <p className="text-xl font-bold">{campaign.requirements.minViewsForPayout}</p>
             </div>
-          </div>
-
-          <div>
-            <p className="text-sm opacity-70">Campaign Brief:</p>
-            <p className="text-sm mt-1 line-clamp-2 opacity-90">
-              {campaign.id === 3 ?
-                "Create engaging content to promote a new artist's album launch across social media platforms." :
-                "Produce reaction videos and reviews for upcoming movie premiere to build audience excitement."
-              }
-            </p>
-          </div>
-
-          <div>
-            <p className="text-sm opacity-70">Platforms</p>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {campaign.requirements.platforms.map((platform: string) => (
-                <motion.span
-                  key={platform}
-                  className="border px-2 py-1 rounded text-sm"
-                  whileHover={{ borderColor: getColorForPlatform(platform) }}
-                >
-                  {platform}
-                </motion.span>
-              ))}
+            <div>
+              <p className="text-sm text-gray-400 mb-1">Budget</p>
+              <p className="text-lg font-bold">{campaign.requirements.totalBudget}</p>
             </div>
           </div>
-
-          <p className="text-sm opacity-70 flex items-center gap-1">
-            <Calendar className="h-4 w-4" />
-            Deadline: {new Date(campaign.endDate).toLocaleDateString()}
-          </p>
         </div>
-      </motion.div>
+
+        <div className="flex justify-between items-center pt-3 border-t border-gray-800">
+          <div className="flex flex-wrap gap-2">
+            {campaign.requirements.platforms.slice(0, 2).map((platform) => (
+              <span
+                key={platform}
+                className="px-3 py-1 rounded-full bg-white bg-opacity-5 text-sm"
+              >
+                {platform}
+              </span>
+            ))}
+            {campaign.requirements.platforms.length > 2 && (
+              <span className="px-3 py-1 rounded-full bg-white bg-opacity-5 text-sm">
+                +{campaign.requirements.platforms.length - 2}
+              </span>
+            )}
+          </div>
+          
+          <span className="inline-flex items-center text-red-400 font-medium text-sm">
+            Join <ArrowUpRight className="h-4 w-4 ml-1" aria-hidden="true" />
+          </span>
+        </div>
+      </button>
     ))}
+    
+    {/* Add Campaign Card */}
+    <button 
+      className="flex flex-col items-center justify-center p-6 rounded-lg border border-dashed border-gray-700 bg-gray-900 bg-opacity-30 hover:border-gray-500 hover:bg-opacity-40 transition-all text-center focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+      aria-label="Find more campaigns"
+    >
+      <div className="w-12 h-12 mb-4 rounded-full flex items-center justify-center bg-gray-800">
+        <Plus className="h-6 w-6 text-gray-400" aria-hidden="true" />
+      </div>
+      <h3 className="text-lg font-medium mb-2">Find More Campaigns</h3>
+      <p className="text-sm text-gray-400">
+        Browse our marketplace for more opportunities
+      </p>
+    </button>
   </div>
 ));
 
 AvailableCampaignsSection.displayName = 'AvailableCampaignsSection';
 
-// Analytics View Component - Memoized
+// Analytics View Component - Simplified
 const AnalyticsView = memo(() => {
   return (
-    <div className="relative z-10">
-      {/* Enhanced Analytics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-        <motion.div
-          className="border p-4 md:p-6 rounded-lg relative overflow-hidden backdrop-blur-sm"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          whileHover={{ borderColor: "#4287f5" }}
-        >
-          <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
-
-          <div className="flex justify-between items-center mb-4 md:mb-6">
-            <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
-              <Eye className="h-5 w-5 text-blue-400" />
-              VIEWS OVER TIME
-            </h2>
-            <motion.div
-              className="flex items-center gap-2 border px-3 py-1 rounded text-xs"
-              whileHover={{ scale: 1.05 }}
+    <div className="space-y-10">
+      {/* Views and Earnings Charts */}
+      <section aria-labelledby="analytics-charts" className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <h2 id="analytics-charts" className="sr-only">Analytics Charts</h2>
+        
+        {/* Views Chart */}
+        <div className="p-6 rounded-lg bg-gray-900 bg-opacity-50 border border-gray-800">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-bold flex items-center gap-2">
+              <Eye className="h-5 w-5 text-blue-400" aria-hidden="true" />
+              Views Over Time
+            </h3>
+            <select 
+              className="px-3 py-1 bg-transparent border border-gray-700 rounded text-sm focus:outline-none focus:border-blue-500"
+              aria-label="Select view type"
             >
-              <select className="bg-transparent border-none outline-none">
-                <option value="total">Total Views</option>
-                <option value="platform">By Platform</option>
-              </select>
-            </motion.div>
+              <option value="total">Total Views</option>
+              <option value="platform">By Platform</option>
+            </select>
           </div>
 
-          <div className="h-64">
+          <div className="h-64" aria-label="Views chart showing increasing trend over 6 months">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={viewsData}>
-                <defs>
-                  <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#4287f5" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#4287f5" stopOpacity={0.1} />
-                  </linearGradient>
-                </defs>
+              <LineChart data={viewsData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis dataKey="date" stroke="#FFFFFF" />
-                <YAxis stroke="#FFFFFF" />
+                <XAxis 
+                  dataKey="date" 
+                  stroke="#9CA3AF" 
+                  tick={{ fill: '#9CA3AF' }}
+                  dy={10}
+                />
+                <YAxis 
+                  stroke="#9CA3AF"
+                  tick={{ fill: '#9CA3AF' }}
+                  tickFormatter={(value) => `${value}M`}
+                />
                 <Tooltip content={<CustomTooltip />} />
-                <Area
+                <Line
                   type="monotone"
                   dataKey="views"
                   stroke="#4287f5"
-                  fillOpacity={1}
-                  fill="url(#colorViews)"
+                  strokeWidth={3}
+                  dot={{ fill: '#FFFFFF', r: 4, strokeWidth: 2 }}
+                  activeDot={{ r: 6, fill: '#4287f5' }}
                 />
-              </AreaChart>
+              </LineChart>
             </ResponsiveContainer>
           </div>
-        </motion.div>
-
-        <motion.div
-          className="border p-4 md:p-6 rounded-lg relative overflow-hidden backdrop-blur-sm"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          whileHover={{ borderColor: "#31a952" }}
-        >
-          <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
-
-          <div className="flex justify-between items-center mb-4 md:mb-6">
-            <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-green-400" />
-              EARNINGS OVER TIME
-            </h2>
-            <motion.div
-              className="flex items-center gap-2 border px-3 py-1 rounded text-xs"
-              whileHover={{ scale: 1.05 }}
+        </div>
+        
+        {/* Earnings Chart */}
+        <div className="p-6 rounded-lg bg-gray-900 bg-opacity-50 border border-gray-800">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-bold flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-green-400" aria-hidden="true" />
+              Earnings Over Time
+            </h3>
+            <select 
+              className="px-3 py-1 bg-transparent border border-gray-700 rounded text-sm focus:outline-none focus:border-green-500"
+              aria-label="Select earnings view"
             >
-              <select className="bg-transparent border-none outline-none">
-                <option value="total">Total Earnings</option>
-                <option value="campaign">By Campaign</option>
-              </select>
-            </motion.div>
+              <option value="total">Total Earnings</option>
+              <option value="campaign">By Campaign</option>
+            </select>
           </div>
 
-          <div className="h-64">
+          <div className="h-64" aria-label="Earnings chart showing increasing trend over 6 months">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={viewsData}>
+              <BarChart data={viewsData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis dataKey="date" stroke="#FFFFFF" />
-                <YAxis stroke="#FFFFFF" />
-                <Tooltip
-                  content={<CustomTooltip />}
-                  cursor={{ fill: 'rgba(255,255,255,0.1)' }}
+                <XAxis 
+                  dataKey="date" 
+                  stroke="#9CA3AF" 
+                  tick={{ fill: '#9CA3AF' }}
+                  dy={10}
                 />
+                <YAxis 
+                  stroke="#9CA3AF"
+                  tick={{ fill: '#9CA3AF' }}
+                  tickFormatter={(value) => `$${value/1000}k`}
+                />
+                <Tooltip content={<CustomTooltip />} />
                 <Bar
                   dataKey="earnings"
                   fill="#31a952"
@@ -1022,36 +762,28 @@ const AnalyticsView = memo(() => {
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </motion.div>
-      </div>
+        </div>
+      </section>
 
-      {/* Platform Stats */}
-      <motion.div
-        className="border p-4 md:p-6 rounded-lg relative overflow-hidden backdrop-blur-sm"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        whileHover={{ borderColor: '#4287f5' }}
-      >
-        <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
+      {/* Platform Breakdown */}
+      <section aria-labelledby="platform-breakdown" className="p-6 rounded-lg bg-gray-900 bg-opacity-50 border border-gray-800">
+        <h2 id="platform-breakdown" className="text-xl font-bold mb-6">Platform Breakdown</h2>
 
-        <h2 className="text-xl font-bold mb-6">PLATFORM BREAKDOWN</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="h-64">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Pie Chart */}
+          <div className="h-64" aria-label="Pie chart showing distribution of views across platforms">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={platformPieData}
+                  data={platformData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
                   outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(1)}%`}
+                  dataKey="percentage"
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                 >
-                  {platformPieData.map((entry, index) => (
+                  {platformData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -1060,266 +792,224 @@ const AnalyticsView = memo(() => {
             </ResponsiveContainer>
           </div>
 
+          {/* Platform Stats */}
           <div className="space-y-4">
             {platformData.map((platform, index) => (
-              <motion.div
+              <div
                 key={platform.platform}
-                className="border p-3 rounded flex items-center justify-between"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 * index + 0.3 }}
-                whileHover={{ scale: 1.02, borderColor: getColorForPlatform(platform.platform) }}
+                className="p-4 rounded-lg bg-white bg-opacity-5 border border-gray-800 flex items-center justify-between"
               >
                 <div className="flex items-center gap-3">
-                  {platform.platform === 'YouTube' && <Youtube className="h-5 w-5" />}
-                  {platform.platform === 'Instagram' && <Instagram className="h-5 w-5" />}
-                  {platform.platform === 'TikTok' && <svg className="h-5 w-5" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16.5 7.3c-.4-.1-.8-.1-1.2-.1-3 0-5.6 2-6.7 4.7-.3.7-.4 1.5-.4 2.3 0 3.3 2.7 6 6 6 .8 0 1.6-.1 2.3-.4.8-.3 1.5-.8 2-1.3.1-.1.1-.3.2-.4V9.9c0-.1 0-.3-.1-.4-.5-2.2-2.4-3.8-4.7-3.8-.4 0-.8 0-1.2.1-.3.1-.7.2-1 .4-.2.2-.4.4-.5.7-.1.3-.2.7-.2 1 0 1.4 1 2.6 2.4 2.6h.1V15c-.9 0-1.7-.1-2.5-.4-1.7-.6-3-2-3.6-3.7-.2-.6-.3-1.3-.3-2 0-1.5.5-2.9 1.4-4C7 3 8.4 2.3 9.9 2.1c1.5-.2 3.1 0 4.5.7 1.3.6 2.4 1.7 3 3 .1.1.2.2.3.2.1.1.3.1.4.1l.1-.1c.4-.4.6-.9.8-1.4.1-.5.2-1.1.1-1.6 0-.1-.1-.2-.3-.2z" /><path d="M16 18.4c-.1.2-.4.3-.6.3-1.7 0-3.1-1.4-3.1-3.1 0-.2.1-.4.3-.6.1-.1.3-.2.5-.1 1.7 0 3.1 1.4 3.1 3.1 0 .2-.1.4-.3.6 0 .1-.1.1-.2.1z" /></svg>}
-                  {platform.platform === 'X' && <Twitter className="h-5 w-5" />}
-                  <span>{platform.platform}</span>
+                  {platform.platform === 'YouTube' && <Youtube className="h-5 w-5 text-red-500" aria-hidden="true" />}
+                  {platform.platform === 'Instagram' && <Instagram className="h-5 w-5 text-pink-500" aria-hidden="true" />}
+                  {platform.platform === 'TikTok' && (
+                    <svg className="h-5 w-5 text-cyan-400" aria-hidden="true" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                    </svg>
+                  )}
+                  {platform.platform === 'X' && <Twitter className="h-5 w-5 text-blue-400" aria-hidden="true" />}
+                  <span className="font-medium">{platform.platform}</span>
                 </div>
                 <div className="text-right">
                   <p className="font-bold">{platform.views}M</p>
-                  <p className="text-sm opacity-70">{platform.percentage}%</p>
+                  <p className="text-sm text-gray-400">{platform.percentage}%</p>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
-      </motion.div>
+      </section>
 
-      {/* Audience Demographics */}
-      <motion.div
-        className="border p-4 md:p-6 rounded-lg mt-4 md:mt-6 relative overflow-hidden backdrop-blur-sm"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-      >
-        <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
+      {/* Audience Demographics - Placeholder */}
+      <section aria-labelledby="audience-demographics" className="p-6 rounded-lg bg-gray-900 bg-opacity-50 border border-gray-800">
+        <h2 id="audience-demographics" className="text-xl font-bold mb-6 flex items-center gap-2">
+          <Users className="h-5 w-5 text-purple-400" aria-hidden="true" />
+          Audience Demographics
+        </h2>
 
-        <div className="flex justify-between items-center mb-4 md:mb-6">
-          <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
-            <Users className="h-5 w-5 text-purple-400" />
-            AUDIENCE DEMOGRAPHICS
-          </h2>
-          <motion.div
-            className="flex items-center gap-2 border px-3 py-1 rounded text-xs"
-            whileHover={{ scale: 1.05 }}
+        <div className="flex flex-col items-center justify-center py-12 border border-dashed border-gray-700 rounded-lg">
+          <div className="w-16 h-16 mb-4 rounded-full flex items-center justify-center bg-gray-800">
+            <Users className="h-8 w-8 text-gray-400" aria-hidden="true" />
+          </div>
+          <h3 className="text-lg font-medium mb-2">Demographics Coming Soon</h3>
+          <p className="text-sm text-gray-400 text-center max-w-md">
+            Connect more accounts to see detailed audience demographics across your platforms
+          </p>
+          <button
+            className="mt-6 px-4 py-2 border border-gray-700 rounded-lg hover:bg-white hover:bg-opacity-5 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
           >
-            <select className="bg-transparent border-none outline-none">
-              <option value="age">Age Groups</option>
-              <option value="gender">Gender</option>
-              <option value="location">Location</option>
-            </select>
-          </motion.div>
-        </div>
-
-        <div className="text-center p-6 md:p-12 border border-dashed opacity-50">
-          <p>Audience data will be available once you connect more accounts</p>
-          <motion.button
-            className="mt-4 border px-4 py-2 rounded inline-flex items-center gap-2"
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)" }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <Zap className="h-4 w-4" />
             Connect Accounts
-          </motion.button>
+          </button>
         </div>
-      </motion.div>
+      </section>
     </div>
   );
 });
 
 AnalyticsView.displayName = 'AnalyticsView';
 
-// Payments View Component - Memoized
+// PaymentsView Component - Simplified
 const PaymentsView = memo(() => {
   return (
-    <div className="relative z-10">
+    <div className="space-y-10">
       {/* Payment Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
-        <motion.div
-          className="border p-4 md:p-6 rounded-lg relative overflow-hidden backdrop-blur-sm"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          whileHover={{ borderColor: "#31a952" }}
-        >
-          <div className="absolute -right-20 -top-20 w-40 h-40 bg-green-500 opacity-5 rounded-full blur-xl" />
-          <h3 className="text-base md:text-lg font-medium mb-2">Total Earned</h3>
-          <p className="text-2xl md:text-3xl font-bold">$74,600</p>
-          <div className="mt-4 text-xs md:text-sm text-green-400 flex items-center gap-1">
-            <TrendingUp className="h-3 w-3 md:h-4 md:w-4" />
-            <span>+23.5% from last period</span>
+      <section aria-labelledby="payment-summary" className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <h2 id="payment-summary" className="sr-only">Payment Summary</h2>
+        
+        <div className="p-6 rounded-lg bg-gray-900 bg-opacity-50 border border-gray-800">
+          <h3 className="text-xl font-medium mb-2">Total Earned</h3>
+          <p className="text-3xl font-bold mb-3">$74,600</p>
+          <div className="flex items-center text-sm text-green-400">
+            <TrendingUp className="h-4 w-4 mr-1" aria-hidden="true" />
+            <span>+23% from last period</span>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div
-          className="border p-4 md:p-6 rounded-lg relative overflow-hidden backdrop-blur-sm"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          whileHover={{ borderColor: "#FFD700" }}
-        >
-          <div className="absolute -right-20 -top-20 w-40 h-40 bg-yellow-500 opacity-5 rounded-full blur-xl" />
-          <h3 className="text-base md:text-lg font-medium mb-2">Pending Payout</h3>
-          <p className="text-2xl md:text-3xl font-bold">${activeCampaigns.reduce((sum, campaign) => sum + campaign.pendingPayout, 0)}</p>
-          <p className="mt-4 text-xs md:text-sm opacity-70">Expected on Mar 15, 2025</p>
-        </motion.div>
+        <div className="p-6 rounded-lg bg-gray-900 bg-opacity-50 border border-gray-800">
+          <h3 className="text-xl font-medium mb-2">Pending Payout</h3>
+          <p className="text-3xl font-bold mb-3">${activeCampaigns.reduce((sum, campaign) => sum + campaign.pendingPayout, 0)}</p>
+          <p className="text-sm text-gray-400">Expected on Mar 15, 2025</p>
+        </div>
 
-        <motion.div
-          className="border p-4 md:p-6 rounded-lg relative overflow-hidden backdrop-blur-sm"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          whileHover={{ borderColor: "#4287f5" }}
-        >
-          <div className="absolute -right-20 -top-20 w-40 h-40 bg-blue-500 opacity-5 rounded-full blur-xl" />
-          <h3 className="text-base md:text-lg font-medium mb-2">Average Per Campaign</h3>
-          <p className="text-2xl md:text-3xl font-bold">$350</p>
-          <div className="mt-4 text-xs md:text-sm text-green-400 flex items-center gap-1">
-            <TrendingUp className="h-3 w-3 md:h-4 md:w-4" />
-            <span>+12.1% from last period</span>
+        <div className="p-6 rounded-lg bg-gray-900 bg-opacity-50 border border-gray-800">
+          <h3 className="text-xl font-medium mb-2">Average Per Campaign</h3>
+          <p className="text-3xl font-bold mb-3">$350</p>
+          <div className="flex items-center text-sm text-green-400">
+            <TrendingUp className="h-4 w-4 mr-1" aria-hidden="true" />
+            <span>+12% from last period</span>
           </div>
-        </motion.div>
-      </div>
+        </div>
+      </section>
 
       {/* Payment History */}
-      <motion.div
-        className="border p-6 rounded-lg bg-black bg-opacity-50 backdrop-blur-sm relative overflow-hidden"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
-
+      <section aria-labelledby="payment-history" className="p-6 rounded-lg bg-gray-900 bg-opacity-50 border border-gray-800">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold">PAYMENT HISTORY</h2>
-          <motion.div
-            className="flex items-center gap-2 border px-3 py-1 rounded text-sm"
-            whileHover={{ scale: 1.05 }}
-          >
-            <Calendar className="h-4 w-4" />
-            <select className="bg-transparent border-none outline-none">
+          <h2 id="payment-history" className="text-xl font-bold">Payment History</h2>
+          <div className="flex items-center">
+            <select 
+              className="px-3 py-1 bg-transparent border border-gray-700 rounded text-sm focus:outline-none focus:border-red-500"
+              aria-label="Filter by time period"
+            >
               <option value="6M">Last 6 Months</option>
               <option value="1Y">Last Year</option>
               <option value="ALL">All Time</option>
             </select>
-          </motion.div>
+          </div>
         </div>
 
-        <div className="overflow-x-auto custom-scrollbar">
+        <div className="overflow-x-auto" tabIndex={0} aria-label="Payment history table with dates, amounts, and status">
           <table className="w-full">
             <thead>
-              <tr className="border-b">
-                <th className="text-left py-2">Date</th>
-                <th className="text-left py-2">Amount</th>
-                <th className="text-left py-2">Method</th>
-                <th className="text-left py-2">Status</th>
+              <tr className="border-b border-gray-800 text-left">
+                <th className="py-3 font-medium text-gray-400">Date</th>
+                <th className="py-3 font-medium text-gray-400">Amount</th>
+                <th className="py-3 font-medium text-gray-400">Method</th>
+                <th className="py-3 font-medium text-gray-400">Status</th>
               </tr>
             </thead>
             <tbody>
               {[
                 { date: 'Feb 15, 2025', amount: 2500, method: 'PayPal', status: 'Completed' },
                 { date: 'Jan 15, 2025', amount: 1800, method: 'Bank Transfer', status: 'Completed' },
-                { date: 'Dec 15, 2024', amount: 3200, method: 'PayPal', status: 'Completed' },
-                { date: 'Nov 15, 2024', amount: 1500, method: 'Bank Transfer', status: 'Completed' }
+                { date: 'Dec 15, 2024', amount: 3200, method: 'PayPal', status: 'Completed' }
               ].map((payment, index) => (
-                <motion.tr
+                <tr
                   key={index}
-                  className="border-b"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
+                  className="border-b border-gray-800 hover:bg-white hover:bg-opacity-5 transition-colors"
                 >
-                  <td className="py-3">{payment.date}</td>
-                  <td className="py-3 font-bold">${payment.amount.toLocaleString()}</td>
-                  <td className="py-3">{payment.method}</td>
-                  <td className="py-3">
-                    <span className="inline-flex items-center px-2 py-1 rounded-full bg-green-900 bg-opacity-20 text-green-400 text-xs">
+                  <td className="py-4">{payment.date}</td>
+                  <td className="py-4 font-bold">${payment.amount.toLocaleString()}</td>
+                  <td className="py-4">{payment.method}</td>
+                  <td className="py-4">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-green-900 bg-opacity-20 text-green-400 text-xs font-medium">
                       {payment.status}
                     </span>
                   </td>
-                </motion.tr>
+                </tr>
               ))}
             </tbody>
           </table>
         </div>
 
-        <motion.button
-          className="w-full border p-2 rounded mt-6 flex items-center justify-center gap-2"
-          whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-          whileTap={{ scale: 0.98 }}
-        >
-          View All Transactions
-        </motion.button>
-      </motion.div>
-
-      {/* Payment Methods Summary */}
-      <motion.div
-        className="border p-4 md:p-6 rounded-lg mt-6 md:mt-8 relative overflow-hidden backdrop-blur-sm"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-      >
-        <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
-
-        <div className="flex justify-between items-center mb-4 md:mb-6">
-          <h2 className="text-lg md:text-xl font-bold">PAYMENT METHODS</h2>
-          <motion.button
-            className="border px-3 md:px-4 py-1.5 md:py-2 rounded flex items-center gap-2 text-sm"
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)" }}
-            whileTap={{ scale: 0.98 }}
+        <div className="mt-6 text-center">
+          <button
+            className="px-4 py-2 border border-gray-700 rounded-lg hover:bg-white hover:bg-opacity-5 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
           >
-            <CreditCard className="h-3 w-3 md:h-4 md:w-4" />
-            Add Method
-          </motion.button>
+            View All Transactions
+          </button>
+        </div>
+      </section>
+
+      {/* Payment Methods */}
+      <section aria-labelledby="payment-methods" className="p-6 rounded-lg bg-gray-900 bg-opacity-50 border border-gray-800">
+        <div className="flex justify-between items-center mb-6">
+          <h2 id="payment-methods" className="text-xl font-bold">Payment Methods</h2>
+          <button
+            className="px-3 py-1 border border-gray-700 rounded-lg flex items-center gap-2 hover:bg-white hover:bg-opacity-5 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+            aria-label="Add payment method"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Add Method</span>
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-          {[
-            { type: 'bank', last4: '4321', default: true, email: undefined },
-            { type: 'paypal', last4: undefined, default: false, email: 'creator@example.com' }
-          ].map((method, index) => (
-            <motion.div
-              key={index}
-              className="border p-3 md:p-4 rounded flex items-center justify-between"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 * index + 0.5 }}
-              whileHover={{ scale: 1.02, borderColor: method.default ? "#31a952" : "#FFFFFF" }}
-            >
-              <div className="flex items-center gap-3">
-                <CreditCard className="h-5 w-5" />
-                <div>
-                  <p className="font-medium text-sm md:text-base">
-                    {method.type === 'bank' ? `Bank Account ****${method.last4}` : `PayPal ${method.email}`}
-                  </p>
-                  {method.default && (
-                    <span className="text-xs bg-green-900 bg-opacity-30 text-green-400 px-2 py-0.5 rounded-full">
-                      Default
-                    </span>
-                  )}
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-4 rounded-lg bg-white bg-opacity-5 border border-gray-800 relative">
+            <div className="absolute top-2 right-2">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-green-900 bg-opacity-20 text-green-400 text-xs font-medium">
+                Default
+              </span>
+            </div>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 rounded-full bg-gray-800">
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" strokeWidth="2" stroke="currentColor">
+                  <rect x="3" y="5" width="18" height="14" rx="2" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
               </div>
-              <motion.button
-                className="text-xs md:text-sm border px-2 md:px-3 py-1 md:py-1.5 rounded"
-                whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {method.default ? 'Edit' : 'Make Default'}
-              </motion.button>
-            </motion.div>
-          ))}
+              <div>
+                <p className="font-medium">Bank Account</p>
+                <p className="text-sm text-gray-400">****4321</p>
+              </div>
+            </div>
+            <div className="flex gap-2 mt-4">
+              <button className="px-3 py-1 text-sm border border-gray-700 rounded hover:bg-white hover:bg-opacity-5 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
+                Edit
+              </button>
+            </div>
+          </div>
+          
+          <div className="p-4 rounded-lg bg-white bg-opacity-5 border border-gray-800">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 rounded-full bg-gray-800">
+                <svg className="h-5 w-5 text-blue-400" viewBox="0 0 24 24" fill="none" strokeWidth="2" stroke="currentColor">
+                  <path d="M9.5 13.75C9.5 14.72 10.25 15.5 11.17 15.5H13.05C13.85 15.5 14.5 14.82 14.5 13.97C14.5 13.06 14.1 12.73 13.51 12.52L10.5 11.47C9.91 11.26 9.51 10.94 9.51 10.02C9.51 9.18 10.16 8.49 10.96 8.49H12.84C13.76 8.49 14.51 9.27 14.51 10.24" />
+                  <path d="M12 7.5V16.5" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-medium">PayPal</p>
+                <p className="text-sm text-gray-400">creator@example.com</p>
+              </div>
+            </div>
+            <div className="flex gap-2 mt-4">
+              <button className="px-3 py-1 text-sm border border-gray-700 rounded hover:bg-white hover:bg-opacity-5 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
+                Make Default
+              </button>
+              <button className="px-3 py-1 text-sm border border-gray-700 rounded hover:bg-white hover:bg-opacity-5 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
+                Edit
+              </button>
+            </div>
+          </div>
         </div>
-      </motion.div>
+      </section>
     </div>
   );
 });
 
 PaymentsView.displayName = 'PaymentsView';
 
-// MAIN COMPONENT - Optimized CreatorDashboard
+// MAIN COMPONENT - CreatorDashboard optimized for accessibility and usability
 export default function CreatorDashboard() {
   const router = useRouter();
   const [timeFilter, setTimeFilter] = useState('6M');
@@ -1328,12 +1018,18 @@ export default function CreatorDashboard() {
   const [activeView, setActiveView] = useState<'campaigns' | 'analytics' | 'payments' | 'settings'>('campaigns');
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  // Filter available campaigns based on search term - memoized
+  // Type assertion for activeCampaigns to resolve TypeScript error
+  const typedActiveCampaigns = activeCampaigns as Campaign[];
+  
+  // Type assertion for availableCampaigns to resolve TypeScript error
+  const typedAvailableCampaigns = availableCampaigns as AvailableCampaign[];
+
+  // Filter available campaigns based on search term
   const filteredAvailableCampaigns = useMemo(() => {
-    if (!searchTerm) return availableCampaigns;
+    if (!searchTerm) return typedAvailableCampaigns;
 
     const term = searchTerm.toLowerCase();
-    return availableCampaigns.filter(campaign =>
+    return typedAvailableCampaigns.filter(campaign =>
       campaign.title.toLowerCase().includes(term) ||
       campaign.requirements.platforms.some(platform => platform.toLowerCase().includes(term))
     );
@@ -1347,232 +1043,199 @@ export default function CreatorDashboard() {
     }
   }, [router]);
 
-  // Handle logout - memoized callback
+  // Handle logout
   const handleLogout = useCallback(() => {
     localStorage.removeItem('isLoggedIn');
     router.push('/');
   }, [router]);
 
-  // Campaign click handler - memoized callback
+  // Campaign click handler
   const handleCampaignClick = useCallback((campaign: Campaign | AvailableCampaign) => {
     setSelectedCampaign(campaign);
   }, []);
 
-  // Calculate derived values once - memoized
+  // Calculate total pending payout
   const totalPendingPayout = useMemo(() =>
-    activeCampaigns.reduce((sum, campaign) => sum + campaign.pendingPayout, 0),
+    typedActiveCampaigns.reduce((sum, campaign) => sum + campaign.pendingPayout, 0),
     []
   );
 
   return (
-    <div className="min-h-screen bg-black p-3 md:p-6 relative">
+    <div className="min-h-screen bg-black p-4 md:p-8">
+      {/* Subtle background pattern */}
       <BackgroundPattern />
 
-      {/* Enhanced Header with animated title */}
-      <div className="mb-6 md:mb-8">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
-          <div>
-            <h1 className="text-2xl md:text-4xl font-bold mb-2">
-              <span>CREATOR_</span>
-              <motion.span
-                className="inline-block"
-                animate={{
-                  color: ['#FFFFFF', '#FF4444', '#FFFFFF'],
-                  transition: { duration: 3, repeat: Infinity }
-                }}
+      {/* Header with Title and Time Filter */}
+      <header className="mb-8">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+          <h1 className="text-3xl md:text-4xl font-bold">Creator Dashboard</h1>
+          
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 px-3 py-2 border border-gray-800 rounded-lg bg-gray-900 bg-opacity-50">
+              <Calendar className="h-4 w-4 text-gray-400" aria-hidden="true" />
+              <select
+                className="bg-transparent border-none outline-none text-sm"
+                value={timeFilter}
+                onChange={(e) => setTimeFilter(e.target.value)}
+                aria-label="Select time period"
               >
-                DASHBOARD
-              </motion.span>
-            </h1>
-            <div className="flex items-center gap-4">
-              <motion.div
-                className="flex items-center gap-2 border px-3 py-1 rounded"
-                whileHover={{ scale: 1.02, borderColor: "#4287f5" }}
-              >
-                <Calendar className="h-4 w-4" />
-                <select
-                  className="bg-transparent border-none outline-none text-sm md:text-base"
-                  value={timeFilter}
-                  onChange={(e) => setTimeFilter(e.target.value)}
-                >
-                  <option value="7D">7 Days</option>
-                  <option value="1M">1 Month</option>
-                  <option value="3M">3 Months</option>
-                  <option value="6M">6 Months</option>
-                  <option value="1Y">1 Year</option>
-                  <option value="ALL">Lifetime</option>
-                </select>
-              </motion.div>
+                <option value="7D">Last 7 Days</option>
+                <option value="1M">Last Month</option>
+                <option value="3M">Last 3 Months</option>
+                <option value="6M">Last 6 Months</option>
+                <option value="1Y">Last Year</option>
+              </select>
             </div>
-          </div>
-          {/* Desktop-only logout button */}
-          <div className="hidden md:block">
-            <motion.button
-              className="border px-4 py-2 rounded flex items-center gap-2 text-sm md:text-base"
-              whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)", borderColor: "#FF4444" }}
-              whileTap={{ scale: 0.98 }}
+            
+            <button
+              className="hidden md:flex px-4 py-2 rounded-lg border border-gray-800 bg-gray-900 bg-opacity-50 items-center gap-2 hover:bg-white hover:bg-opacity-5 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
               onClick={() => setShowLogoutConfirm(true)}
+              aria-label="Log out"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-4 w-4" aria-hidden="true" />
               <span>Logout</span>
-            </motion.button>
+            </button>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Stats Overview */}
+      {/* Key Stats Overview */}
       <StatsOverview totalPendingPayout={totalPendingPayout} />
 
       {/* Navigation Tabs */}
       <NavigationTabs activeView={activeView} setActiveView={setActiveView} />
       
-      <AnimatePresence mode="wait" initial={false}>
-        {activeView === 'campaigns' && (
-          <motion.div
-            key="campaigns"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
-            className="relative z-10"
-          >
-            {/* Active Campaigns */}
-            <div className="mb-6 md:mb-8">
-              <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 flex items-center gap-2">
-                <Zap className="h-5 w-5 text-yellow-400" />
-                ACTIVE CAMPAIGNS
-              </h2>
-              <ActiveCampaigns 
-                campaigns={activeCampaigns} 
-                onCampaignClick={handleCampaignClick} 
-              />
-            </div>
+      {/* Main Content Area */}
+      <main aria-live="polite">
+        <AnimatePresence mode="wait" initial={false}>
+          {activeView === 'campaigns' && (
+            <motion.div
+              key="campaigns"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+            >
+              {/* Active Campaigns */}
+              <section aria-labelledby="active-campaigns" className="mb-12">
+                <div className="flex items-center mb-6">
+                  <h2 id="active-campaigns" className="text-2xl font-bold">Active Campaigns</h2>
+                </div>
+                
+                <ActiveCampaigns 
+                  campaigns={typedActiveCampaigns} 
+                  onCampaignClick={handleCampaignClick} 
+                />
+              </section>
 
-            {/* Available Campaigns */}
-            <div className="mb-6 md:mb-8">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 gap-3">
-                <h2 className="text-xl md:text-2xl font-bold flex items-center gap-2">
-                  <Layers className="h-5 w-5 text-blue-400" />
-                  AVAILABLE CAMPAIGNS
-                </h2>
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <motion.div
-                    className="relative flex-1 sm:flex-none"
-                    whileHover={{ scale: 1.02 }}
-                  >
-                    <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2" />
+              {/* Available Campaigns */}
+              <section aria-labelledby="available-campaigns" className="mb-8">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
+                  <h2 id="available-campaigns" className="text-2xl font-bold">Available Campaigns</h2>
+                  
+                  <div className="relative w-full sm:w-auto">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Search className="h-4 w-4 text-gray-400" aria-hidden="true" />
+                    </div>
                     <input
                       type="text"
+                      className="pl-10 pr-4 py-2 w-full sm:w-auto bg-gray-900 bg-opacity-50 border border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
                       placeholder="Search campaigns..."
-                      className="pl-10 pr-4 py-2 border rounded bg-transparent w-full sm:w-auto"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
+                      aria-label="Search campaigns"
                     />
-                  </motion.div>
-                  <motion.button
-                    className="border p-2 rounded"
-                    whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Filter className="h-4 w-4" />
-                  </motion.button>
+                  </div>
                 </div>
-              </div>
-              <AvailableCampaignsSection
-                campaigns={filteredAvailableCampaigns}
-                onCampaignClick={handleCampaignClick}
-              />
-            </div>
-          </motion.div>
-        )}
+                
+                <AvailableCampaignsSection
+                  campaigns={filteredAvailableCampaigns}
+                  onCampaignClick={handleCampaignClick}
+                />
+              </section>
+            </motion.div>
+          )}
 
-        {activeView === 'analytics' && (
-          <motion.div
-            key="analytics"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
-          >
-            <AnalyticsView />
-          </motion.div>
-        )}
+          {activeView === 'analytics' && (
+            <motion.div
+              key="analytics"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+            >
+              <AnalyticsView />
+            </motion.div>
+          )}
 
-        {activeView === 'payments' && (
-          <motion.div
-            key="payments"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
-          >
-            <PaymentsView />
-          </motion.div>
-        )}
+          {activeView === 'payments' && (
+            <motion.div
+              key="payments"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+            >
+              <PaymentsView />
+            </motion.div>
+          )}
 
-        {activeView === 'settings' && (
-          <motion.div
-            key="settings"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
-          >
-            <SettingsView />
-          </motion.div>
-        )}
-      </AnimatePresence>
+          {activeView === 'settings' && (
+            <motion.div
+              key="settings"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+            >
+              <SettingsView />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
 
       {/* Mobile-only logout button */}
       <div className="md:hidden">
-        <motion.button
-          className="fixed bottom-6 right-6 z-50 bg-black bg-opacity-70 backdrop-blur-sm shadow-lg rounded-full w-12 h-12 flex items-center justify-center border border-red-500"
+        <button
+          className="fixed bottom-6 right-6 z-50 bg-gray-900 shadow-lg rounded-full w-12 h-12 flex items-center justify-center border border-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
           onClick={() => setShowLogoutConfirm(true)}
-          whileHover={{ scale: 1.1, borderColor: "#FF4444" }}
-          whileTap={{ scale: 0.9 }}
+          aria-label="Log out"
         >
           <LogOut className="h-5 w-5 text-red-500" />
-        </motion.button>
+        </button>
       </div>
 
       {/* Logout confirmation modal */}
       <AnimatePresence>
         {showLogoutConfirm && (
-          <motion.div
-            className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm z-50 p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowLogoutConfirm(false)}
+          <div 
+            className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm z-50 p-6"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="logout-title"
           >
-            <motion.div
-              className="border p-6 rounded-lg w-full max-w-xs relative bg-black"
-              initial={{ scale: 0.8, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.8, y: 20 }}
+            <div
+              className="p-6 rounded-lg w-full max-w-xs bg-gray-900 border border-gray-800"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-lg font-bold mb-4">Log Out</h3>
+              <h3 id="logout-title" className="text-xl font-bold mb-4">Log Out</h3>
               <p className="mb-6">Are you sure you want to log out?</p>
               <div className="flex gap-3">
-                <motion.button
-                  className="flex-1 px-4 py-2 border rounded"
+                <button
+                  className="flex-1 px-4 py-2 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
                   onClick={() => setShowLogoutConfirm(false)}
-                  whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
                 >
                   Cancel
-                </motion.button>
-                <motion.button
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded"
+                </button>
+                <button
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
                   onClick={handleLogout}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
                 >
                   Log Out
-                </motion.button>
+                </button>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         )}
       </AnimatePresence>
 
