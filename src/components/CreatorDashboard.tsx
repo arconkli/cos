@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, memo, lazy, Suspense, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
+import {
   LineChart, Line, BarChart, Bar, AreaChart, Area,
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   PieChart, Pie, Cell, Legend
@@ -14,72 +14,7 @@ import {
   PieChartIcon, BarChart2, TrendingDown, Users
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-
-// Define NavigationTabs component at the beginning
-const NavigationTabs: React.FC<{
-  activeView: 'campaigns' | 'analytics' | 'payments' | 'settings';
-  setActiveView: (view: 'campaigns' | 'analytics' | 'payments' | 'settings') => void;
-}> = memo(({ activeView, setActiveView }) => {
-  return (
-    <div className="mb-6 md:mb-8 flex overflow-x-auto custom-scrollbar border-b relative z-10">
-      <motion.button
-        className={`px-4 md:px-6 py-3 font-medium relative whitespace-nowrap ${activeView === 'campaigns' ? 'text-white' : 'text-gray-400'}`}
-        onClick={() => setActiveView('campaigns')}
-        whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
-      >
-        Campaigns
-        {activeView === 'campaigns' && (
-          <motion.div
-            className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
-            layoutId="activeTab"
-          />
-        )}
-      </motion.button>
-      <motion.button
-        className={`px-4 md:px-6 py-3 font-medium relative whitespace-nowrap ${activeView === 'analytics' ? 'text-white' : 'text-gray-400'}`}
-        onClick={() => setActiveView('analytics')}
-        whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
-      >
-        Analytics
-        {activeView === 'analytics' && (
-          <motion.div
-            className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
-            layoutId="activeTab"
-          />
-        )}
-      </motion.button>
-      <motion.button
-        className={`px-4 md:px-6 py-3 font-medium relative whitespace-nowrap ${activeView === 'payments' ? 'text-white' : 'text-gray-400'}`}
-        onClick={() => setActiveView('payments')}
-        whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
-      >
-        Payments
-        {activeView === 'payments' && (
-          <motion.div
-            className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
-            layoutId="activeTab"
-          />
-        )}
-      </motion.button>
-      <motion.button
-        className={`px-4 md:px-6 py-3 font-medium relative whitespace-nowrap ${activeView === 'settings' ? 'text-white' : 'text-gray-400'}`}
-        onClick={() => setActiveView('settings')}
-        whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
-      >
-        Settings
-        {activeView === 'settings' && (
-          <motion.div
-            className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
-            layoutId="activeTab"
-          />
-        )}
-      </motion.button>
-    </div>
-  );
-});
-
-// Set displayName to avoid React warnings
-NavigationTabs.displayName = 'NavigationTabs';
+import NavigationTabs from './NavigationTabs';  // Import as a component
 
 // TypeScript interfaces
 interface Post {
@@ -376,7 +311,7 @@ const BackgroundPattern = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
     <svg width="100%" height="100%" className="opacity-5">
       <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="1"/>
+        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="1" />
       </pattern>
       <rect width="100%" height="100%" fill="url(#grid)" />
     </svg>
@@ -425,23 +360,23 @@ function isActiveCampaign(campaign: Campaign | AvailableCampaign): campaign is C
 const ProfileMenu: React.FC<ProfileMenuProps> = ({ isOpen, setIsOpen, userProfile, onLogout }) => {
   const router = useRouter();
   const menuRef = React.useRef<HTMLDivElement>(null);
-  
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
-    
+
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
-    
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen, setIsOpen]);
-  
+
   if (!isOpen) return null;
 
   return (
@@ -459,7 +394,7 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({ isOpen, setIsOpen, userProfil
           <p className="text-sm opacity-70">{userProfile.email}</p>
         </div>
       </div>
-      
+
       <div className="space-y-2">
         <motion.button
           className="w-full text-left p-2 rounded flex items-center gap-3 hover:bg-white hover:bg-opacity-10"
@@ -469,7 +404,7 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({ isOpen, setIsOpen, userProfil
           <Users className="h-4 w-4" />
           <span>Account Settings</span>
         </motion.button>
-        
+
         <motion.button
           className="w-full text-left p-2 rounded flex items-center gap-3 hover:bg-white hover:bg-opacity-10"
           whileHover={{ x: 5 }}
@@ -478,7 +413,7 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({ isOpen, setIsOpen, userProfil
           <CreditCard className="h-4 w-4" />
           <span>Payment Methods</span>
         </motion.button>
-        
+
         <motion.button
           className="w-full text-left p-2 rounded flex items-center gap-3 hover:bg-white hover:bg-opacity-10"
           whileHover={{ x: 5 }}
@@ -504,7 +439,7 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
         return 'text-yellow-500 border-yellow-500';
     }
   };
-  
+
   // Add effect to handle ESC key
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
@@ -527,7 +462,7 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
       onClick={onClose} // Close when clicking outside
     >
       <BackgroundPattern />
-      
+
       <motion.div
         className="border p-4 md:p-8 rounded-lg w-full max-w-4xl bg-black custom-scrollbar overflow-y-auto max-h-[90vh] md:max-h-[85vh] relative"
         initial={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -537,9 +472,9 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
         onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the modal
       >
         <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
-        
+
         <div className="flex justify-between items-start mb-4 md:mb-6">
-          <motion.h2 
+          <motion.h2
             className="text-xl md:text-2xl font-bold pr-6"
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
@@ -561,29 +496,29 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
           <ContentTypeRates campaign={campaign} />
 
           {/* Unified Campaign Details & Requirements */}
-          <motion.div 
+          <motion.div
             className="space-y-5 border p-4 rounded-lg bg-black bg-opacity-50 backdrop-blur-sm relative overflow-hidden"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
             <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
-            
+
             <div>
               <h3 className="text-lg md:text-xl font-bold">Campaign Details</h3>
-              
+
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 opacity-70" />
                 <span className="text-sm">
-                  Due: {new Date(campaign.endDate).toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'short', 
-                    day: 'numeric' 
+                  Due: {new Date(campaign.endDate).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
                   })}
                 </span>
               </div>
             </div>
-            
+
             {!isActiveCampaign(campaign) && (
               <div className="p-3 border border-yellow-600 bg-yellow-900 bg-opacity-20 rounded-lg">
                 <p className="text-sm opacity-90">
@@ -591,42 +526,42 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
                 </p>
               </div>
             )}
-            
+
             {/* Brand Information */}
             <div className="p-4 bg-white bg-opacity-5 rounded-lg">
               <h4 className="font-bold text-base mb-2">About {campaign.id === 1 ? 'Netflix' : campaign.id === 2 ? 'Fashion Nova' : campaign.id === 3 ? 'Universal Music' : 'Paramount Pictures'}</h4>
               <p className="text-sm">
-                {campaign.id === 1 
+                {campaign.id === 1
                   ? 'Netflix is a streaming service offering a wide variety of award-winning TV shows, movies, anime, documentaries, and more on thousands of internet-connected devices.'
                   : campaign.id === 2
-                  ? 'Fashion Nova is an American fast fashion retail company known for its trendsetting styles and celebrity collaborations.'
-                  : campaign.id === 3
-                  ? 'Universal Music Group is a world leader in music-based entertainment, with a broad array of businesses engaged in recorded music, music publishing, and more.'
-                  : 'Paramount Pictures, one of the oldest Hollywood studios, produces and distributes feature films for worldwide entertainment.'}
+                    ? 'Fashion Nova is an American fast fashion retail company known for its trendsetting styles and celebrity collaborations.'
+                    : campaign.id === 3
+                      ? 'Universal Music Group is a world leader in music-based entertainment, with a broad array of businesses engaged in recorded music, music publishing, and more.'
+                      : 'Paramount Pictures, one of the oldest Hollywood studios, produces and distributes feature films for worldwide entertainment.'}
               </p>
             </div>
-            
+
             {/* Campaign Brief */}
             <div className="p-4 border-l-2 border-red-500 bg-white bg-opacity-5 rounded-lg">
               <h4 className="font-bold text-base mb-2">Campaign Brief</h4>
               <p className="text-sm">
-                {campaign.id === 1 
+                {campaign.id === 1
                   ? 'Promote the upcoming Netflix original series launch by creating authentic, engaging content that highlights what excites you most about the new show. Use your storytelling skills to generate anticipation and interest among your followers.'
                   : campaign.id === 2
-                  ? 'Showcase the Summer Fashion Collection by creating stylish, trend-focused content that displays the versatility and quality of the pieces. Your content should inspire viewers to imagine themselves wearing these items.'
-                  : campaign.id === 3
-                  ? 'Help introduce this exciting new artist to your audience by creating content featuring their debut album. Your authentic reaction and creative interpretation of the music will help connect your followers with this emerging talent.'
-                  : 'Create buzz for our upcoming movie premiere by sharing your genuine excitement and reactions to the trailer. Your content should build anticipation for the film while showcasing your personal take on why your audience should see it.'}
+                    ? 'Showcase the Summer Fashion Collection by creating stylish, trend-focused content that displays the versatility and quality of the pieces. Your content should inspire viewers to imagine themselves wearing these items.'
+                    : campaign.id === 3
+                      ? 'Help introduce this exciting new artist to your audience by creating content featuring their debut album. Your authentic reaction and creative interpretation of the music will help connect your followers with this emerging talent.'
+                      : 'Create buzz for our upcoming movie premiere by sharing your genuine excitement and reactions to the trailer. Your content should build anticipation for the film while showcasing your personal take on why your audience should see it.'}
               </p>
             </div>
-            
+
             {/* What You Need To Do */}
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <div className="h-5 w-5 rounded-full bg-red-500 flex items-center justify-center text-sm font-bold">1</div>
                 <h4 className="font-bold text-base">What You Need To Create</h4>
               </div>
-              
+
               <ul className="list-disc pl-8 space-y-2 text-sm md:text-base">
                 <li>Content must be published on: <span className="font-semibold">{campaign.requirements.platforms.join(', ')}</span></li>
                 <li>You need at least <span className="font-semibold">{campaign.requirements.minViewsForPayout}</span> views for payment</li>
@@ -635,32 +570,32 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
                 ) : null}
               </ul>
             </div>
-            
+
             {/* Guidelines */}
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <div className="h-5 w-5 rounded-full bg-red-500 flex items-center justify-center text-sm font-bold">2</div>
                 <h4 className="font-bold text-base">Content Guidelines</h4>
               </div>
-              
+
               <ul className="list-disc pl-8 space-y-1 text-sm md:text-base">
                 {campaign.requirements.contentGuidelines.map((guideline, i) => (
                   <li key={i}>{guideline}</li>
                 ))}
               </ul>
             </div>
-            
+
             {/* Hashtags */}
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <div className="h-5 w-5 rounded-full bg-red-500 flex items-center justify-center text-sm font-bold">3</div>
                 <h4 className="font-bold text-base">Required Hashtags</h4>
               </div>
-              
+
               <div className="flex flex-wrap gap-2 ml-8">
                 {campaign.requirements.hashtags?.map((hashtag, index) => (
-                  <span 
-                    key={hashtag} 
+                  <span
+                    key={hashtag}
                     className="border px-2 py-1 rounded text-sm bg-white bg-opacity-5"
                   >
                     {hashtag}
@@ -668,7 +603,7 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
                 ))}
               </div>
             </div>
-            
+
             {/* Only show budget for "pot" campaigns - campaign ID #4 */}
             {campaign.id === 4 && (
               <div className="border border-yellow-600 bg-yellow-900 bg-opacity-10 p-4 rounded-lg">
@@ -687,7 +622,7 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
                 </div>
               </div>
             )}
-            
+
             {/* Apply Button - Only for Available Campaigns */}
             {'postCount' in campaign.requirements && (
               <motion.button
@@ -701,7 +636,7 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
           </motion.div>
 
           {isActiveCampaign(campaign) && campaign.posts.length > 0 && (
-            <motion.div 
+            <motion.div
               className="space-y-4"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -710,8 +645,8 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
               <h3 className="text-lg md:text-xl font-bold">Posts</h3>
               <div className="grid grid-cols-1 gap-3 md:gap-4">
                 {campaign.posts.map((post, i) => (
-                  <motion.div 
-                    key={i} 
+                  <motion.div
+                    key={i}
                     className="border p-3 md:p-4 rounded relative overflow-hidden"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -719,7 +654,7 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
                     whileHover={{ scale: 1.01 }}
                   >
                     <div className="absolute -right-10 -top-10 w-32 h-32 bg-white opacity-5 rounded-full blur-xl" />
-                    
+
                     <div className="flex justify-between items-center mb-2">
                       <span className="font-bold text-sm md:text-base">{post.platform}</span>
                       <span className={`px-2 py-0.5 rounded text-xs md:text-sm border ${getStatusColor(post.status)}`}>
@@ -743,7 +678,7 @@ const CampaignDetail: React.FC<CampaignDetailProps> = memo(({ campaign, onClose 
                       <p>Posted: {post.postDate && new Date(post.postDate).toLocaleDateString()}</p>
                       <p>Hashtags: {post.hashtags?.join(", ")}</p>
                       {post.status === 'denied' && post.denialReason && (
-                        <motion.div 
+                        <motion.div
                           className="mt-2 p-2 border border-red-500 rounded flex items-start gap-2"
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: 'auto' }}
@@ -771,39 +706,39 @@ CampaignDetail.displayName = 'CampaignDetail';
 const ContentTypeRates: React.FC<{ campaign: Campaign | AvailableCampaign }> = ({ campaign }) => {
   const [selectedContentType, setSelectedContentType] = useState<'original' | 'repurposed'>(
     // For active campaigns, set the default based on the campaign's content type
-    isActiveCampaign(campaign) ? 
-      (campaign.contentType === 'both' ? 'original' : campaign.contentType) : 
+    isActiveCampaign(campaign) ?
+      (campaign.contentType === 'both' ? 'original' : campaign.contentType) :
       'original'
   );
-  
+
   // Determine if this is an active campaign
   const isActive = isActiveCampaign(campaign);
-  
+
   // Check if this is a pot campaign (ID #4)
   const isPotCampaign = campaign.id === 4;
-  
+
   // Only show content types that match the campaign's content type for active campaigns
-  const showOriginal = !isActive || 
-                      (isActive && (campaign.contentType === 'original' || campaign.contentType === 'both') && selectedContentType === 'original');
-  
-  const showRepurposed = (!isActive && campaign.requirements.payoutRate.repurposed) || 
-                         (isActive && (campaign.contentType === 'repurposed' || campaign.contentType === 'both') && selectedContentType === 'repurposed');
-  
+  const showOriginal = !isActive ||
+    (isActive && (campaign.contentType === 'original' || campaign.contentType === 'both') && selectedContentType === 'original');
+
+  const showRepurposed = (!isActive && campaign.requirements.payoutRate.repurposed) ||
+    (isActive && (campaign.contentType === 'repurposed' || campaign.contentType === 'both') && selectedContentType === 'repurposed');
+
   return (
     <div className="space-y-4 border rounded-lg p-4 bg-black bg-opacity-50 backdrop-blur-sm relative overflow-hidden">
       <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
-      
+
       <h4 className="font-bold">{isPotCampaign ? 'Content Types & Pot Campaign' : 'Content Types & Rates'}</h4>
-      
+
       {!isActive && (
         <p className="text-sm opacity-80 italic mb-2">
           Please review all campaign details below before applying. You can only select one content type per campaign.
         </p>
       )}
-      
+
       <div className="space-y-4">
         {showOriginal && (
-          <motion.div 
+          <motion.div
             className={`border rounded-lg p-4 bg-opacity-10 bg-white relative overflow-hidden ${selectedContentType === 'original' ? 'border-green-500' : ''}`}
             whileHover={!isActive ? { borderColor: "#31a952" } : {}}
             onClick={() => !isActive && setSelectedContentType('original')}
@@ -811,11 +746,11 @@ const ContentTypeRates: React.FC<{ campaign: Campaign | AvailableCampaign }> = (
             <div className="absolute -right-20 -top-20 w-32 h-32 bg-green-500 opacity-5 rounded-full blur-xl" />
             <div className="flex items-center gap-2 mb-2">
               {!isActive && (
-                <input 
-                  type="radio" 
-                  id="original" 
-                  name="contentType" 
-                  checked={selectedContentType === 'original'} 
+                <input
+                  type="radio"
+                  id="original"
+                  name="contentType"
+                  checked={selectedContentType === 'original'}
                   onChange={() => setSelectedContentType('original')}
                   className="text-green-500 focus:ring-green-500"
                 />
@@ -843,7 +778,7 @@ const ContentTypeRates: React.FC<{ campaign: Campaign | AvailableCampaign }> = (
         )}
 
         {showRepurposed && campaign.requirements.payoutRate.repurposed && (
-          <motion.div 
+          <motion.div
             className={`border rounded-lg p-4 bg-opacity-10 bg-white relative overflow-hidden ${selectedContentType === 'repurposed' ? 'border-blue-500' : ''}`}
             whileHover={!isActive ? { borderColor: "#4287f5" } : {}}
             onClick={() => !isActive && setSelectedContentType('repurposed')}
@@ -851,11 +786,11 @@ const ContentTypeRates: React.FC<{ campaign: Campaign | AvailableCampaign }> = (
             <div className="absolute -right-20 -top-20 w-32 h-32 bg-blue-500 opacity-5 rounded-full blur-xl" />
             <div className="flex items-center gap-2 mb-2">
               {!isActive && (
-                <input 
-                  type="radio" 
-                  id="repurposed" 
-                  name="contentType" 
-                  checked={selectedContentType === 'repurposed'} 
+                <input
+                  type="radio"
+                  id="repurposed"
+                  name="contentType"
+                  checked={selectedContentType === 'repurposed'}
                   onChange={() => setSelectedContentType('repurposed')}
                   className="text-blue-500 focus:ring-blue-500"
                 />
@@ -888,7 +823,7 @@ const ContentTypeRates: React.FC<{ campaign: Campaign | AvailableCampaign }> = (
           <span className="text-sm opacity-70">Minimum Views:</span>
           <span className="font-bold">{campaign.requirements.minViewsForPayout}</span>
         </div>
-        
+
         {isPotCampaign && (
           <div className="mt-2 text-sm text-yellow-400">
             <span className="font-bold">⚠️ Pot Campaign:</span> Payout varies based on campaign performance. See details below.
@@ -909,14 +844,14 @@ const PaymentHistory: React.FC = () => {
   ];
 
   return (
-    <motion.div 
+    <motion.div
       className="border p-6 rounded-lg bg-black bg-opacity-50 backdrop-blur-sm relative overflow-hidden"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
       <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
-      
+
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">PAYMENT HISTORY</h2>
         <motion.div
@@ -931,7 +866,7 @@ const PaymentHistory: React.FC = () => {
           </select>
         </motion.div>
       </div>
-      
+
       <div className="overflow-x-auto custom-scrollbar">
         <table className="w-full">
           <thead>
@@ -944,8 +879,8 @@ const PaymentHistory: React.FC = () => {
           </thead>
           <tbody>
             {paymentData.map((payment, index) => (
-              <motion.tr 
-                key={index} 
+              <motion.tr
+                key={index}
                 className="border-b"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -965,7 +900,7 @@ const PaymentHistory: React.FC = () => {
           </tbody>
         </table>
       </div>
-      
+
       <motion.button
         className="w-full border p-2 rounded mt-6 flex items-center justify-center gap-2"
         whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
@@ -986,9 +921,9 @@ const PlatformStats: React.FC = () => (
     transition={{ delay: 0.2 }}
   >
     <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
-    
+
     <h2 className="text-xl font-bold mb-6">PLATFORM BREAKDOWN</h2>
-    
+
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
@@ -1011,10 +946,10 @@ const PlatformStats: React.FC = () => (
           </PieChart>
         </ResponsiveContainer>
       </div>
-      
+
       <div className="space-y-4">
         {platformData.map((platform, index) => (
-          <motion.div 
+          <motion.div
             key={platform.platform}
             className="border p-3 rounded flex items-center justify-between"
             initial={{ opacity: 0, x: 20 }}
@@ -1025,7 +960,7 @@ const PlatformStats: React.FC = () => (
             <div className="flex items-center gap-3">
               {platform.platform === 'YouTube' && <Youtube className="h-5 w-5" />}
               {platform.platform === 'Instagram' && <Instagram className="h-5 w-5" />}
-              {platform.platform === 'TikTok' && <svg className="h-5 w-5" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16.5 7.3c-.4-.1-.8-.1-1.2-.1-3 0-5.6 2-6.7 4.7-.3.7-.4 1.5-.4 2.3 0 3.3 2.7 6 6 6 .8 0 1.6-.1 2.3-.4.8-.3 1.5-.8 2-1.3.1-.1.1-.3.2-.4V9.9c0-.1 0-.3-.1-.4-.5-2.2-2.4-3.8-4.7-3.8-.4 0-.8 0-1.2.1-.3.1-.7.2-1 .4-.2.2-.4.4-.5.7-.1.3-.2.7-.2 1 0 1.4 1 2.6 2.4 2.6h.1V15c-.9 0-1.7-.1-2.5-.4-1.7-.6-3-2-3.6-3.7-.2-.6-.3-1.3-.3-2 0-1.5.5-2.9 1.4-4C7 3 8.4 2.3 9.9 2.1c1.5-.2 3.1 0 4.5.7 1.3.6 2.4 1.7 3 3 .1.1.2.2.3.2.1.1.3.1.4.1l.1-.1c.4-.4.6-.9.8-1.4.1-.5.2-1.1.1-1.6 0-.1-.1-.2-.3-.2z"/><path d="M16 18.4c-.1.2-.4.3-.6.3-1.7 0-3.1-1.4-3.1-3.1 0-.2.1-.4.3-.6.1-.1.3-.2.5-.1 1.7 0 3.1 1.4 3.1 3.1 0 .2-.1.4-.3.6 0 .1-.1.1-.2.1z"/></svg>}
+              {platform.platform === 'TikTok' && <svg className="h-5 w-5" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16.5 7.3c-.4-.1-.8-.1-1.2-.1-3 0-5.6 2-6.7 4.7-.3.7-.4 1.5-.4 2.3 0 3.3 2.7 6 6 6 .8 0 1.6-.1 2.3-.4.8-.3 1.5-.8 2-1.3.1-.1.1-.3.2-.4V9.9c0-.1 0-.3-.1-.4-.5-2.2-2.4-3.8-4.7-3.8-.4 0-.8 0-1.2.1-.3.1-.7.2-1 .4-.2.2-.4.4-.5.7-.1.3-.2.7-.2 1 0 1.4 1 2.6 2.4 2.6h.1V15c-.9 0-1.7-.1-2.5-.4-1.7-.6-3-2-3.6-3.7-.2-.6-.3-1.3-.3-2 0-1.5.5-2.9 1.4-4C7 3 8.4 2.3 9.9 2.1c1.5-.2 3.1 0 4.5.7 1.3.6 2.4 1.7 3 3 .1.1.2.2.3.2.1.1.3.1.4.1l.1-.1c.4-.4.6-.9.8-1.4.1-.5.2-1.1.1-1.6 0-.1-.1-.2-.3-.2z" /><path d="M16 18.4c-.1.2-.4.3-.6.3-1.7 0-3.1-1.4-3.1-3.1 0-.2.1-.4.3-.6.1-.1.3-.2.5-.1 1.7 0 3.1 1.4 3.1 3.1 0 .2-.1.4-.3.6 0 .1-.1.1-.2.1z" /></svg>}
               {platform.platform === 'X' && <Twitter className="h-5 w-5" />}
               <span>{platform.platform}</span>
             </div>
@@ -1057,7 +992,7 @@ const AvailableCampaignsSection: React.FC<{
         onClick={() => onCampaignClick(campaign)}
       >
         <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
-        
+
         <div className="flex justify-between items-start mb-4">
           <div>
             <h3 className="text-xl font-bold">{campaign.title}</h3>
@@ -1106,7 +1041,7 @@ const AvailableCampaignsSection: React.FC<{
           <div>
             <p className="text-sm opacity-70">Campaign Brief:</p>
             <p className="text-sm mt-1 line-clamp-2 opacity-90">
-              {campaign.id === 3 ? 
+              {campaign.id === 3 ?
                 "Create engaging content to promote a new artist's album launch across social media platforms." :
                 "Produce reaction videos and reviews for upcoming movie premiere to build audience excitement."
               }
@@ -1139,9 +1074,9 @@ const AvailableCampaignsSection: React.FC<{
 );
 
 // Enhanced active campaigns component
-const ActiveCampaigns: React.FC<{ 
-  campaigns: Campaign[], 
-  onCampaignClick: (campaign: Campaign | AvailableCampaign) => void 
+const ActiveCampaigns: React.FC<{
+  campaigns: Campaign[],
+  onCampaignClick: (campaign: Campaign | AvailableCampaign) => void
 }> = ({ campaigns, onCampaignClick }) => (
   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
     {campaigns.map((campaign, index) => (
@@ -1155,7 +1090,7 @@ const ActiveCampaigns: React.FC<{
         whileHover={{ scale: 1.02, borderColor: '#FF4444' }}
       >
         <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
-        
+
         <div className="flex justify-between items-start mb-4">
           <h3 className="text-xl font-bold">{campaign.title}</h3>
           <span className="border px-2 py-1 rounded text-sm bg-green-900 bg-opacity-20 border-green-500 text-green-400">
@@ -1186,8 +1121,8 @@ const ActiveCampaigns: React.FC<{
 
           <div className="flex flex-wrap gap-2">
             {campaign.requirements.platforms.map((platform) => (
-              <motion.span 
-                key={platform} 
+              <motion.span
+                key={platform}
                 className="border px-2 py-1 rounded text-sm"
                 whileHover={{ borderColor: getColorForPlatform(platform) }}
               >
@@ -1227,7 +1162,7 @@ const StatsOverview: React.FC<{ totalPendingPayout: number }> = memo(({ totalPen
           whileHover={{ scale: 1.02, borderColor: i === 0 ? '#4287f5' : i === 1 ? '#31a952' : i === 2 ? '#FFD700' : '#FF4444' }}
         >
           <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
-          
+
           <div className="flex items-center gap-3 mb-2 md:mb-4">
             {stat.icon}
             <span className="text-xs md:text-sm opacity-70">{stat.label}</span>
@@ -1269,7 +1204,7 @@ const AnalyticsView = () => {
           whileHover={{ borderColor: "#4287f5" }}
         >
           <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
-          
+
           <div className="flex justify-between items-center mb-4 md:mb-6">
             <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
               <Eye className="h-5 w-5 text-blue-400" />
@@ -1285,14 +1220,14 @@ const AnalyticsView = () => {
               </select>
             </motion.div>
           </div>
-          
+
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={viewsData}>
                 <defs>
                   <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#4287f5" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#4287f5" stopOpacity={0.1}/>
+                    <stop offset="5%" stopColor="#4287f5" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#4287f5" stopOpacity={0.1} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
@@ -1319,7 +1254,7 @@ const AnalyticsView = () => {
           whileHover={{ borderColor: "#31a952" }}
         >
           <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
-          
+
           <div className="flex justify-between items-center mb-4 md:mb-6">
             <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-green-400" />
@@ -1335,20 +1270,20 @@ const AnalyticsView = () => {
               </select>
             </motion.div>
           </div>
-          
+
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={viewsData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                 <XAxis dataKey="date" stroke="#FFFFFF" />
                 <YAxis stroke="#FFFFFF" />
-                <Tooltip 
-                  content={<CustomTooltip />} 
+                <Tooltip
+                  content={<CustomTooltip />}
                   cursor={{ fill: 'rgba(255,255,255,0.1)' }}
                 />
-                <Bar 
-                  dataKey="earnings" 
-                  fill="#31a952" 
+                <Bar
+                  dataKey="earnings"
+                  fill="#31a952"
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
@@ -1356,10 +1291,10 @@ const AnalyticsView = () => {
           </div>
         </motion.div>
       </div>
-      
+
       {/* Platform Stats */}
       <PlatformStats />
-      
+
       {/* Audience Demographics */}
       <motion.div
         className="border p-4 md:p-6 rounded-lg mt-4 md:mt-6 relative overflow-hidden backdrop-blur-sm"
@@ -1368,7 +1303,7 @@ const AnalyticsView = () => {
         transition={{ delay: 0.3 }}
       >
         <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
-        
+
         <div className="flex justify-between items-center mb-4 md:mb-6">
           <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
             <Users className="h-5 w-5 text-purple-400" />
@@ -1385,7 +1320,7 @@ const AnalyticsView = () => {
             </select>
           </motion.div>
         </div>
-        
+
         <div className="text-center p-6 md:p-12 border border-dashed opacity-50">
           <p>Audience data will be available once you connect more accounts</p>
           <motion.button
@@ -1423,7 +1358,7 @@ const PaymentsView = () => {
             <span>+23.5% from last period</span>
           </div>
         </motion.div>
-        
+
         <motion.div
           className="border p-4 md:p-6 rounded-lg relative overflow-hidden backdrop-blur-sm"
           initial={{ opacity: 0 }}
@@ -1436,7 +1371,7 @@ const PaymentsView = () => {
           <p className="text-2xl md:text-3xl font-bold">${activeCampaigns.reduce((sum, campaign) => sum + campaign.pendingPayout, 0)}</p>
           <p className="mt-4 text-xs md:text-sm opacity-70">Expected on Mar 15, 2025</p>
         </motion.div>
-        
+
         <motion.div
           className="border p-4 md:p-6 rounded-lg relative overflow-hidden backdrop-blur-sm"
           initial={{ opacity: 0 }}
@@ -1453,10 +1388,10 @@ const PaymentsView = () => {
           </div>
         </motion.div>
       </div>
-      
+
       {/* Enhanced Payment History */}
       <PaymentHistory />
-      
+
       {/* Payment Methods Summary */}
       <motion.div
         className="border p-4 md:p-6 rounded-lg mt-6 md:mt-8 relative overflow-hidden backdrop-blur-sm"
@@ -1465,7 +1400,7 @@ const PaymentsView = () => {
         transition={{ delay: 0.4 }}
       >
         <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
-        
+
         <div className="flex justify-between items-center mb-4 md:mb-6">
           <h2 className="text-lg md:text-xl font-bold">PAYMENT METHODS</h2>
           <motion.button
@@ -1477,7 +1412,7 @@ const PaymentsView = () => {
             Add Method
           </motion.button>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
           {defaultUserProfile.paymentMethods.map((method, index) => (
             <motion.div
@@ -1517,14 +1452,18 @@ const PaymentsView = () => {
 };
 
 // IMPROVED SETTINGS VIEW COMPONENT - Mobile friendly
-const ImprovedSettingsView = () => {
+interface ImprovedSettingsViewProps {
+    // activeSettingsTab: 'profile' | 'security' | 'accounts' | 'payments';  Removed since we manage it internally
+    // setActiveSettingsTab: (tab: 'profile' | 'security' | 'accounts' | 'payments') => void; Removed
+}
+const ImprovedSettingsView: React.FC<ImprovedSettingsViewProps> = () => {
   // Local state for the settings tab navigation
   const [activeSettingsTab, setActiveSettingsTab] = useState<'profile' | 'security' | 'accounts' | 'payments'>('profile');
   const [userForm, setUserForm] = useState({
     name: defaultUserProfile.name,
     email: defaultUserProfile.email,
   });
-  
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setUserForm(prev => ({
@@ -1532,13 +1471,13 @@ const ImprovedSettingsView = () => {
       [name]: value
     }));
   };
-  
+
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
     // Here would be the API call to save profile changes
     alert('Profile saved successfully!');
   };
-  
+
   const handlePasswordChange = (e: React.FormEvent) => {
     e.preventDefault();
     // Here would be the API call to change password
@@ -1557,9 +1496,8 @@ const ImprovedSettingsView = () => {
       {['profile', 'security', 'accounts', 'payments'].map((tab) => (
         <motion.button
           key={tab}
-          className={`px-4 py-3 font-medium whitespace-nowrap relative ${
-            activeSettingsTab === tab ? 'text-white' : 'text-gray-400'
-          }`}
+          className={`px-4 py-3 font-medium whitespace-nowrap relative ${activeSettingsTab === tab ? 'text-white' : 'text-gray-400'
+            }`}
           onClick={() => setActiveSettingsTab(tab as any)}
           whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
         >
@@ -1587,7 +1525,7 @@ const ImprovedSettingsView = () => {
             exit={{ opacity: 0, y: -10 }}
           >
             <h2 className="text-xl font-bold mb-6">Profile Settings</h2>
-            
+
             <div className="flex flex-col md:flex-row gap-6 mb-8">
               <div className="w-full md:w-1/3 flex justify-center">
                 <div className="flex flex-col items-center">
@@ -1607,7 +1545,7 @@ const ImprovedSettingsView = () => {
                   </p>
                 </div>
               </div>
-              
+
               <div className="w-full md:w-2/3">
                 <form onSubmit={handleSaveProfile}>
                   <div className="space-y-4">
@@ -1621,7 +1559,7 @@ const ImprovedSettingsView = () => {
                         className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors"
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm opacity-70 mb-1">Email Address</label>
                       <input
@@ -1632,7 +1570,7 @@ const ImprovedSettingsView = () => {
                         className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors"
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm opacity-70 mb-1">Creator Bio</label>
                       <textarea
@@ -1641,7 +1579,7 @@ const ImprovedSettingsView = () => {
                         placeholder="Tell brands about yourself..."
                       ></textarea>
                     </div>
-                    
+
                     <div className="pt-4">
                       <motion.button
                         type="submit"
@@ -1658,7 +1596,7 @@ const ImprovedSettingsView = () => {
             </div>
           </motion.div>
         );
-      
+
       case 'security':
         return (
           <motion.div
@@ -1668,7 +1606,7 @@ const ImprovedSettingsView = () => {
             exit={{ opacity: 0, y: -10 }}
           >
             <h2 className="text-xl font-bold mb-6">Security Settings</h2>
-            
+
             <div>
               <form onSubmit={handlePasswordChange}>
                 <div className="space-y-4">
@@ -1679,7 +1617,7 @@ const ImprovedSettingsView = () => {
                       className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm opacity-70 mb-1">New Password</label>
                     <input
@@ -1687,7 +1625,7 @@ const ImprovedSettingsView = () => {
                       className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm opacity-70 mb-1">Confirm New Password</label>
                     <input
@@ -1695,7 +1633,7 @@ const ImprovedSettingsView = () => {
                       className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors"
                     />
                   </div>
-                  
+
                   <div className="pt-4">
                     <motion.button
                       type="submit"
@@ -1708,7 +1646,7 @@ const ImprovedSettingsView = () => {
                   </div>
                 </div>
               </form>
-              
+
               <div className="mt-8 pt-8 border-t">
                 <h3 className="text-lg font-bold mb-4">Two-Factor Authentication</h3>
                 <div className="flex items-center justify-between">
@@ -1727,7 +1665,7 @@ const ImprovedSettingsView = () => {
             </div>
           </motion.div>
         );
-      
+
       case 'accounts':
         return (
           <motion.div
@@ -1737,22 +1675,22 @@ const ImprovedSettingsView = () => {
             exit={{ opacity: 0, y: -10 }}
           >
             <h2 className="text-xl font-bold mb-6">Connected Accounts</h2>
-            
+
             <div className="space-y-4">
               {Object.entries(defaultUserProfile.connectedAccounts).map(([platform, account]) => {
                 // Add type checking
                 if (!account) return null;
-                
+
                 return (
-                  <motion.div 
-                    key={platform} 
+                  <motion.div
+                    key={platform}
                     className="border p-4 rounded-lg"
                     whileHover={{ borderColor: getColorForPlatform(platform) }}
                   >
                     <div className="flex items-center gap-3 mb-3">
                       {platform === 'youtube' && <Youtube className="h-5 w-5 text-red-500" />}
                       {platform === 'instagram' && <Instagram className="h-5 w-5 text-pink-500" />}
-                      {platform === 'tiktok' && <svg className="h-5 w-5 text-cyan-300" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16.5 7.3c-.4-.1-.8-.1-1.2-.1-3 0-5.6 2-6.7 4.7-.3.7-.4 1.5-.4 2.3 0 3.3 2.7 6 6 6 .8 0 1.6-.1 2.3-.4.8-.3 1.5-.8 2-1.3.1-.1.1-.3.2-.4V9.9c0-.1 0-.3-.1-.4-.5-2.2-2.4-3.8-4.7-3.8-.4 0-.8 0-1.2.1-.3.1-.7.2-1 .4-.2.2-.4.4-.5.7-.1.3-.2.7-.2 1 0 1.4 1 2.6 2.4 2.6h.1V15c-.9 0-1.7-.1-2.5-.4-1.7-.6-3-2-3.6-3.7-.2-.6-.3-1.3-.3-2 0-1.5.5-2.9 1.4-4C7 3 8.4 2.3 9.9 2.1c1.5-.2 3.1 0 4.5.7 1.3.6 2.4 1.7 3 3 .1.1.2.2.3.2.1.1.3.1.4.1l.1-.1c.4-.4.6-.9.8-1.4.1-.5.2-1.1.1-1.6 0-.1-.1-.2-.3-.2z"/><path d="M16 18.4c-.1.2-.4.3-.6.3-1.7 0-3.1-1.4-3.1-3.1 0-.2.1-.4.3-.6.1-.1.3-.2.5-.1 1.7 0 3.1 1.4 3.1 3.1 0 .2-.1.4-.3.6 0 .1-.1.1-.2.1z"/></svg>}
+                      {platform === 'tiktok' && <svg className="h-5 w-5 text-cyan-300" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16.5 7.3c-.4-.1-.8-.1-1.2-.1-3 0-5.6 2-6.7 4.7-.3.7-.4 1.5-.4 2.3 0 3.3 2.7 6 6 6 .8 0 1.6-.1 2.3-.4.8-.3 1.5-.8 2-1.3.1-.1.1-.3.2-.4V9.9c0-.1 0-.3-.1-.4-.5-2.2-2.4-3.8-4.7-3.8-.4 0-.8 0-1.2.1-.3.1-.7.2-1 .4-.2.2-.4.4-.5.7-.1.3-.2.7-.2 1 0 1.4 1 2.6 2.4 2.6h.1V15c-.9 0-1.7-.1-2.5-.4-1.7-.6-3-2-3.6-3.7-.2-.6-.3-1.3-.3-2 0-1.5.5-2.9 1.4-4C7 3 8.4 2.3 9.9 2.1c1.5-.2 3.1 0 4.5.7 1.3.6 2.4 1.7 3 3 .1.1.2.2.3.2.1.1.3.1.4.1l.1-.1c.4-.4.6-.9.8-1.4.1-.5.2-1.1.1-1.6 0-.1-.1-.2-.3-.2z" /><path d="M16 18.4c-.1.2-.4.3-.6.3-1.7 0-3.1-1.4-3.1-3.1 0-.2.1-.4.3-.6.1-.1.3-.2.5-.1 1.7 0 3.1 1.4 3.1 3.1 0 .2-.1.4-.3.6 0 .1-.1.1-.2.1z" /></svg>}
                       {platform === 'twitter' && <Twitter className="h-5 w-5 text-blue-400" />}
                       <div>
                         <p className="font-bold capitalize">{platform}</p>
@@ -1776,8 +1714,8 @@ const ImprovedSettingsView = () => {
                   </motion.div>
                 );
               })}
-              
-              <motion.div 
+
+              <motion.div
                 className="border border-dashed p-4 rounded-lg text-center"
                 whileHover={{ backgroundColor: "rgba(255,255,255,0.03)" }}
               >
@@ -1794,7 +1732,7 @@ const ImprovedSettingsView = () => {
             </div>
           </motion.div>
         );
-    
+
       case 'payments':
         return (
           <motion.div
@@ -1804,7 +1742,7 @@ const ImprovedSettingsView = () => {
             exit={{ opacity: 0, y: -10 }}
           >
             <h2 className="text-xl font-bold mb-6">Payment Methods</h2>
-            
+
             <div className="space-y-4">
               {defaultUserProfile.paymentMethods.map((method, index) => (
                 <motion.div
@@ -1826,7 +1764,7 @@ const ImprovedSettingsView = () => {
                     </div>
                   </div>
                   <div className="flex gap-2 flex-wrap">
-                  <motion.button
+                    <motion.button
                       className="px-3 py-1 border rounded text-sm"
                       whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
                       onClick={() => handlePaymentMethodAction(method, index)}
@@ -1852,10 +1790,10 @@ const ImprovedSettingsView = () => {
                   </div>
                 </motion.div>
               ))}
-              
+
               <div>
                 <h3 className="text-lg font-bold mb-4">Add Payment Method</h3>
-                
+
                 <div className="grid grid-cols-1 gap-4">
                   <motion.button
                     className="border p-4 rounded-lg flex items-center gap-4"
@@ -1867,7 +1805,7 @@ const ImprovedSettingsView = () => {
                       <p className="text-sm opacity-70">Connect directly to your bank</p>
                     </div>
                   </motion.button>
-                  
+
                   <motion.button
                     className="border p-4 rounded-lg flex items-center gap-4"
                     whileHover={{ scale: 1.01, backgroundColor: "rgba(255,255,255,0.05)" }}
@@ -1882,10 +1820,10 @@ const ImprovedSettingsView = () => {
                   </motion.button>
                 </div>
               </div>
-              
+
               <div className="mt-6 pt-6 border-t">
                 <h3 className="text-lg font-bold mb-4">Payout Preferences</h3>
-                
+
                 <div>
                   <div className="space-y-4">
                     <div>
@@ -1897,7 +1835,7 @@ const ImprovedSettingsView = () => {
                         <option>$500</option>
                       </select>
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm opacity-70 mb-1">Payout Frequency</label>
                       <select className="w-full bg-black border border-gray-700 p-2 rounded focus:border-red-500 focus:outline-none transition-colors">
@@ -1906,7 +1844,7 @@ const ImprovedSettingsView = () => {
                         <option>Weekly</option>
                       </select>
                     </div>
-                    
+
                     <div className="pt-4">
                       <motion.button
                         className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded font-bold"
@@ -1922,7 +1860,7 @@ const ImprovedSettingsView = () => {
             </div>
           </motion.div>
         );
-      
+
       default:
         return null;
     }
@@ -1937,10 +1875,10 @@ const ImprovedSettingsView = () => {
         transition={{ delay: 0.1 }}
       >
         <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl" />
-      
+
         {/* Settings tabs navigation */}
         {renderSettingsTabs()}
-        
+
         {/* Settings content */}
         <div className="p-4 md:p-6">
           {renderSettingsContent()}
@@ -1957,29 +1895,20 @@ export default function CreatorDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | AvailableCampaign | null>(null);
   const [activeView, setActiveView] = useState<'campaigns' | 'analytics' | 'payments' | 'settings'>('campaigns');
-  // For the settings view, we'll maintain a persistent state even when switching tabs
-  const [settingsContent, setSettingsContent] = useState<React.ReactNode | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  
+
   // Filter available campaigns based on search term
   const filteredAvailableCampaigns = useMemo(() => {
     if (!searchTerm) return availableCampaigns;
-    
+
     const term = searchTerm.toLowerCase();
-    return availableCampaigns.filter(campaign => 
-      campaign.title.toLowerCase().includes(term) || 
+    return availableCampaigns.filter(campaign =>
+      campaign.title.toLowerCase().includes(term) ||
       campaign.requirements.platforms.some(platform => platform.toLowerCase().includes(term))
     );
   }, [searchTerm, availableCampaigns]);
 
-  // Store the settings content when it's rendered
-  useEffect(() => {
-    if (activeView !== 'settings') {
-      setSettingsContent(null);
-    } else if (activeView === 'settings' && !settingsContent) {
-      setSettingsContent(<ImprovedSettingsView />);
-    }
-  }, [activeView, settingsContent]);
+
 
   // Check authentication on component mount
   useEffect(() => {
@@ -1998,15 +1927,15 @@ export default function CreatorDashboard() {
   }, [router]);
 
   // Calculate derived values once
-  const totalPendingPayout = useMemo(() => 
-    activeCampaigns.reduce((sum, campaign) => sum + campaign.pendingPayout, 0), 
+  const totalPendingPayout = useMemo(() =>
+    activeCampaigns.reduce((sum, campaign) => sum + campaign.pendingPayout, 0),
     [activeCampaigns]
   );
 
   return (
     <div className="min-h-screen bg-black p-3 md:p-6 relative">
       <BackgroundPattern />
-      
+
       {/* Enhanced Header with animated title */}
       <div className="mb-6 md:mb-8">
         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
@@ -2015,7 +1944,7 @@ export default function CreatorDashboard() {
               <span>CREATOR_</span>
               <motion.span
                 className="inline-block"
-                animate={{ 
+                animate={{
                   color: ['#FFFFFF', '#FF4444', '#FFFFFF'],
                   transition: { duration: 3, repeat: Infinity }
                 }}
@@ -2067,14 +1996,14 @@ export default function CreatorDashboard() {
 
       <AnimatePresence mode="wait" initial={false}>
         {activeView === 'campaigns' && (
-         <motion.div
-          key="campaigns"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.3 }}
-           className="relative z-10"
-        >
+          <motion.div
+            key="campaigns"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+            className="relative z-10"
+          >
             {/* Active Campaigns */}
             <div className="mb-6 md:mb-8">
               <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 flex items-center gap-2">
@@ -2135,7 +2064,7 @@ export default function CreatorDashboard() {
                 <div className="border p-6 rounded-lg inline-flex items-center gap-2">
                   <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"                  />
                   </svg>
                   <span>Loading analytics...</span>
                 </div>
@@ -2157,7 +2086,7 @@ export default function CreatorDashboard() {
             <PaymentsView />
           </motion.div>
         )}
-        
+
         {activeView === 'settings' && (
           <motion.div
             key="settings"
@@ -2166,9 +2095,9 @@ export default function CreatorDashboard() {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
           >
-        <ImprovedSettingsView />
-  </motion.div>
-)}
+            <ImprovedSettingsView />
+          </motion.div>
+        )}
       </AnimatePresence>
 
       {/* Mobile-only logout button */}
