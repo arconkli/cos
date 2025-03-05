@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import NavigationTabs from './NavigationTabs';  // Import as a component
+import SettingsView from './SettingsView';
 
 // TypeScript interfaces
 interface Post {
@@ -2086,7 +2087,7 @@ export default function CreatorDashboard() {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <ImprovedSettingsView />
+                  <SettingsView />
                 </motion.div>
               )}
             </AnimatePresence>
