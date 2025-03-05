@@ -2079,8 +2079,18 @@ export default function CreatorDashboard() {
                 </motion.div>
               )}
       
-      {activeView === 'settings' && <SettingsView />}
-      
+            {activeView === 'settings' && (
+              <motion.div
+                key="settings"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+              >
+              <SettingsView />
+            </motion.div>
+            )}
+
             </AnimatePresence>
       
             {/* Mobile-only logout button */}
