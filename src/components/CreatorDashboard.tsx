@@ -207,12 +207,12 @@ const availableCampaigns = [
   }
 ];
 
-// Background pattern component (subtle version)
+// Background pattern component (matching landing page)
 const BackgroundPattern = memo(() => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-    <svg width="100%" height="100%" className="opacity-3">
-      <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
-        <path d="M 60 0 L 0 0 0 60" fill="none" stroke="white" strokeWidth="0.5"/>
+    <svg width="100%" height="100%" className="opacity-5">
+      <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="1"/>
       </pattern>
       <rect width="100%" height="100%" fill="url(#grid)" />
     </svg>
@@ -1061,8 +1061,8 @@ export default function CreatorDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-black p-4 md:p-8">
-      {/* Subtle background pattern */}
+    <div className="min-h-screen bg-black p-4 md:p-8 relative">
+      {/* Background pattern matching landing page */}
       <BackgroundPattern />
 
       {/* Header with Title and Time Filter */}
