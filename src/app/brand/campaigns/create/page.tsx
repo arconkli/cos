@@ -32,12 +32,11 @@ interface CampaignFormData {
     original: string;
     repurposed: string;
   };
-  minViews: string;
   hashtags: string[];
   guidelines: string[];
   assets: File[];
-  paymentMethod: string; // New field for payment method
-  termsAccepted: boolean; // New field for terms acceptance
+  paymentMethod: string; // For payment method
+  termsAccepted: boolean; // For terms acceptance
 }
 
 // Payment method type
@@ -155,7 +154,6 @@ const CampaignCreationPage: React.FC = () => {
       original: '500',  // Default to $500 per 1M views for original
       repurposed: '250'  // Default to $250 per 1M views for repurposed
     },
-    minViews: '10000', // Default to 10K minimum views
     hashtags: ['#YourBrand'],
     guidelines: [''],
     assets: [],
@@ -224,9 +222,8 @@ const CampaignCreationPage: React.FC = () => {
     }
   }, [router]);
   
-  // Handle form input changes
-// Handle form input changes
-const handleChange = (
+  // Fixed handleChange function to handle checkboxes correctly
+  const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target;
@@ -524,16 +521,16 @@ const handleChange = (
         </p>
       </div>
       
-      {/* Business model explainer */}
+      {/* Business model explainer - SIMPLIFIED */}
       <div className="p-4 border border-gray-800 rounded-lg bg-black/40 mt-6">
         <div className="flex items-start gap-3">
           <Info className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
           <div>
             <h4 className="font-medium text-gray-300 mb-1">How Our Platform Works</h4>
             <p className="text-sm text-gray-400">
-              We charge brands based on actual views, with different rates for repurposed versus original content. 
-              You'll only pay for quality-assured views that meet your campaign requirements. There are no extra 
-              commissions or hidden fees—you pay exactly for the quality views you get.
+              We charge based on views, with different rates for original versus repurposed content. You only 
+              pay for the views you receive - no hidden fees, no extra commissions. Your budget is used 
+              100% for delivering quality-assured views for your campaign.
             </p>
           </div>
         </div>
@@ -766,7 +763,7 @@ const handleChange = (
     </div>
   );
   
-  // Render budget & payouts step
+  // Render budget & payouts step - SIMPLIFIED
   const renderBudgetStep = () => (
     <div className="space-y-6">
       <div>
@@ -792,40 +789,32 @@ const handleChange = (
         <div className="flex items-center p-3 mt-2 bg-black/40 border border-gray-800 rounded-lg">
           <Info className="h-5 w-5 text-gray-400 mr-3" />
           <p className="text-sm text-gray-400">
-            You only pay for actual views that meet your campaign criteria. Your budget determines the maximum potential reach.
+            Your budget determines the maximum views your campaign will receive. We charge exactly what you 
+            allocate, with no hidden fees or commissions.
           </p>
         </div>
       </div>
       
-      <div>
-        <label htmlFor="minViews" className="block text-sm font-medium text-gray-300 mb-1">
-          Minimum Eligible Views <span className="text-red-500">*</span>
-        </label>
-        <div className="relative">
-          <input
-            id="minViews"
-            name="minViews"
-            type="number"
-            value={formData.minViews}
-            onChange={handleChange}
-            min="1000"
-            step="1000"
-            className="w-full p-3 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 outline-none"
-            placeholder="10000"
-            required
-          />
+      {/* Simplified view-focused panel */}
+      <div className="p-4 bg-blue-900/10 border border-blue-800 rounded-lg">
+        <div className="flex items-start gap-3">
+          <Eye className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <h4 className="font-medium text-blue-400 mb-1">Transparent View-Based Pricing</h4>
+            <p className="text-sm text-gray-300">
+              You're paying for exactly the number of views calculated below. Your campaign will 
+              continue to run until you've received your target views or the end date is reached.
+            </p>
+          </div>
         </div>
-        <p className="text-xs text-gray-500 mt-1">
-          Content must reach this number of views to be eligible for creator payment. Recommended: 10,000+
-        </p>
       </div>
       
       <div className="p-4 border border-gray-700 rounded-lg">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium">Payout Rates</h3>
+          <h3 className="text-lg font-medium">View Rates</h3>
           <div className="flex items-center p-2 rounded-lg bg-blue-900/20 border border-blue-800 text-xs text-blue-400">
             <Info className="h-4 w-4 mr-1" />
-            <span>Pay only for actual views</span>
+            <span>Pay for actual views</span>
           </div>
         </div>
         
@@ -968,16 +957,15 @@ const handleChange = (
           </div>
         )}
         
-        {/* Payment explainer */}
+        {/* Payment explainer - SIMPLIFIED */}
         <div className="mt-6 pt-4 border-t border-gray-700">
           <div className="flex items-start gap-3">
             <HelpCircle className="h-5 w-5 text-gray-400 flex-shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-medium mb-1">How our payment model works</h4>
+              <h4 className="font-medium mb-1">Transparent Pricing Model</h4>
               <p className="text-sm text-gray-400">
-                Creators are paid based on the actual views their content receives. You'll only pay for
-                content that meets your guidelines and exceeds the minimum view threshold. There are no hidden
-                fees or commissions - your budget goes directly toward quality views.
+                You only pay for the actual views your campaign receives. There are no hidden fees or commissions - 
+                your budget goes directly toward delivering quality views from our verified creator network.
               </p>
             </div>
           </div>
@@ -1125,7 +1113,7 @@ const handleChange = (
     </div>
   );
   
-  // Render payment verification step
+  // Render payment verification step - SIMPLIFIED
   const renderPaymentStep = () => (
     <div className="space-y-6">
       <div className="p-4 bg-yellow-900/10 border border-yellow-800 rounded-lg mb-4">
@@ -1135,7 +1123,8 @@ const handleChange = (
             <h4 className="font-medium text-yellow-400 mb-1">Payment Method Required</h4>
             <p className="text-sm text-gray-300">
               When your campaign is approved, your payment method will be charged immediately to 
-              fund your campaign. You only pay for actual views that meet your campaign criteria.
+              fund your campaign. Your budget will be used to deliver the exact number of views calculated 
+              during campaign setup.
             </p>
           </div>
         </div>
@@ -1300,7 +1289,7 @@ const handleChange = (
     }
   };
   
-  // Render campaign preview
+  // Render campaign preview - SIMPLIFIED
   const renderCampaignPreview = () => {
     // Calculate estimated reach based on budget
     const { originalViews, repurposedViews, totalViews } = calculateEstimatedViews(
@@ -1425,11 +1414,12 @@ const handleChange = (
                 </div>
               </div>
               
+              {/* Quality assurance section instead of creator payment threshold */}
               <div>
-                <h4 className="text-sm text-gray-400 mb-1">Minimum Views Required</h4>
-                <p className="font-medium">{parseInt(formData.minViews).toLocaleString()} views</p>
+                <h4 className="text-sm text-gray-400 mb-1">Quality Assurance</h4>
+                <p className="font-medium">Verified Creator Network</p>
                 <p className="text-xs text-gray-500 mt-1">
-                  Content must reach this threshold for creator payment
+                  All campaign content is reviewed to ensure quality and guideline compliance
                 </p>
               </div>
               
@@ -1478,7 +1468,7 @@ const handleChange = (
           </div>
         </div>
         
-        {/* Payment authorization notice */}
+        {/* Payment authorization notice - SIMPLIFIED */}
         <div className="p-4 bg-yellow-900/10 border border-yellow-800 rounded-lg mb-6">
           <div className="flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
@@ -1487,7 +1477,7 @@ const handleChange = (
               <p className="text-sm text-gray-300">
                 By submitting this campaign for review, you authorize CREATE_OS to charge your selected payment 
                 method for the full campaign budget amount ({formData.budget ? formatMoney(parseFloat(formData.budget)) : '$0'}) upon approval. 
-                You will only pay for actual views that meet your campaign criteria.
+                Your budget will be used to deliver exactly the number of views shown in your campaign summary.
               </p>
             </div>
           </div>
