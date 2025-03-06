@@ -527,104 +527,193 @@ const BrandDashboard: React.FC = () => {
     </div>
   );
   
-  // Campaigns view
-  const renderCampaigns = () => (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="relative w-full sm:w-auto">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-4 w-4 text-gray-400" />
+  // Campaigns view - IMPROVED VERSION
+  const renderCampaigns = () => {
+    // Calculate estimated views for each campaign
+    const campaignsWithEstimatedViews = filteredCampaigns.map(campaign => {
+      const viewEstimate = campaign.status === 'draft' || campaign.status === 'pending-approval' 
+        ? calculateEstimatedViews(
+            campaign.budget,
+            campaign.payoutRate.original,
+            campaign.payoutRate.repurposed || 0,
+            campaign.contentType,
+            campaign.budgetAllocation?.original || 70,
+            campaign.budgetAllocation?.repurposed || 30
+          )
+        : null;
+        
+      return {
+        ...campaign,
+        estimatedViews: viewEstimate ? viewEstimate.totalViews : null
+      };
+    });
+  
+    return (
+      <div className="space-y-6">
+        {/* Search and filter controls */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
+          <div className="relative w-full sm:w-auto">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              className="pl-10 pr-4 py-2 w-full sm:w-64 bg-black/40 border border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              placeholder="Search campaigns..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-          <input
-            type="text"
-            className="pl-10 pr-4 py-2 w-full sm:w-64 bg-black/40 border border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
-            placeholder="Search campaigns..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <button
+              className="flex items-center gap-2 px-3 py-2 bg-black/40 border border-gray-800 rounded-lg"
+            >
+              <Filter className="h-4 w-4" />
+              <span>Filter</span>
+            </button>
+            
+            <button
+              onClick={handleCreateCampaign}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 transition-colors rounded-lg text-white font-medium"
+            >
+              <Plus className="h-4 w-4" />
+              <span>New Campaign</span>
+            </button>
+          </div>
+        </div>
+  
+        {/* Campaign Count Summary */}
+        <div className="flex items-center gap-2 text-sm text-gray-400 mb-4">
+          <span className="font-medium">{filteredCampaigns.length} campaign{filteredCampaigns.length !== 1 && 's'}</span>
+          {searchTerm && <span>matching "{searchTerm}"</span>}
         </div>
         
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <button
-            className="flex items-center gap-2 px-3 py-2 bg-black/40 border border-gray-800 rounded-lg"
-          >
-            <Filter className="h-4 w-4" />
-            <span>Filter</span>
-          </button>
-          
-          <button
-            onClick={handleCreateCampaign}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 transition-colors rounded-lg text-white font-medium"
-          >
-            <Plus className="h-4 w-4" />
-            <span>New Campaign</span>
-          </button>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {filteredCampaigns.map(campaign => (
-          <button
-            key={campaign.id}
-            className="text-left p-6 rounded-lg bg-black/40 border border-gray-800 hover:border-gray-700 transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
-            onClick={() => handleCampaignClick(campaign)}
-          >
-            <div className="flex justify-between items-start mb-4">
-              <h3 className="text-xl font-bold">{campaign.title}</h3>
-              <StatusBadge status={campaign.status} />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <p className="text-sm text-gray-400 mb-1">Budget</p>
-                <p className="text-lg font-bold">${campaign.budget.toLocaleString()}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-400 mb-1">Spent</p>
-                <p className="text-lg font-bold">${campaign.spent.toLocaleString()}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-400 mb-1">Views</p>
-                <p className="text-lg font-bold">{campaign.views > 0 ? `${campaign.views.toLocaleString()}` : 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-400 mb-1">Creators</p>
-                <p className="text-lg font-bold">{campaign.creatorCount}</p>
-              </div>
-            </div>
-            
-            <div className="flex justify-between items-center pt-3 border-t border-gray-800">
-              <div className="flex gap-2">
-                {campaign.platforms.slice(0, 2).map(platform => (
-                  <span
-                    key={platform}
-                    className="px-2 py-1 bg-white/5 rounded-full text-xs"
-                  >
-                    {platform}
-                  </span>
-                ))}
-                {campaign.platforms.length > 2 && (
-                  <span className="px-2 py-1 bg-white/5 rounded-full text-xs">
-                    +{campaign.platforms.length - 2}
-                  </span>
-                )}
+        {/* Campaign grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {campaignsWithEstimatedViews.map(campaign => (
+            <button
+              key={campaign.id}
+              className="text-left p-6 rounded-lg bg-black/40 border border-gray-800 hover:border-gray-700 transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+              onClick={() => handleCampaignClick(campaign)}
+            >
+              {/* Header - Title and Status */}
+              <div className="flex justify-between items-start mb-5">
+                <h3 className="text-xl font-bold text-white">{campaign.title}</h3>
+                <StatusBadge status={campaign.status} />
               </div>
               
-              <div className="flex items-center text-sm text-gray-400">
-                <Calendar className="h-4 w-4 mr-1" />
-                <span>
-                  {new Date(campaign.endDate).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric'
-                  })}
-                </span>
+              {/* Primary Stats */}
+              <div className="grid grid-cols-2 gap-x-6 gap-y-4 mb-5 p-4 rounded-lg bg-black/30 border border-gray-800">
+                <div>
+                  <p className="text-sm text-gray-400 mb-1">Budget</p>
+                  <p className="text-lg font-bold text-white">${campaign.budget.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400 mb-1">Spent</p>
+                  <div className="flex flex-col">
+                    <p className="text-lg font-bold text-white">${campaign.spent.toLocaleString()}</p>
+                    <div className="w-full bg-gray-800 h-1.5 rounded-full mt-1.5 overflow-hidden">
+                      <div 
+                        className="bg-red-500 h-full rounded-full" 
+                        style={{ width: `${Math.min(100, (campaign.spent / campaign.budget) * 100)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400 mb-1">
+                    {campaign.status === 'active' ? 'Current Views' : 'Est. Total Views'}
+                  </p>
+                  <p className="text-lg font-bold text-white">
+                    {campaign.status === 'active' ? 
+                      campaign.views.toLocaleString() : 
+                      campaign.estimatedViews ? 
+                        `${(campaign.estimatedViews / 1000000).toFixed(1)}M` : 
+                        'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400 mb-1">Creators</p>
+                  <p className="text-lg font-bold text-white">{campaign.creatorCount}</p>
+                </div>
               </div>
-            </div>
-          </button>
-        ))}
+              
+              {/* Campaign Type */}
+              <div className="mb-5">
+                <p className="text-sm text-gray-400 mb-1">Content Type</p>
+                <div className="flex flex-wrap gap-2">
+                  {campaign.contentType === 'original' && (
+                    <span className="px-3 py-1 bg-green-900/20 text-green-400 rounded-full text-xs font-medium">
+                      Original Content
+                    </span>
+                  )}
+                  {campaign.contentType === 'repurposed' && (
+                    <span className="px-3 py-1 bg-blue-900/20 text-blue-400 rounded-full text-xs font-medium">
+                      Repurposed Content
+                    </span>
+                  )}
+                  {campaign.contentType === 'both' && (
+                    <span className="px-3 py-1 bg-purple-900/20 text-purple-400 rounded-full text-xs font-medium">
+                      Original & Repurposed
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              {/* Footer - Platforms and Date */}
+              <div className="flex justify-between items-center pt-3 border-t border-gray-800">
+                <div className="flex flex-wrap gap-2">
+                  {campaign.platforms.slice(0, 2).map(platform => (
+                    <span
+                      key={platform}
+                      className="px-2 py-1 bg-white/5 rounded-full text-xs"
+                    >
+                      {platform}
+                    </span>
+                  ))}
+                  {campaign.platforms.length > 2 && (
+                    <span className="px-2 py-1 bg-white/5 rounded-full text-xs">
+                      +{campaign.platforms.length - 2}
+                    </span>
+                  )}
+                </div>
+                
+                <div className="flex items-center text-sm text-gray-400">
+                  <Calendar className="h-4 w-4 mr-1" />
+                  <span>
+                    Ends: {new Date(campaign.endDate).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric'
+                    })}
+                  </span>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+        
+        {filteredCampaigns.length === 0 && (
+          <div className="p-12 flex flex-col items-center justify-center text-center border border-dashed border-gray-700 rounded-lg">
+            <AlertTriangle className="h-12 w-12 text-gray-600 mb-4" />
+            <h3 className="text-xl font-medium text-gray-400 mb-2">No campaigns found</h3>
+            <p className="text-gray-500 mb-6 max-w-md">
+              {searchTerm ? 
+                `No campaigns matching "${searchTerm}". Try another search term or clear your search.` : 
+                "You haven't created any campaigns yet. Get started by creating your first campaign."}
+            </p>
+            <button
+              onClick={handleCreateCampaign}
+              className="px-6 py-3 bg-red-600 hover:bg-red-700 transition-colors rounded-lg text-white font-medium"
+            >
+              <Plus className="h-4 w-4 inline mr-2" />
+              Create Campaign
+            </button>
+          </div>
+        )}
       </div>
-    </div>
-  );
+    );
+  };
   
   // Team management view
   const renderTeam = () => (
