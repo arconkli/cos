@@ -67,15 +67,17 @@ const Navigation: React.FC<NavigationProps> = ({ isLoggedIn = false }) => {
         <div className="flex items-center gap-3">
           {authStatus && (
             <>
-              {/* Improved dashboard button that matches site styling */}
+              {/* Improved dashboard button with better icon styling */}
               <motion.button
                 onClick={goToDashboard}
-                className="px-3 py-1.5 md:px-5 md:py-2 bg-gradient-to-r from-red-500 to-red-700 rounded-lg text-white font-bold flex items-center gap-2 shadow-lg"
+                className="px-4 py-2 md:px-6 md:py-2.5 bg-gradient-to-r from-red-500 to-red-700 rounded-lg text-white font-bold flex items-center justify-center gap-3 shadow-lg"
                 whileHover={{ scale: 1.05, boxShadow: "0 0 10px rgba(255,68,68,0.3)" }}
                 whileTap={{ scale: 0.98 }}
               >
-                <span className="hidden xs:inline">Dashboard</span>
-                <User className="h-4 w-4" />
+                <span className="hidden md:inline">Dashboard</span>
+                <div className="flex items-center justify-center bg-white/20 rounded-full p-1">
+                  <User className="h-4 w-4" />
+                </div>
               </motion.button>
               
               {/* Desktop-only logout button */}
