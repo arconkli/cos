@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   XIcon, ArrowUpRight, Zap, Eye, DollarSign, 
   Building, Calendar, Users, TrendingUp, 
-  Twitter, Youtube, Instagram, Clock
+  Twitter, Youtube, Instagram, Clock, LogOut, User
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import Navigation from '@/components/Navigation';
