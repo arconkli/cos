@@ -175,8 +175,17 @@ function CampaignModal({ campaign, onClose }: CampaignModalProps) {
           </div>
           
           <div>
-            <p className="text-sm text-gray-400">Minimum Views</p>
-            <p className="text-2xl font-bold text-white">{campaign.minViews}</p>
+            <p className="text-sm text-gray-400">Platforms</p>
+            <div className="flex flex-wrap gap-2 mt-1">
+              {campaign.platforms.map((platform, idx) => (
+                <span 
+                  key={platform} 
+                  className="px-2 py-0.5 text-xs bg-white/10 rounded-full text-gray-300"
+                >
+                  {platform}
+                </span>
+              ))}
+            </div>
           </div>
           
           <div>
@@ -217,6 +226,14 @@ export default function HomePage() {
   const [showLogin, setShowLogin] = useState(false);
   const router = useRouter();
   const { resetOnboarding } = useOnboarding();
+  
+  // Add smooth scroll for internal links
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
   
   // Check login status on component mount
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -277,9 +294,15 @@ export default function HomePage() {
           <div>
             <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight text-white">
               CREATOR<br />
-              <span className="text-red-500">
+              <motion.span
+                className="inline-block"
+                animate={{ 
+                  color: ['#FFFFFF', '#FF4444', '#FFFFFF'],
+                  transition: { duration: 3, repeat: Infinity }
+                }}
+              >
                 MONETIZATION_
-              </span>
+              </motion.span>
             </h1>
             <p className="text-lg md:text-xl mb-8 max-w-2xl text-gray-300">
               <strong><em>Create great content, go viral, get paid.</em></strong>
@@ -381,54 +404,56 @@ export default function HomePage() {
             {exampleCampaigns.map((campaign, i) => (
               <button
                 key={i}
-                className="text-left border border-gray-800 p-6 rounded-lg cursor-pointer bg-black hover:border-gray-600 transition-colors"
+                className="text-left p-6 rounded-lg bg-black/40 border border-gray-800 hover:border-gray-600 transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
                 onClick={() => setSelectedCampaign(campaign)}
+                aria-label={`View details of ${campaign.title} campaign`}
               >
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className="text-xl font-bold mb-2 text-white">{campaign.title}</h3>
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      <span className="px-2 py-0.5 bg-gray-800 rounded-full text-xs text-gray-300">
-                        {campaign.type}
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 rounded-full bg-red-900/20 text-red-400 text-sm">
+                        NEW
                       </span>
-                      <span className="px-2 py-0.5 bg-green-900/20 rounded-full text-xs text-green-400">
-                        Active
+                      <span className="px-3 py-1 rounded-full bg-white/5 text-sm text-gray-300">
+                        {campaign.type}
                       </span>
                     </div>
                   </div>
-                  <span className="border border-gray-700 px-3 py-1 rounded text-sm text-white">
-                    {campaign.payout}
-                  </span>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-4 mb-4">
+
+                <div className="space-y-4 mb-4">
                   <div>
-                    <p className="text-sm text-gray-400">Min. Views</p>
-                    <p className="text-2xl font-bold text-white">{campaign.minViews}</p>
+                    <p className="text-sm text-gray-400 mb-1">Payout Rate</p>
+                    <p className="text-lg font-bold text-white">{campaign.payout}</p>
                   </div>
+
                   <div>
-                    <p className="text-sm text-gray-400">Campaign Brief</p>
-                    <p className="text-sm text-gray-300 line-clamp-2">{campaign.description.substring(0, 50)}...</p>
+                    <p className="text-sm text-gray-400 mb-1">Campaign Brief</p>
+                    <p className="text-sm text-gray-300 line-clamp-2">{campaign.description}</p>
                   </div>
                 </div>
-                
-                <div>
-                  <p className="text-sm text-gray-400 mb-2">Platforms</p>
+
+                <div className="flex justify-between items-center pt-3 border-t border-gray-800">
                   <div className="flex flex-wrap gap-2">
-                    {campaign.platforms.map((platform) => (
-                      <span 
-                        key={platform} 
-                        className="text-sm border border-gray-700 px-2 py-1 rounded text-gray-300"
+                    {campaign.platforms.slice(0, 2).map((platform) => (
+                      <span
+                        key={platform}
+                        className="px-3 py-1 rounded-full bg-white/5 text-sm text-gray-300"
                       >
                         {platform}
                       </span>
                     ))}
+                    {campaign.platforms.length > 2 && (
+                      <span className="px-3 py-1 rounded-full bg-white/5 text-sm text-gray-300">
+                        +{campaign.platforms.length - 2}
+                      </span>
+                    )}
                   </div>
-                </div>
-                
-                <div className="mt-4 flex items-center justify-center gap-2 p-2 border border-gray-700 border-dashed text-sm text-white">
-                  <span>View Details</span>
-                  <ArrowUpRight className="h-4 w-4" />
+
+                  <span className="inline-flex items-center text-red-400 font-medium text-sm">
+                    Join <ArrowUpRight className="h-4 w-4 ml-1" />
+                  </span>
                 </div>
               </button>
             ))}
