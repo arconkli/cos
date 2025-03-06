@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import {
   ArrowLeft, ArrowRight, Calendar, Plus, Trash, Check,
   Upload, DollarSign, Target, Layers, Users, Clock, Hash,
-  HelpCircle, ExternalLink, X
+  HelpCircle, ExternalLink, X, AlertCircle, CreditCard, Info, Eye
 } from 'lucide-react';
 
 // Interface for campaign form data
@@ -36,6 +36,17 @@ interface CampaignFormData {
   hashtags: string[];
   guidelines: string[];
   assets: File[];
+  paymentMethod: string; // New field for payment method
+  termsAccepted: boolean; // New field for terms acceptance
+}
+
+// Payment method type
+interface PaymentMethod {
+  id: string;
+  type: string;
+  last4: string;
+  expiry: string;
+  isDefault: boolean;
 }
 
 // Interface for steps
@@ -94,6 +105,25 @@ const CampaignCreationPage: React.FC = () => {
   const [step, setStep] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  
+  // Sample payment methods (in a real app, this would come from an API)
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
+    {
+      id: 'pm_1',
+      type: 'visa',
+      last4: '4242',
+      expiry: '12/25',
+      isDefault: true
+    },
+    {
+      id: 'pm_2',
+      type: 'mastercard',
+      last4: '5555',
+      expiry: '10/26',
+      isDefault: false
+    }
+  ]);
   
   // Get today's date formatted as YYYY-MM-DD for date inputs
   const today = new Date().toISOString().split('T')[0];
@@ -122,13 +152,15 @@ const CampaignCreationPage: React.FC = () => {
     endDate: defaultEndDate,
     budget: '',
     payoutRate: {
-      original: '',
-      repurposed: ''
+      original: '500',  // Default to $500 per 1M views for original
+      repurposed: '250'  // Default to $250 per 1M views for repurposed
     },
-    minViews: '',
+    minViews: '10000', // Default to 10K minimum views
     hashtags: ['#YourBrand'],
     guidelines: [''],
-    assets: []
+    assets: [],
+    paymentMethod: paymentMethods.find(method => method.isDefault)?.id || '',
+    termsAccepted: false
   });
   
   // Define steps
@@ -175,6 +207,12 @@ const CampaignCreationPage: React.FC = () => {
       subtitle: 'Provide instructions and resources for creators',
       isComplete: (data) => 
         data.guidelines.filter(g => g.trim().length > 0).length > 0
+    },
+    {
+      title: 'Payment Verification', // New payment step
+      subtitle: 'Confirm your payment method for campaign funding',
+      isComplete: (data) => 
+        data.paymentMethod !== '' && data.termsAccepted
     }
   ];
   
@@ -187,11 +225,24 @@ const CampaignCreationPage: React.FC = () => {
   }, [router]);
   
   // Handle form input changes
-  const handleChange = (
+// Handle form input changes
+const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
     
+    // For checkbox inputs, we need to handle the checked property
+    if (type === 'checkbox') {
+      // Use type assertion to tell TypeScript that this is an HTMLInputElement
+      const checkboxInput = e.target as HTMLInputElement;
+      setFormData({
+        ...formData,
+        [name]: checkboxInput.checked
+      });
+      return;
+    }
+    
+    // For other input types
     if (name.includes('.')) {
       // Handle nested fields (e.g., payoutRate.original)
       const [parent, child] = name.split('.');
@@ -358,7 +409,10 @@ const CampaignCreationPage: React.FC = () => {
   
   // Submit campaign for review
   const handleSubmitCampaign = () => {
-    // Simulate API call
+    // Start processing payment animation
+    setIsProcessingPayment(true);
+    
+    // Simulate payment verification and API call
     setTimeout(() => {
       // Store in localStorage for demo purposes
       const campaigns = JSON.parse(localStorage.getItem('brandCampaigns') || '[]');
@@ -370,18 +424,43 @@ const CampaignCreationPage: React.FC = () => {
       });
       localStorage.setItem('brandCampaigns', JSON.stringify(campaigns));
       
+      setIsProcessingPayment(false);
       setShowSaveSuccess(true);
       
       // Redirect after brief delay to show success message
       setTimeout(() => {
         router.push('/brand/dashboard');
       }, 2000);
-    }, 1000);
+    }, 2500);
   };
   
   // Check if current step is complete
   const isCurrentStepComplete = () => {
     return steps[step].isComplete(formData);
+  };
+
+  // Calculate view estimates
+  const viewEstimates = calculateEstimatedViews(
+    formData.budget,
+    formData.payoutRate.original,
+    formData.payoutRate.repurposed,
+    formData.contentType,
+    formData.budgetAllocation
+  );
+  
+  // Helper to format numbers as money
+  const formatMoney = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+  
+  // Helper to format numbers in millions with one decimal
+  const formatMillions = (num: number) => {
+    return (num / 1000000).toFixed(1) + 'M';
   };
   
   // Render campaign details step
@@ -444,6 +523,21 @@ const CampaignCreationPage: React.FC = () => {
           Be specific about your brand, products, and what you want creators to showcase.
         </p>
       </div>
+      
+      {/* Business model explainer */}
+      <div className="p-4 border border-gray-800 rounded-lg bg-black/40 mt-6">
+        <div className="flex items-start gap-3">
+          <Info className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <h4 className="font-medium text-gray-300 mb-1">How Our Platform Works</h4>
+            <p className="text-sm text-gray-400">
+              We charge brands based on actual views, with different rates for repurposed versus original content. 
+              You'll only pay for quality-assured views that meet your campaign requirements. There are no extra 
+              commissions or hidden fees—you pay exactly for the quality views you get.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
   
@@ -477,7 +571,7 @@ const CampaignCreationPage: React.FC = () => {
             }`}
             onClick={() => handlePlatformChange('instagram')}
           >
-            <svg className="h-8 w-8 text-pink-500 mb-2" viewBox="0 0 24 24" fill="currentColor">
+            <svg className="h-8 w-8 text-pink-500 mb-2" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0z"/>
               <path d="M12 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
             </svg>
@@ -492,7 +586,7 @@ const CampaignCreationPage: React.FC = () => {
             }`}
             onClick={() => handlePlatformChange('youtube')}
           >
-            <svg className="h-8 w-8 text-red-500 mb-2" viewBox="0 0 24 24" fill="currentColor">
+            <svg className="h-8 w-8 text-red-500 mb-2" fill="currentColor" viewBox="0 0 24 24">
               <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
             </svg>
             <span className="font-medium">YouTube</span>
@@ -506,7 +600,7 @@ const CampaignCreationPage: React.FC = () => {
             }`}
             onClick={() => handlePlatformChange('twitter')}
           >
-            <svg className="h-8 w-8 text-blue-400 mb-2" viewBox="0 0 24 24" fill="currentColor">
+            <svg className="h-8 w-8 text-blue-400 mb-2" fill="currentColor" viewBox="0 0 24 24">
               <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
             </svg>
             <span className="font-medium">Twitter</span>
@@ -533,9 +627,25 @@ const CampaignCreationPage: React.FC = () => {
               }`}></div>
               <h4 className="font-medium">Original Content</h4>
             </div>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-400 mb-3">
               Creators will produce new content specifically for your campaign
             </p>
+            
+            {/* View calculator for original content */}
+            {formData.contentType === 'original' && formData.budget && formData.payoutRate.original && (
+              <div className="mt-4 p-3 rounded-lg bg-green-900/10 border border-green-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <Eye className="h-4 w-4 text-green-400" />
+                  <p className="text-sm font-medium text-green-400">Estimated Views</p>
+                </div>
+                <p className="text-xl font-bold text-white">
+                  {formatMillions(viewEstimates.totalViews)} views
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Based on ${formData.payoutRate.original} per 1M views
+                </p>
+              </div>
+            )}
           </div>
           
           <div
@@ -552,9 +662,25 @@ const CampaignCreationPage: React.FC = () => {
               }`}></div>
               <h4 className="font-medium">Repurposed Content</h4>
             </div>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-400 mb-3">
               Creators will adapt existing content to fit your campaign
             </p>
+            
+            {/* View calculator for repurposed content */}
+            {formData.contentType === 'repurposed' && formData.budget && formData.payoutRate.repurposed && (
+              <div className="mt-4 p-3 rounded-lg bg-blue-900/10 border border-blue-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <Eye className="h-4 w-4 text-blue-400" />
+                  <p className="text-sm font-medium text-blue-400">Estimated Views</p>
+                </div>
+                <p className="text-xl font-bold text-white">
+                  {formatMillions(viewEstimates.totalViews)} views
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Based on ${formData.payoutRate.repurposed} per 1M views
+                </p>
+              </div>
+            )}
           </div>
           
           <div
@@ -571,9 +697,25 @@ const CampaignCreationPage: React.FC = () => {
               }`}></div>
               <h4 className="font-medium">Both Types</h4>
             </div>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-400 mb-3">
               Creators can choose to create new or adapt existing content
             </p>
+            
+            {/* View calculator for both content types */}
+            {formData.contentType === 'both' && formData.budget && formData.payoutRate.original && formData.payoutRate.repurposed && (
+              <div className="mt-4 p-3 rounded-lg bg-purple-900/10 border border-purple-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <Eye className="h-4 w-4 text-purple-400" />
+                  <p className="text-sm font-medium text-purple-400">Estimated Views</p>
+                </div>
+                <p className="text-xl font-bold text-white">
+                  {formatMillions(viewEstimates.totalViews)} views
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {formatMillions(viewEstimates.originalViews)} original + {formatMillions(viewEstimates.repurposedViews)} repurposed
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -647,9 +789,12 @@ const CampaignCreationPage: React.FC = () => {
             required
           />
         </div>
-        <p className="text-xs text-gray-500 mt-1">
-          Minimum budget: $1,000. The budget will be used to pay creators based on their performance.
-        </p>
+        <div className="flex items-center p-3 mt-2 bg-black/40 border border-gray-800 rounded-lg">
+          <Info className="h-5 w-5 text-gray-400 mr-3" />
+          <p className="text-sm text-gray-400">
+            You only pay for actual views that meet your campaign criteria. Your budget determines the maximum potential reach.
+          </p>
+        </div>
       </div>
       
       <div>
@@ -671,18 +816,27 @@ const CampaignCreationPage: React.FC = () => {
           />
         </div>
         <p className="text-xs text-gray-500 mt-1">
-          Content must reach this number of views to be eligible for payment. Recommended: 10,000+
+          Content must reach this number of views to be eligible for creator payment. Recommended: 10,000+
         </p>
       </div>
       
       <div className="p-4 border border-gray-700 rounded-lg">
-        <h3 className="text-lg font-medium mb-4">Payout Rates</h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-medium">Payout Rates</h3>
+          <div className="flex items-center p-2 rounded-lg bg-blue-900/20 border border-blue-800 text-xs text-blue-400">
+            <Info className="h-4 w-4 mr-1" />
+            <span>Pay only for actual views</span>
+          </div>
+        </div>
         
         <div className="space-y-4">
           <div>
-            <label htmlFor="payoutRate.original" className="block text-sm font-medium text-gray-300 mb-1">
-              Original Content Rate (per 1M views) <span className="text-red-500">*</span>
-            </label>
+            <div className="flex justify-between mb-1">
+              <label htmlFor="payoutRate.original" className="block text-sm font-medium text-gray-300">
+                Original Content Rate (per 1M views) <span className="text-red-500">*</span>
+              </label>
+              <span className="text-xs text-gray-400">Recommended: $500-$1,000</span>
+            </div>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <DollarSign className="h-5 w-5 text-gray-400" />
@@ -700,15 +854,18 @@ const CampaignCreationPage: React.FC = () => {
               />
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              Recommended: $500-$1,000 per 1M views for original content
+              Rate for brand-new content created specifically for your campaign
             </p>
           </div>
           
           {(formData.contentType === 'repurposed' || formData.contentType === 'both') && (
             <div>
-              <label htmlFor="payoutRate.repurposed" className="block text-sm font-medium text-gray-300 mb-1">
-                Repurposed Content Rate (per 1M views) <span className="text-red-500">*</span>
-              </label>
+              <div className="flex justify-between mb-1">
+                <label htmlFor="payoutRate.repurposed" className="block text-sm font-medium text-gray-300">
+                  Repurposed Content Rate (per 1M views) <span className="text-red-500">*</span>
+                </label>
+                <span className="text-xs text-gray-400">Recommended: $250-$500</span>
+              </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <DollarSign className="h-5 w-5 text-gray-400" />
@@ -726,7 +883,7 @@ const CampaignCreationPage: React.FC = () => {
                 />
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Recommended: $250-$500 per 1M views for repurposed content
+                Rate for existing content adapted to include your campaign messaging
               </p>
             </div>
           )}
@@ -772,43 +929,38 @@ const CampaignCreationPage: React.FC = () => {
         
         {/* View Calculator */}
         {formData.budget && (
-          formData.contentType === 'original' && formData.payoutRate.original ||
+          (formData.contentType === 'original' && formData.payoutRate.original ||
           formData.contentType === 'repurposed' && formData.payoutRate.repurposed ||
-          formData.contentType === 'both' && formData.payoutRate.original && formData.payoutRate.repurposed
+          formData.contentType === 'both' && formData.payoutRate.original && formData.payoutRate.repurposed)
         ) && (
           <div className="mt-6 p-4 bg-green-900/10 border border-green-800 rounded-lg">
-            <h3 className="font-medium text-lg text-green-400 mb-3">Estimated Campaign Reach</h3>
+            <h3 className="font-medium text-lg text-green-400 mb-3 flex items-center gap-2">
+              <Eye className="h-5 w-5" />
+              Estimated Campaign Reach
+            </h3>
             
             {(() => {
-              const { originalViews, repurposedViews, totalViews } = calculateEstimatedViews(
-                formData.budget,
-                formData.payoutRate.original,
-                formData.payoutRate.repurposed,
-                formData.contentType,
-                formData.budgetAllocation
-              );
-              
               return (
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-4">
                     {formData.contentType === 'both' || formData.contentType === 'original' ? (
                       <div>
                         <p className="text-sm text-gray-400">Original Content</p>
-                        <p className="text-xl font-bold">{(originalViews / 1000000).toFixed(1)}M views</p>
+                        <p className="text-xl font-bold">{formatMillions(viewEstimates.originalViews)} views</p>
                       </div>
                     ) : null}
                     
                     {formData.contentType === 'both' || formData.contentType === 'repurposed' ? (
                       <div>
                         <p className="text-sm text-gray-400">Repurposed Content</p>
-                        <p className="text-xl font-bold">{(repurposedViews / 1000000).toFixed(1)}M views</p>
+                        <p className="text-xl font-bold">{formatMillions(viewEstimates.repurposedViews)} views</p>
                       </div>
                     ) : null}
                   </div>
                   
                   <div className="pt-3 border-t border-green-800/30">
                     <p className="text-sm text-gray-400">Total Estimated Views</p>
-                    <p className="text-2xl font-bold text-green-400">{(totalViews / 1000000).toFixed(1)}M views</p>
+                    <p className="text-2xl font-bold text-green-400">{formatMillions(viewEstimates.totalViews)} views</p>
                   </div>
                 </div>
               );
@@ -821,10 +973,11 @@ const CampaignCreationPage: React.FC = () => {
           <div className="flex items-start gap-3">
             <HelpCircle className="h-5 w-5 text-gray-400 flex-shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-medium mb-1">How payments work</h4>
+              <h4 className="font-medium mb-1">How our payment model works</h4>
               <p className="text-sm text-gray-400">
-                Creators are paid based on the views their content receives. You'll only pay for
-                performance once content exceeds the minimum view threshold.
+                Creators are paid based on the actual views their content receives. You'll only pay for
+                content that meets your guidelines and exceeds the minimum view threshold. There are no hidden
+                fees or commissions - your budget goes directly toward quality views.
               </p>
             </div>
           </div>
@@ -972,6 +1125,163 @@ const CampaignCreationPage: React.FC = () => {
     </div>
   );
   
+  // Render payment verification step
+  const renderPaymentStep = () => (
+    <div className="space-y-6">
+      <div className="p-4 bg-yellow-900/10 border border-yellow-800 rounded-lg mb-4">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <h4 className="font-medium text-yellow-400 mb-1">Payment Method Required</h4>
+            <p className="text-sm text-gray-300">
+              When your campaign is approved, your payment method will be charged immediately to 
+              fund your campaign. You only pay for actual views that meet your campaign criteria.
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <div>
+        <h3 className="text-lg font-medium mb-4">Select Payment Method</h3>
+        
+        <div className="space-y-3">
+          {paymentMethods.map(method => (
+            <label
+              key={method.id}
+              className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer ${
+                formData.paymentMethod === method.id
+                  ? 'border-green-500 bg-green-900/10'
+                  : 'border-gray-700 hover:border-gray-500'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value={method.id}
+                  checked={formData.paymentMethod === method.id}
+                  onChange={handleChange}
+                  className="hidden"
+                />
+                <CreditCard className="h-5 w-5 text-gray-400" />
+                <div>
+                  <p className="font-medium">
+                    {method.type.charAt(0).toUpperCase() + method.type.slice(1)} •••• {method.last4}
+                  </p>
+                  <p className="text-sm text-gray-400">Expires {method.expiry}</p>
+                </div>
+              </div>
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center border-2 ${
+                formData.paymentMethod === method.id
+                  ? 'border-green-500'
+                  : 'border-gray-600'
+              }`}>
+                {formData.paymentMethod === method.id && (
+                  <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                )}
+              </div>
+            </label>
+          ))}
+          
+          <button
+            type="button"
+            className="flex items-center gap-2 mt-2 text-sm text-red-400 hover:text-red-300"
+          >
+            <Plus className="h-4 w-4" /> Add New Payment Method
+          </button>
+        </div>
+      </div>
+      
+      <div className="mt-6 pt-6 border-t border-gray-700">
+        <h3 className="text-lg font-medium mb-4">Campaign Summary</h3>
+        
+        <div className="p-4 bg-black/40 border border-gray-800 rounded-lg mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-gray-400">Campaign Title</p>
+                <p className="font-bold">{formData.title}</p>
+              </div>
+              
+              <div>
+                <p className="text-sm text-gray-400">Content Type</p>
+                <p className="font-medium">
+                  {formData.contentType === 'original' ? 'Original Content' : 
+                   formData.contentType === 'repurposed' ? 'Repurposed Content' : 'Both Types'}
+                </p>
+              </div>
+              
+              <div>
+                <p className="text-sm text-gray-400">Duration</p>
+                <p className="font-medium">
+                  {new Date(formData.startDate).toLocaleDateString()} to {new Date(formData.endDate).toLocaleDateString()}
+                </p>
+              </div>
+              
+              <div>
+                <p className="text-sm text-gray-400">Selected Platforms</p>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {Object.entries(formData.platforms)
+                    .filter(([_, isEnabled]) => isEnabled)
+                    .map(([platform]) => (
+                      <span key={platform} className="px-2 py-1 bg-black/30 rounded text-xs border border-gray-700">
+                        {platform.charAt(0).toUpperCase() + platform.slice(1)}
+                      </span>
+                    ))}
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-gray-400">Budget</p>
+                <p className="text-xl font-bold">{formData.budget ? formatMoney(parseFloat(formData.budget)) : '$0'}</p>
+              </div>
+              
+              <div>
+                <p className="text-sm text-gray-400">Estimated Total Views</p>
+                <p className="text-xl font-bold text-green-400">
+                  {formData.budget ? formatMillions(viewEstimates.totalViews) : '0'} views
+                </p>
+              </div>
+              
+              <div>
+                <p className="text-sm text-gray-400">Average Cost Per 1M Views</p>
+                <p className="font-medium">
+                  {formData.contentType === 'original' 
+                    ? formatMoney(parseFloat(formData.payoutRate.original))
+                    : formData.contentType === 'repurposed'
+                    ? formatMoney(parseFloat(formData.payoutRate.repurposed))
+                    : `${formatMoney((parseFloat(formData.payoutRate.original) * formData.budgetAllocation.original/100) + 
+                         (parseFloat(formData.payoutRate.repurposed) * formData.budgetAllocation.repurposed/100))}`
+                  }
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex items-start gap-2 mb-6">
+          <div className="mt-0.5">
+            <input
+              type="checkbox"
+              id="termsAccepted"
+              name="termsAccepted"
+              checked={formData.termsAccepted}
+              onChange={handleChange}
+              className="rounded text-red-500 focus:ring-red-500"
+            />
+          </div>
+          <label htmlFor="termsAccepted" className="text-sm leading-relaxed text-gray-300">
+            I understand that by submitting this campaign for review, I authorize CREATE_OS to charge my selected 
+            payment method for the campaign budget amount upon approval. I agree to the performance-based payment model 
+            and understand that I will only pay for actual views that meet campaign criteria.
+          </label>
+        </div>
+      </div>
+    </div>
+  );
+  
   // Render the current step content
   const renderStepContent = () => {
     switch (step) {
@@ -983,6 +1293,8 @@ const CampaignCreationPage: React.FC = () => {
         return renderBudgetStep();
       case 3:
         return renderGuidelinesStep();
+      case 4:
+        return renderPaymentStep();
       default:
         return null;
     }
@@ -1036,15 +1348,13 @@ const CampaignCreationPage: React.FC = () => {
                 <h4 className="text-sm text-gray-400 mb-1">Platforms</h4>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(formData.platforms)
-                    .filter(([_, isSelected]) => isSelected)
+                    .filter(([_, isEnabled]) => isEnabled)
                     .map(([platform]) => (
                       <span
                         key={platform}
                         className="px-3 py-1 bg-black/40 border border-gray-700 rounded-lg text-sm"
                       >
-                        {platform === 'tiktok' ? 'TikTok' :
-                         platform === 'instagram' ? 'Instagram' :
-                         platform === 'youtube' ? 'YouTube' : 'Twitter'}
+                        {platform.charAt(0).toUpperCase() + platform.slice(1)}
                       </span>
                     ))}
                 </div>
@@ -1056,6 +1366,19 @@ const CampaignCreationPage: React.FC = () => {
                   {formData.contentType === 'original' ? 'Original Content' :
                    formData.contentType === 'repurposed' ? 'Repurposed Content' : 'Both Types'}
                 </p>
+                
+                {formData.contentType === 'both' && (
+                  <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <p className="text-gray-400">Original Allocation:</p>
+                      <p>{formData.budgetAllocation.original}%</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400">Repurposed Allocation:</p>
+                      <p>{formData.budgetAllocation.repurposed}%</p>
+                    </div>
+                  </div>
+                )}
               </div>
               
               <div>
@@ -1069,34 +1392,18 @@ const CampaignCreationPage: React.FC = () => {
             <div className="space-y-6">
               <div>
                 <h4 className="text-sm text-gray-400 mb-1">Budget</h4>
-                <p className="text-2xl font-bold">${parseFloat(formData.budget).toLocaleString()}</p>
-              </div>
-              
-              <div>
-                <h4 className="text-sm text-gray-400 mb-1">Budget Allocation</h4>
-                {formData.contentType === 'both' ? (
-                  <div className="space-y-1">
-                    <div className="flex justify-between">
-                      <span>Original Content:</span>
-                      <span className="font-medium">{formData.budgetAllocation.original}%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Repurposed Content:</span>
-                      <span className="font-medium">{formData.budgetAllocation.repurposed}%</span>
-                    </div>
+                <p className="text-2xl font-bold">{formData.budget ? formatMoney(parseFloat(formData.budget)) : '$0'}</p>
+                
+                <div className="mt-2 p-3 bg-black/30 border border-gray-700 rounded-lg">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Eye className="h-4 w-4 text-green-400" />
+                    <p className="font-medium text-green-400">Estimated Campaign Reach</p>
                   </div>
-                ) : (
-                  <p className="font-medium">{formData.contentType === 'original' ? '100% Original' : '100% Repurposed'}</p>
-                )}
-              </div>
-              
-              <div>
-                <h4 className="text-sm text-gray-400 mb-1">Estimated Reach</h4>
-                <div>
-                  <p className="text-2xl font-bold text-green-400">{(totalViews / 1000000).toFixed(1)}M views</p>
+                  <p className="text-xl font-bold">{formatMillions(totalViews)} views</p>
                   {formData.contentType === 'both' && (
-                    <div className="text-xs text-gray-400 mt-1">
-                      <div>{(originalViews / 1000000).toFixed(1)}M original + {(repurposedViews / 1000000).toFixed(1)}M repurposed</div>
+                    <div className="text-sm text-gray-400 mt-1 grid grid-cols-2 gap-2">
+                      <div>Original: {formatMillions(originalViews)}</div>
+                      <div>Repurposed: {formatMillions(repurposedViews)}</div>
                     </div>
                   )}
                 </div>
@@ -1120,7 +1427,25 @@ const CampaignCreationPage: React.FC = () => {
               
               <div>
                 <h4 className="text-sm text-gray-400 mb-1">Minimum Views Required</h4>
-                <p className="font-medium">{parseFloat(formData.minViews).toLocaleString()} views</p>
+                <p className="font-medium">{parseInt(formData.minViews).toLocaleString()} views</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Content must reach this threshold for creator payment
+                </p>
+              </div>
+              
+              <div>
+                <h4 className="text-sm text-gray-400 mb-1">Payment Method</h4>
+                {formData.paymentMethod ? (
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-5 w-5 text-gray-300" />
+                    <p className="font-medium">
+                      {paymentMethods.find(m => m.id === formData.paymentMethod)?.type || 'Card'} •••• 
+                      {paymentMethods.find(m => m.id === formData.paymentMethod)?.last4}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-yellow-400">No payment method selected</p>
+                )}
               </div>
               
               <div>
@@ -1149,13 +1474,21 @@ const CampaignCreationPage: React.FC = () => {
                   </div>
                 </div>
               )}
-              
-              {formData.assets.length > 0 && (
-                <div>
-                  <h4 className="text-sm text-gray-400 mb-1">Assets</h4>
-                  <p className="font-medium">{formData.assets.length} file(s) attached</p>
-                </div>
-              )}
+            </div>
+          </div>
+        </div>
+        
+        {/* Payment authorization notice */}
+        <div className="p-4 bg-yellow-900/10 border border-yellow-800 rounded-lg mb-6">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-medium text-yellow-400 mb-1">Payment Authorization</h4>
+              <p className="text-sm text-gray-300">
+                By submitting this campaign for review, you authorize CREATE_OS to charge your selected payment 
+                method for the full campaign budget amount ({formData.budget ? formatMoney(parseFloat(formData.budget)) : '$0'}) upon approval. 
+                You will only pay for actual views that meet your campaign criteria.
+              </p>
             </div>
           </div>
         </div>
@@ -1174,6 +1507,7 @@ const CampaignCreationPage: React.FC = () => {
               type="button"
               onClick={handleSaveCampaign}
               className="px-6 py-3 border border-red-500 text-red-500 rounded-lg hover:bg-red-900/20"
+              disabled={isProcessingPayment}
             >
               Save as Draft
             </button>
@@ -1181,9 +1515,20 @@ const CampaignCreationPage: React.FC = () => {
             <button
               type="button"
               onClick={handleSubmitCampaign}
-              className="px-6 py-3 bg-red-600 hover:bg-red-700 transition-colors rounded-lg text-white"
+              className="px-6 py-3 bg-red-600 hover:bg-red-700 transition-colors rounded-lg text-white flex items-center gap-2"
+              disabled={isProcessingPayment}
             >
-              Submit for Review
+              {isProcessingPayment ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Processing Payment...
+                </>
+              ) : (
+                <>Submit for Review</>
+              )}
             </button>
           </div>
         </div>
