@@ -1,16 +1,16 @@
-// CreatorDashboard.tsx - Optimized for accessibility and usability
+// CreatorDashboard.tsx - Optimized for accessibility, usability, and style guide
 'use client';
 
 import React, { useState, useEffect, memo, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  LineChart, Line, BarChart, Bar, 
+  LineChart, Line, BarChart, Bar,
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   PieChart, Pie, Cell
 } from 'recharts';
 import {
   DollarSign, Eye, Calendar, TrendingUp, Search,
-  ArrowUpRight, Clock, Youtube, Instagram, Twitter, 
+  ArrowUpRight, Clock, Youtube, Instagram, Twitter,
   LogOut, X, AlertCircle, Layers, Users, Plus
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -82,7 +82,7 @@ const platformData = [
   { platform: 'X', views: 1.3, percentage: 5 }
 ];
 
-const COLORS = ['#FF4444', '#4287f5', '#31a952', '#b026ff'];
+const COLORS = ['#FF4444', '#4287f5', '#31a952', '#b026ff']; //Keeping original colors, updating where needed
 
 // Sample campaigns (reduced content)
 const activeCampaigns = [
@@ -212,7 +212,7 @@ const BackgroundPattern = memo(() => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
     <svg width="100%" height="100%" className="opacity-5">
       <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="1"/>
+        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="1" />
       </pattern>
       <rect width="100%" height="100%" fill="url(#grid)" />
     </svg>
@@ -224,9 +224,9 @@ BackgroundPattern.displayName = 'BackgroundPattern';
 // Accessible tooltip component
 const CustomTooltip = memo(({ active, payload, label }: any) => {
   if (!active || !payload || !payload.length) return null;
-  
+
   return (
-    <div className="p-4 border border-white bg-black rounded-md shadow-lg" role="tooltip">
+    <div className="p-4 border border-gray-700 bg-black rounded-lg shadow-lg" role="tooltip">
       <p className="font-bold text-base text-white mb-2" aria-label={`Month: ${label}`}>{label}</p>
       {payload.map((entry: any, index: number) => (
         <p key={`item-${index}`} className="text-sm mb-1" style={{ color: entry.color || '#FFFFFF' }}>
@@ -263,29 +263,29 @@ interface CampaignDetailProps {
 
 const CampaignDetail = memo(({ campaign, onClose }: CampaignDetailProps) => {
   const isActive = isActiveCampaign(campaign);
-  
+
   // Status Label Component
   const StatusLabel = ({ status }: { status: string }) => {
     let bgColor, textColor;
-    
+
     switch (status.toLowerCase()) {
       case 'approved':
-        bgColor = 'bg-green-900 bg-opacity-20';
+        bgColor = 'bg-green-900/20';
         textColor = 'text-green-400';
         break;
       case 'denied':
-        bgColor = 'bg-red-900 bg-opacity-20';
+        bgColor = 'bg-red-900/20';
         textColor = 'text-red-400';
         break;
       case 'pending':
-        bgColor = 'bg-yellow-900 bg-opacity-20';
+        bgColor = 'bg-yellow-900/20';
         textColor = 'text-yellow-400';
         break;
       default:
-        bgColor = 'bg-gray-900 bg-opacity-20';
+        bgColor = 'bg-gray-900/20';
         textColor = 'text-gray-400';
     }
-    
+
     return (
       <span className={`px-3 py-1 rounded-full text-sm font-medium ${bgColor} ${textColor}`} role="status">
         {status.toUpperCase()}
@@ -307,7 +307,7 @@ const CampaignDetail = memo(({ campaign, onClose }: CampaignDetailProps) => {
   }, [onClose]);
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center p-4 md:p-6 z-[100]"
       onClick={onClose}
       role="dialog"
@@ -315,7 +315,7 @@ const CampaignDetail = memo(({ campaign, onClose }: CampaignDetailProps) => {
       aria-labelledby="campaign-title"
     >
       <div
-        className="border p-6 md:p-8 rounded-lg w-full max-w-4xl bg-black custom-scrollbar overflow-y-auto max-h-[90vh] md:max-h-[85vh] relative"
+        className="border border-gray-800 bg-black/40 rounded-lg p-6 md:p-8 w-full max-w-4xl  custom-scrollbar overflow-y-auto max-h-[90vh] md:max-h-[85vh] relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -323,10 +323,10 @@ const CampaignDetail = memo(({ campaign, onClose }: CampaignDetailProps) => {
           onClick={onClose}
           aria-label="Close campaign details"
         >
-          <X className="h-6 w-6" />
+          <X className="h-6 w-6 text-gray-300" />
         </button>
 
-        <h2 id="campaign-title" className="text-2xl md:text-3xl font-bold mb-6 pr-10">
+        <h2 id="campaign-title" className="text-2xl md:text-3xl font-bold mb-6 pr-10 text-white">
           {campaign.title}
         </h2>
 
@@ -335,26 +335,26 @@ const CampaignDetail = memo(({ campaign, onClose }: CampaignDetailProps) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
               <p className="text-sm text-gray-400">Type</p>
-              <p className="text-lg font-medium capitalize">{campaign.contentType === 'both' ? 'Original & Repurposed' : campaign.contentType}</p>
+              <p className="text-lg font-medium capitalize text-gray-300">{campaign.contentType === 'both' ? 'Original & Repurposed' : campaign.contentType}</p>
             </div>
-            
+
             <div className="space-y-2">
               <p className="text-sm text-gray-400">Platforms</p>
               <div className="flex flex-wrap gap-2">
                 {campaign.requirements.platforms.map(platform => (
-                  <span 
-                    key={platform} 
-                    className="px-3 py-1 rounded-full bg-white bg-opacity-5 text-sm"
+                  <span
+                    key={platform}
+                    className="px-3 py-1 rounded-full bg-white/5 text-sm text-gray-300"
                   >
                     {platform}
                   </span>
                 ))}
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <p className="text-sm text-gray-400">Deadline</p>
-              <p className="text-lg font-medium">
+              <p className="text-lg font-medium text-gray-300">
                 {new Date(campaign.endDate).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'short',
@@ -363,23 +363,23 @@ const CampaignDetail = memo(({ campaign, onClose }: CampaignDetailProps) => {
               </p>
             </div>
           </div>
-          
+
           {/* Payout Rates */}
-          <div className="p-6 bg-gray-900 bg-opacity-30 rounded-lg border border-gray-800 space-y-4">
-            <h3 className="text-xl font-bold">Payout Rates</h3>
-            
+          <div className="p-6 bg-black/40 rounded-lg border border-gray-800 space-y-4">
+            <h3 className="text-xl font-bold text-white">Payout Rates</h3>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="p-4 bg-gray-800 bg-opacity-30 rounded-lg">
-                <h4 className="font-medium mb-2">Original Content</h4>
+              <div className="p-4 bg-black/40 rounded-lg border border-gray-800">
+                <h4 className="font-medium mb-2 text-gray-300">Original Content</h4>
                 <p className="text-xl font-bold text-green-400">{campaign.requirements.payoutRate.original}</p>
                 <p className="text-sm text-gray-400 mt-2">
                   Create new content specifically for this campaign
                 </p>
               </div>
-              
+
               {campaign.requirements.payoutRate.repurposed && (
-                <div className="p-4 bg-gray-800 bg-opacity-30 rounded-lg">
-                  <h4 className="font-medium mb-2">Repurposed Content</h4>
+                <div className="p-4 bg-black/40 rounded-lg border border-gray-800">
+                  <h4 className="font-medium mb-2 text-gray-300">Repurposed Content</h4>
                   <p className="text-xl font-bold text-blue-400">{campaign.requirements.payoutRate.repurposed}</p>
                   <p className="text-sm text-gray-400 mt-2">
                     Adapt existing content to fit campaign requirements
@@ -387,56 +387,56 @@ const CampaignDetail = memo(({ campaign, onClose }: CampaignDetailProps) => {
                 </div>
               )}
             </div>
-            
-            <div className="flex items-center p-3 bg-gray-800 bg-opacity-40 rounded-lg">
+
+            <div className="flex items-center p-3 bg-black/40 rounded-lg border border-gray-800">
               <Eye className="h-5 w-5 text-gray-400 mr-3" />
-              <span>Minimum views for payout: <strong>{campaign.requirements.minViewsForPayout}</strong></span>
+              <span className="text-gray-300">Minimum views for payout: <strong className="text-white">{campaign.requirements.minViewsForPayout}</strong></span>
             </div>
           </div>
-          
+
           {/* Guidelines */}
           <div className="space-y-4">
-            <h3 className="text-xl font-bold">Campaign Guidelines</h3>
-            
+            <h3 className="text-xl font-bold text-white">Campaign Guidelines</h3>
+
             <ul className="list-disc pl-5 space-y-2">
               {campaign.requirements.contentGuidelines.map((guideline, i) => (
                 <li key={i} className="text-gray-300">{guideline}</li>
               ))}
             </ul>
           </div>
-          
+
           {/* Posts for active campaigns */}
           {isActive && campaign.posts.length > 0 && (
             <div className="space-y-4">
-              <h3 className="text-xl font-bold">Your Posts</h3>
-              
+              <h3 className="text-xl font-bold text-white">Your Posts</h3>
+
               <div className="grid grid-cols-1 gap-4">
                 {campaign.posts.map((post, i) => (
-                  <div 
+                  <div
                     key={i}
-                    className="p-5 border border-gray-800 rounded-lg bg-gray-900 bg-opacity-30"
+                    className="p-5 border border-gray-800 rounded-lg bg-black/40"
                   >
                     <div className="flex flex-wrap justify-between items-center mb-4 gap-3">
                       <div className="flex items-center">
                         {post.platform === 'TikTok' && (
                           <span className="mr-2 text-cyan-400">
                             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                              <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                              <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
                             </svg>
                           </span>
                         )}
                         {post.platform === 'Instagram' && <Instagram className="h-5 w-5 text-pink-500 mr-2" />}
                         {post.platform === 'YouTube' && <Youtube className="h-5 w-5 text-red-500 mr-2" />}
                         {post.platform === 'Twitter' && <Twitter className="h-5 w-5 text-blue-400 mr-2" />}
-                        <span className="font-medium">{post.platform}</span>
+                        <span className="font-medium text-gray-300">{post.platform}</span>
                       </div>
                       <StatusLabel status={post.status} />
                     </div>
-                    
+
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       <div>
                         <p className="text-sm text-gray-400 mb-1">Views</p>
-                        <p className="text-lg font-bold">{post.views}</p>
+                        <p className="text-lg font-bold text-gray-300">{post.views}</p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-400 mb-1">Earned</p>
@@ -444,14 +444,14 @@ const CampaignDetail = memo(({ campaign, onClose }: CampaignDetailProps) => {
                       </div>
                       <div>
                         <p className="text-sm text-gray-400 mb-1">Posted</p>
-                        <p className="text-base">
+                        <p className="text-base text-gray-300">
                           {post.postDate && new Date(post.postDate).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
-                    
+
                     {post.status === 'denied' && (
-                      <div className="mt-4 p-3 border border-red-500 rounded-lg bg-red-900 bg-opacity-10 flex items-start gap-2">
+                      <div className="mt-4 p-3 border border-red-500 rounded-lg bg-red-900/10 flex items-start gap-2">
                         <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
                         <p className="text-red-400">Content doesn't follow campaign guidelines</p>
                       </div>
@@ -461,11 +461,11 @@ const CampaignDetail = memo(({ campaign, onClose }: CampaignDetailProps) => {
               </div>
             </div>
           )}
-          
+
           {/* Join Button for Available Campaigns */}
           {!isActive && (
             <button
-              className="w-full py-4 bg-gradient-to-r from-red-500 to-red-700 rounded-lg text-white font-bold text-lg transition hover:shadow-lg hover:shadow-red-900/40"
+              className="w-full py-4 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-lg transition hover:shadow-lg hover:shadow-red-900/40"
             >
               Join This Campaign
             </button>
@@ -481,7 +481,7 @@ CampaignDetail.displayName = 'CampaignDetail';
 // StatsOverview Component - Simplified and accessible
 const StatsOverview = memo(({ totalPendingPayout }: { totalPendingPayout: number }) => {
   const stats = [
-    { icon: <Eye className="h-6 w-6 text-blue-400" aria-hidden="true" />, label: "Total Views", value: "28.3M", trend: "+14%" },
+    { icon: <Eye className="h-6 w-6 text-blue-400" aria-hidden="true" />, label: "Total Views", value: "28.3M", trend: "+14%" },  //Keeping blue for views
     { icon: <DollarSign className="h-6 w-6 text-green-400" aria-hidden="true" />, label: "Total Earned", value: "$74,600", trend: "+23%" },
     { icon: <Clock className="h-6 w-6 text-yellow-400" aria-hidden="true" />, label: "Pending", value: `$${totalPendingPayout}`, trend: "+8%" }
   ];
@@ -492,14 +492,14 @@ const StatsOverview = memo(({ totalPendingPayout }: { totalPendingPayout: number
         {stats.map((stat, i) => (
           <div
             key={i}
-            className="p-6 rounded-lg bg-gray-900 bg-opacity-50 border border-gray-800 hover:border-gray-700 transition-colors"
+            className="p-6 rounded-lg bg-black/40 border border-gray-800 hover:border-gray-700 transition-colors"
           >
             <div className="flex items-center gap-3 mb-3">
               {stat.icon}
               <span className="text-gray-400">{stat.label}</span>
             </div>
             <div className="flex justify-between items-end">
-              <p className="text-3xl font-bold">{stat.value}</p>
+              <p className="text-3xl font-bold text-white">{stat.value}</p>
               <div className="text-sm flex items-center gap-1 text-green-400">
                 <TrendingUp className="h-4 w-4" aria-hidden="true" />
                 <span>{stat.trend}</span>
@@ -525,13 +525,13 @@ const ActiveCampaigns = memo(({ campaigns, onCampaignClick }: CampaignsProps) =>
     {campaigns.map((campaign) => (
       <button
         key={campaign.id}
-        className="text-left p-6 rounded-lg bg-gray-900 bg-opacity-50 border border-gray-800 hover:border-gray-600 transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+        className="text-left p-6 rounded-lg bg-black/40 border border-gray-800 hover:border-gray-600 transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
         onClick={() => onCampaignClick(campaign)}
         aria-label={`View details of ${campaign.title} campaign`}
       >
         <div className="flex justify-between items-start mb-4">
-          <h3 className="text-xl font-bold">{campaign.title}</h3>
-          <span className="px-3 py-1 rounded-full bg-green-900 bg-opacity-20 text-green-400 text-sm">
+          <h3 className="text-xl font-bold text-white">{campaign.title}</h3>
+          <span className="px-3 py-1 rounded-full bg-green-900/20 text-green-400 text-sm">
             ACTIVE
           </span>
         </div>
@@ -539,15 +539,15 @@ const ActiveCampaigns = memo(({ campaigns, onCampaignClick }: CampaignsProps) =>
         <div className="grid grid-cols-3 gap-4 mb-4">
           <div>
             <p className="text-sm text-gray-400 mb-1">Earned</p>
-            <p className="text-xl font-bold">${(campaign as Campaign).earned}</p>
+            <p className="text-xl font-bold text-white">${(campaign as Campaign).earned}</p>
           </div>
           <div>
             <p className="text-sm text-gray-400 mb-1">Pending</p>
-            <p className="text-xl font-bold">${(campaign as Campaign).pendingPayout}</p>
+            <p className="text-xl font-bold text-white">${(campaign as Campaign).pendingPayout}</p>
           </div>
           <div>
             <p className="text-sm text-gray-400 mb-1">Views</p>
-            <p className="text-xl font-bold">{campaign.views}</p>
+            <p className="text-xl font-bold text-white">{campaign.views}</p>
           </div>
         </div>
 
@@ -556,21 +556,21 @@ const ActiveCampaigns = memo(({ campaigns, onCampaignClick }: CampaignsProps) =>
             {campaign.requirements.platforms.slice(0, 2).map((platform) => (
               <span
                 key={platform}
-                className="px-3 py-1 rounded-full bg-white bg-opacity-5 text-sm"
+                className="px-3 py-1 rounded-full bg-white/5 text-sm text-gray-300"
               >
                 {platform}
               </span>
             ))}
             {campaign.requirements.platforms.length > 2 && (
-              <span className="px-3 py-1 rounded-full bg-white bg-opacity-5 text-sm">
+              <span className="px-3 py-1 rounded-full bg-white/5 text-sm text-gray-300">
                 +{campaign.requirements.platforms.length - 2}
               </span>
             )}
           </div>
-          
+
           <div className="flex items-center text-sm text-gray-400">
             <Calendar className="h-4 w-4 mr-1" aria-hidden="true" />
-            <span>
+            <span className="text-gray-300">
               {new Date(campaign.endDate).toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric'
@@ -591,18 +591,18 @@ const AvailableCampaignsSection = memo(({ campaigns, onCampaignClick }: Campaign
     {campaigns.map((campaign) => (
       <button
         key={campaign.id}
-        className="text-left p-6 rounded-lg bg-gray-900 bg-opacity-50 border border-gray-800 hover:border-gray-600 transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+        className="text-left p-6 rounded-lg bg-black/40 border border-gray-800 hover:border-gray-600 transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
         onClick={() => onCampaignClick(campaign)}
         aria-label={`View details of ${campaign.title} campaign`}
       >
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h3 className="text-xl font-bold mb-2">{campaign.title}</h3>
+            <h3 className="text-xl font-bold mb-2 text-white">{campaign.title}</h3>
             <div className="flex items-center gap-2">
-              <span className="px-3 py-1 rounded-full bg-white bg-opacity-5 text-sm text-blue-400">
+              <span className="px-3 py-1 rounded-full bg-red-900/20 text-red-400 text-sm">
                 NEW
               </span>
-              <span className="px-3 py-1 rounded-full bg-white bg-opacity-5 text-sm">
+              <span className="px-3 py-1 rounded-full bg-white/5 text-sm text-gray-300">
                 {campaign.contentType === 'both' ? 'Original & Repurposed' : campaign.contentType.charAt(0).toUpperCase() + campaign.contentType.slice(1)}
               </span>
             </div>
@@ -612,17 +612,17 @@ const AvailableCampaignsSection = memo(({ campaigns, onCampaignClick }: Campaign
         <div className="space-y-4 mb-4">
           <div>
             <p className="text-sm text-gray-400 mb-1">Payout Rate</p>
-            <p className="text-lg font-bold">{campaign.requirements.payoutRate.original}</p>
+            <p className="text-lg font-bold text-white">{campaign.requirements.payoutRate.original}</p>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-gray-400 mb-1">Min. Views</p>
-              <p className="text-xl font-bold">{campaign.requirements.minViewsForPayout}</p>
+              <p className="text-xl font-bold text-white">{campaign.requirements.minViewsForPayout}</p>
             </div>
             <div>
               <p className="text-sm text-gray-400 mb-1">Budget</p>
-              <p className="text-lg font-bold">{campaign.requirements.totalBudget}</p>
+              <p className="text-lg font-bold text-white">{campaign.requirements.totalBudget}</p>
             </div>
           </div>
         </div>
@@ -632,34 +632,34 @@ const AvailableCampaignsSection = memo(({ campaigns, onCampaignClick }: Campaign
             {campaign.requirements.platforms.slice(0, 2).map((platform) => (
               <span
                 key={platform}
-                className="px-3 py-1 rounded-full bg-white bg-opacity-5 text-sm"
+                className="px-3 py-1 rounded-full bg-white/5 text-sm text-gray-300"
               >
                 {platform}
               </span>
             ))}
             {campaign.requirements.platforms.length > 2 && (
-              <span className="px-3 py-1 rounded-full bg-white bg-opacity-5 text-sm">
+              <span className="px-3 py-1 rounded-full bg-white/5 text-sm text-gray-300">
                 +{campaign.requirements.platforms.length - 2}
               </span>
             )}
           </div>
-          
+
           <span className="inline-flex items-center text-red-400 font-medium text-sm">
             Join <ArrowUpRight className="h-4 w-4 ml-1" aria-hidden="true" />
           </span>
         </div>
       </button>
     ))}
-    
+
     {/* Add Campaign Card */}
-    <button 
-      className="flex flex-col items-center justify-center p-6 rounded-lg border border-dashed border-gray-700 bg-gray-900 bg-opacity-30 hover:border-gray-500 hover:bg-opacity-40 transition-all text-center focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+    <button
+      className="flex flex-col items-center justify-center p-6 rounded-lg border border-dashed border-gray-700 bg-black/40 hover:border-gray-500 hover:bg-black/50 transition-all text-center focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
       aria-label="Find more campaigns"
     >
       <div className="w-12 h-12 mb-4 rounded-full flex items-center justify-center bg-gray-800">
         <Plus className="h-6 w-6 text-gray-400" aria-hidden="true" />
       </div>
-      <h3 className="text-lg font-medium mb-2">Find More Campaigns</h3>
+      <h3 className="text-lg font-medium mb-2 text-gray-300">Find More Campaigns</h3>
       <p className="text-sm text-gray-400">
         Browse our marketplace for more opportunities
       </p>
@@ -676,16 +676,16 @@ const AnalyticsView = memo(() => {
       {/* Views and Earnings Charts */}
       <section aria-labelledby="analytics-charts" className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <h2 id="analytics-charts" className="sr-only">Analytics Charts</h2>
-        
+
         {/* Views Chart */}
-        <div className="p-6 rounded-lg bg-gray-900 bg-opacity-50 border border-gray-800">
+        <div className="p-6 rounded-lg bg-black/40 border border-gray-800">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-bold flex items-center gap-2">
+            <h3 className="text-xl font-bold flex items-center gap-2 text-white">
               <Eye className="h-5 w-5 text-blue-400" aria-hidden="true" />
               Views Over Time
             </h3>
-            <select 
-              className="px-3 py-1 bg-transparent border border-gray-700 rounded text-sm focus:outline-none focus:border-blue-500"
+            <select
+              className="px-3 py-1 bg-transparent border border-gray-700 rounded text-sm focus:outline-none focus:border-blue-500 text-gray-300"
               aria-label="Select view type"
             >
               <option value="total">Total Views</option>
@@ -697,13 +697,13 @@ const AnalyticsView = memo(() => {
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={viewsData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis 
-                  dataKey="date" 
-                  stroke="#9CA3AF" 
+                <XAxis
+                  dataKey="date"
+                  stroke="#9CA3AF"
                   tick={{ fill: '#9CA3AF' }}
                   dy={10}
                 />
-                <YAxis 
+                <YAxis
                   stroke="#9CA3AF"
                   tick={{ fill: '#9CA3AF' }}
                   tickFormatter={(value) => `${value}M`}
@@ -712,7 +712,7 @@ const AnalyticsView = memo(() => {
                 <Line
                   type="monotone"
                   dataKey="views"
-                  stroke="#4287f5"
+                  stroke="#4287f5"  // Keeping blue for views
                   strokeWidth={3}
                   dot={{ fill: '#FFFFFF', r: 4, strokeWidth: 2 }}
                   activeDot={{ r: 6, fill: '#4287f5' }}
@@ -721,16 +721,16 @@ const AnalyticsView = memo(() => {
             </ResponsiveContainer>
           </div>
         </div>
-        
+
         {/* Earnings Chart */}
-        <div className="p-6 rounded-lg bg-gray-900 bg-opacity-50 border border-gray-800">
+        <div className="p-6 rounded-lg bg-black/40 border border-gray-800">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-bold flex items-center gap-2">
+            <h3 className="text-xl font-bold flex items-center gap-2 text-white">
               <DollarSign className="h-5 w-5 text-green-400" aria-hidden="true" />
               Earnings Over Time
             </h3>
-            <select 
-              className="px-3 py-1 bg-transparent border border-gray-700 rounded text-sm focus:outline-none focus:border-green-500"
+            <select
+              className="px-3 py-1 bg-transparent border border-gray-700 rounded text-sm focus:outline-none focus:border-green-500 text-gray-300"
               aria-label="Select earnings view"
             >
               <option value="total">Total Earnings</option>
@@ -741,22 +741,22 @@ const AnalyticsView = memo(() => {
           <div className="h-64" aria-label="Earnings chart showing increasing trend over 6 months">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={viewsData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis 
-                  dataKey="date" 
-                  stroke="#9CA3AF" 
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                <XAxis
+                  dataKey="date"
+                  stroke="#9CA3AF"
                   tick={{ fill: '#9CA3AF' }}
                   dy={10}
                 />
-                <YAxis 
+                <YAxis
                   stroke="#9CA3AF"
                   tick={{ fill: '#9CA3AF' }}
-                  tickFormatter={(value) => `$${value/1000}k`}
+                  tickFormatter={(value) => `$${value / 1000}k`}
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar
                   dataKey="earnings"
-                  fill="#31a952"
+                  fill="#31a952" // Keeping green for earnings
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
@@ -766,8 +766,8 @@ const AnalyticsView = memo(() => {
       </section>
 
       {/* Platform Breakdown */}
-      <section aria-labelledby="platform-breakdown" className="p-6 rounded-lg bg-gray-900 bg-opacity-50 border border-gray-800">
-        <h2 id="platform-breakdown" className="text-xl font-bold mb-6">Platform Breakdown</h2>
+      <section aria-labelledby="platform-breakdown" className="p-6 rounded-lg bg-black/40 border border-gray-800">
+        <h2 id="platform-breakdown" className="text-xl font-bold mb-6 text-white">Platform Breakdown</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Pie Chart */}
@@ -784,7 +784,7 @@ const AnalyticsView = memo(() => {
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                 >
                   {platformData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} /> //Using original colors
                   ))}
                 </Pie>
                 <Tooltip content={<CustomTooltip />} />
@@ -797,21 +797,21 @@ const AnalyticsView = memo(() => {
             {platformData.map((platform, index) => (
               <div
                 key={platform.platform}
-                className="p-4 rounded-lg bg-white bg-opacity-5 border border-gray-800 flex items-center justify-between"
+                className="p-4 rounded-lg bg-white/5 border border-gray-800 flex items-center justify-between"
               >
                 <div className="flex items-center gap-3">
                   {platform.platform === 'YouTube' && <Youtube className="h-5 w-5 text-red-500" aria-hidden="true" />}
                   {platform.platform === 'Instagram' && <Instagram className="h-5 w-5 text-pink-500" aria-hidden="true" />}
                   {platform.platform === 'TikTok' && (
                     <svg className="h-5 w-5 text-cyan-400" aria-hidden="true" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
                     </svg>
                   )}
                   {platform.platform === 'X' && <Twitter className="h-5 w-5 text-blue-400" aria-hidden="true" />}
-                  <span className="font-medium">{platform.platform}</span>
+                  <span className="font-medium text-gray-300">{platform.platform}</span>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold">{platform.views}M</p>
+                  <p className="font-bold text-white">{platform.views}M</p>
                   <p className="text-sm text-gray-400">{platform.percentage}%</p>
                 </div>
               </div>
@@ -821,8 +821,8 @@ const AnalyticsView = memo(() => {
       </section>
 
       {/* Audience Demographics - Placeholder */}
-      <section aria-labelledby="audience-demographics" className="p-6 rounded-lg bg-gray-900 bg-opacity-50 border border-gray-800">
-        <h2 id="audience-demographics" className="text-xl font-bold mb-6 flex items-center gap-2">
+      <section aria-labelledby="audience-demographics" className="p-6 rounded-lg bg-black/40 border border-gray-800">
+        <h2 id="audience-demographics" className="text-xl font-bold mb-6 flex items-center gap-2 text-white">
           <Users className="h-5 w-5 text-purple-400" aria-hidden="true" />
           Audience Demographics
         </h2>
@@ -831,12 +831,12 @@ const AnalyticsView = memo(() => {
           <div className="w-16 h-16 mb-4 rounded-full flex items-center justify-center bg-gray-800">
             <Users className="h-8 w-8 text-gray-400" aria-hidden="true" />
           </div>
-          <h3 className="text-lg font-medium mb-2">Demographics Coming Soon</h3>
+          <h3 className="text-lg font-medium mb-2 text-gray-300">Demographics Coming Soon</h3>
           <p className="text-sm text-gray-400 text-center max-w-md">
             Connect more accounts to see detailed audience demographics across your platforms
           </p>
           <button
-            className="mt-6 px-4 py-2 border border-gray-700 rounded-lg hover:bg-white hover:bg-opacity-5 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+            className="mt-6 px-4 py-2 border border-gray-700 rounded-lg hover:bg-black/60 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 text-gray-300"
           >
             Connect Accounts
           </button>
@@ -856,24 +856,24 @@ const PaymentsView = memo(() => {
       <section aria-labelledby="payment-summary" className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <h2 id="payment-summary" className="sr-only">Payment Summary</h2>
         
-        <div className="p-6 rounded-lg bg-gray-900 bg-opacity-50 border border-gray-800">
-          <h3 className="text-xl font-medium mb-2">Total Earned</h3>
-          <p className="text-3xl font-bold mb-3">$74,600</p>
+        <div className="p-6 rounded-lg bg-black/40 border border-gray-800">
+          <h3 className="text-xl font-medium mb-2 text-gray-300">Total Earned</h3>
+          <p className="text-3xl font-bold mb-3 text-white">$74,600</p>
           <div className="flex items-center text-sm text-green-400">
             <TrendingUp className="h-4 w-4 mr-1" aria-hidden="true" />
             <span>+23% from last period</span>
           </div>
         </div>
 
-        <div className="p-6 rounded-lg bg-gray-900 bg-opacity-50 border border-gray-800">
-          <h3 className="text-xl font-medium mb-2">Pending Payout</h3>
-          <p className="text-3xl font-bold mb-3">${activeCampaigns.reduce((sum, campaign) => sum + campaign.pendingPayout, 0)}</p>
+        <div className="p-6 rounded-lg bg-black/40 border border-gray-800">
+          <h3 className="text-xl font-medium mb-2 text-gray-300">Pending Payout</h3>
+          <p className="text-3xl font-bold mb-3 text-white">${activeCampaigns.reduce((sum, campaign) => sum + campaign.pendingPayout, 0)}</p>
           <p className="text-sm text-gray-400">Expected on Mar 15, 2025</p>
         </div>
 
-        <div className="p-6 rounded-lg bg-gray-900 bg-opacity-50 border border-gray-800">
-          <h3 className="text-xl font-medium mb-2">Average Per Campaign</h3>
-          <p className="text-3xl font-bold mb-3">$350</p>
+        <div className="p-6 rounded-lg bg-black/40 border border-gray-800">
+          <h3 className="text-xl font-medium mb-2 text-gray-300">Average Per Campaign</h3>
+          <p className="text-3xl font-bold mb-3 text-white">$350</p>
           <div className="flex items-center text-sm text-green-400">
             <TrendingUp className="h-4 w-4 mr-1" aria-hidden="true" />
             <span>+12% from last period</span>
@@ -882,12 +882,12 @@ const PaymentsView = memo(() => {
       </section>
 
       {/* Payment History */}
-      <section aria-labelledby="payment-history" className="p-6 rounded-lg bg-gray-900 bg-opacity-50 border border-gray-800">
+      <section aria-labelledby="payment-history" className="p-6 rounded-lg bg-black/40 border border-gray-800">
         <div className="flex justify-between items-center mb-6">
-          <h2 id="payment-history" className="text-xl font-bold">Payment History</h2>
+          <h2 id="payment-history" className="text-xl font-bold text-white">Payment History</h2>
           <div className="flex items-center">
-            <select 
-              className="px-3 py-1 bg-transparent border border-gray-700 rounded text-sm focus:outline-none focus:border-red-500"
+            <select
+              className="px-3 py-1 bg-transparent border border-gray-700 rounded text-sm focus:outline-none focus:border-red-500 text-gray-300"
               aria-label="Filter by time period"
             >
               <option value="6M">Last 6 Months</option>
@@ -915,13 +915,13 @@ const PaymentsView = memo(() => {
               ].map((payment, index) => (
                 <tr
                   key={index}
-                  className="border-b border-gray-800 hover:bg-white hover:bg-opacity-5 transition-colors"
+                  className="border-b border-gray-800 hover:bg-white/5 transition-colors"
                 >
-                  <td className="py-4">{payment.date}</td>
-                  <td className="py-4 font-bold">${payment.amount.toLocaleString()}</td>
-                  <td className="py-4">{payment.method}</td>
+                  <td className="py-4 text-gray-300">{payment.date}</td>
+                  <td className="py-4 font-bold text-white">${payment.amount.toLocaleString()}</td>
+                  <td className="py-4 text-gray-300">{payment.method}</td>
                   <td className="py-4">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-green-900 bg-opacity-20 text-green-400 text-xs font-medium">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-green-900/20 text-green-400 text-xs font-medium">
                       {payment.status}
                     </span>
                   </td>
@@ -933,7 +933,7 @@ const PaymentsView = memo(() => {
 
         <div className="mt-6 text-center">
           <button
-            className="px-4 py-2 border border-gray-700 rounded-lg hover:bg-white hover:bg-opacity-5 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+            className="px-4 py-2 border border-gray-700 rounded-lg hover:bg-black/60 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 text-gray-300"
           >
             View All Transactions
           </button>
@@ -941,11 +941,11 @@ const PaymentsView = memo(() => {
       </section>
 
       {/* Payment Methods */}
-      <section aria-labelledby="payment-methods" className="p-6 rounded-lg bg-gray-900 bg-opacity-50 border border-gray-800">
+      <section aria-labelledby="payment-methods" className="p-6 rounded-lg bg-black/40 border border-gray-800">
         <div className="flex justify-between items-center mb-6">
-          <h2 id="payment-methods" className="text-xl font-bold">Payment Methods</h2>
+          <h2 id="payment-methods" className="text-xl font-bold text-white">Payment Methods</h2>
           <button
-            className="px-3 py-1 border border-gray-700 rounded-lg flex items-center gap-2 hover:bg-white hover:bg-opacity-5 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+            className="px-3 py-1 border border-gray-700 rounded-lg flex items-center gap-2 hover:bg-black/60 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 text-gray-300"
             aria-label="Add payment method"
           >
             <Plus className="h-4 w-4" />
@@ -954,9 +954,9 @@ const PaymentsView = memo(() => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-4 rounded-lg bg-white bg-opacity-5 border border-gray-800 relative">
+          <div className="p-4 rounded-lg bg-white/5 border border-gray-800 relative">
             <div className="absolute top-2 right-2">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-green-900 bg-opacity-20 text-green-400 text-xs font-medium">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-green-900/20 text-green-400 text-xs font-medium">
                 Default
               </span>
             </div>
@@ -968,35 +968,34 @@ const PaymentsView = memo(() => {
                 </svg>
               </div>
               <div>
-                <p className="font-medium">Bank Account</p>
+                <p className="font-medium text-gray-300">Bank Account</p>
                 <p className="text-sm text-gray-400">****4321</p>
               </div>
             </div>
             <div className="flex gap-2 mt-4">
-              <button className="px-3 py-1 text-sm border border-gray-700 rounded hover:bg-white hover:bg-opacity-5 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
+              <button className="px-3 py-1 text-sm border border-gray-700 rounded hover:bg-black/60 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 text-gray-300">
                 Edit
               </button>
             </div>
           </div>
-          
-          <div className="p-4 rounded-lg bg-white bg-opacity-5 border border-gray-800">
+
+          <div className="p-4 rounded-lg bg-white/5 border border-gray-800">
             <div className="flex items-center gap-3 mb-3">
               <div className="p-2 rounded-full bg-gray-800">
                 <svg className="h-5 w-5 text-blue-400" viewBox="0 0 24 24" fill="none" strokeWidth="2" stroke="currentColor">
                   <path d="M9.5 13.75C9.5 14.72 10.25 15.5 11.17 15.5H13.05C13.85 15.5 14.5 14.82 14.5 13.97C14.5 13.06 14.1 12.73 13.51 12.52L10.5 11.47C9.91 11.26 9.51 10.94 9.51 10.02C9.51 9.18 10.16 8.49 10.96 8.49H12.84C13.76 8.49 14.51 9.27 14.51 10.24" />
-                  <path d="M12 7.5V16.5" />
                 </svg>
               </div>
               <div>
-                <p className="font-medium">PayPal</p>
+                <p className="font-medium text-gray-300">PayPal</p>
                 <p className="text-sm text-gray-400">creator@example.com</p>
               </div>
             </div>
             <div className="flex gap-2 mt-4">
-              <button className="px-3 py-1 text-sm border border-gray-700 rounded hover:bg-white hover:bg-opacity-5 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
+              <button className="px-3 py-1 text-sm border border-gray-700 rounded hover:bg-black/60 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 text-gray-300">
                 Make Default
               </button>
-              <button className="px-3 py-1 text-sm border border-gray-700 rounded hover:bg-white hover:bg-opacity-5 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
+              <button className="px-3 py-1 text-sm border border-gray-700 rounded hover:bg-black/60 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 text-gray-300">
                 Edit
               </button>
             </div>
@@ -1020,7 +1019,7 @@ export default function CreatorDashboard() {
 
   // Type assertion for activeCampaigns to resolve TypeScript error
   const typedActiveCampaigns = activeCampaigns as Campaign[];
-  
+
   // Type assertion for availableCampaigns to resolve TypeScript error
   const typedAvailableCampaigns = availableCampaigns as AvailableCampaign[];
 
@@ -1033,7 +1032,7 @@ export default function CreatorDashboard() {
       campaign.title.toLowerCase().includes(term) ||
       campaign.requirements.platforms.some(platform => platform.toLowerCase().includes(term))
     );
-  }, [searchTerm]);
+  }, [searchTerm, typedAvailableCampaigns]);
 
   // Check authentication on component mount
   useEffect(() => {
@@ -1057,7 +1056,7 @@ export default function CreatorDashboard() {
   // Calculate total pending payout
   const totalPendingPayout = useMemo(() =>
     typedActiveCampaigns.reduce((sum, campaign) => sum + campaign.pendingPayout, 0),
-    []
+    [typedActiveCampaigns]
   );
 
   return (
@@ -1068,13 +1067,13 @@ export default function CreatorDashboard() {
       {/* Header with Title and Time Filter */}
       <header className="mb-8">
         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-          <h1 className="text-3xl md:text-4xl font-bold">Creator Dashboard</h1>
-          
+          <h1 className="text-3xl md:text-4xl font-bold text-white">Creator Dashboard</h1>
+
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 px-3 py-2 border border-gray-800 rounded-lg bg-gray-900 bg-opacity-50">
+            <div className="flex items-center gap-2 px-3 py-2 border border-gray-800 rounded-lg bg-black/40">
               <Calendar className="h-4 w-4 text-gray-400" aria-hidden="true" />
               <select
-                className="bg-transparent border-none outline-none text-sm"
+                className="bg-transparent border-none outline-none text-sm text-gray-300"
                 value={timeFilter}
                 onChange={(e) => setTimeFilter(e.target.value)}
                 aria-label="Select time period"
@@ -1086,9 +1085,9 @@ export default function CreatorDashboard() {
                 <option value="1Y">Last Year</option>
               </select>
             </div>
-            
+
             <button
-              className="hidden md:flex px-4 py-2 rounded-lg border border-gray-800 bg-gray-900 bg-opacity-50 items-center gap-2 hover:bg-white hover:bg-opacity-5 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+              className="hidden md:flex px-4 py-2 rounded-lg border border-gray-800 bg-black/40 items-center gap-2 hover:bg-black/60 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 text-gray-300"
               onClick={() => setShowLogoutConfirm(true)}
               aria-label="Log out"
             >
@@ -1104,7 +1103,7 @@ export default function CreatorDashboard() {
 
       {/* Navigation Tabs */}
       <NavigationTabs activeView={activeView} setActiveView={setActiveView} />
-      
+
       {/* Main Content Area */}
       <main aria-live="polite">
         <AnimatePresence mode="wait" initial={false}>
@@ -1119,27 +1118,27 @@ export default function CreatorDashboard() {
               {/* Active Campaigns */}
               <section aria-labelledby="active-campaigns" className="mb-12">
                 <div className="flex items-center mb-6">
-                  <h2 id="active-campaigns" className="text-2xl font-bold">Active Campaigns</h2>
+                  <h2 id="active-campaigns" className="text-2xl font-bold text-white">Active Campaigns</h2>
                 </div>
-                
-                <ActiveCampaigns 
-                  campaigns={typedActiveCampaigns} 
-                  onCampaignClick={handleCampaignClick} 
+
+                <ActiveCampaigns
+                  campaigns={typedActiveCampaigns}
+                  onCampaignClick={handleCampaignClick}
                 />
               </section>
 
               {/* Available Campaigns */}
               <section aria-labelledby="available-campaigns" className="mb-8">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
-                  <h2 id="available-campaigns" className="text-2xl font-bold">Available Campaigns</h2>
-                  
+                  <h2 id="available-campaigns" className="text-2xl font-bold text-white">Available Campaigns</h2>
+
                   <div className="relative w-full sm:w-auto">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <Search className="h-4 w-4 text-gray-400" aria-hidden="true" />
                     </div>
                     <input
                       type="text"
-                      className="pl-10 pr-4 py-2 w-full sm:w-auto bg-gray-900 bg-opacity-50 border border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
+                      className="pl-10 pr-4 py-2 w-full sm:w-auto bg-black/40 border border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors text-gray-300"
                       placeholder="Search campaigns..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -1147,7 +1146,7 @@ export default function CreatorDashboard() {
                     />
                   </div>
                 </div>
-                
+
                 <AvailableCampaignsSection
                   campaigns={filteredAvailableCampaigns}
                   onCampaignClick={handleCampaignClick}
@@ -1197,38 +1196,38 @@ export default function CreatorDashboard() {
       {/* Mobile-only logout button */}
       <div className="md:hidden">
         <button
-          className="fixed bottom-6 right-6 z-50 bg-gray-900 shadow-lg rounded-full w-12 h-12 flex items-center justify-center border border-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+          className="fixed bottom-6 right-6 z-50 bg-black/40 shadow-lg rounded-full w-12 h-12 flex items-center justify-center border border-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 text-red-500"
           onClick={() => setShowLogoutConfirm(true)}
           aria-label="Log out"
         >
-          <LogOut className="h-5 w-5 text-red-500" />
+          <LogOut className="h-5 w-5" />
         </button>
       </div>
 
       {/* Logout confirmation modal */}
       <AnimatePresence>
         {showLogoutConfirm && (
-          <div 
+          <div
             className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm z-50 p-6"
             role="dialog"
             aria-modal="true"
             aria-labelledby="logout-title"
           >
             <div
-              className="p-6 rounded-lg w-full max-w-xs bg-gray-900 border border-gray-800"
+              className="p-6 rounded-lg w-full max-w-xs bg-black/40 border border-gray-800"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 id="logout-title" className="text-xl font-bold mb-4">Log Out</h3>
-              <p className="mb-6">Are you sure you want to log out?</p>
+              <h3 id="logout-title" className="text-xl font-bold mb-4 text-white">Log Out</h3>
+              <p className="mb-6 text-gray-300">Are you sure you want to log out?</p>
               <div className="flex gap-3">
                 <button
-                  className="flex-1 px-4 py-2 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+                  className="flex-1 px-4 py-2 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 text-gray-300"
                   onClick={() => setShowLogoutConfirm(false)}
                 >
                   Cancel
                 </button>
                 <button
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-red-500 to-red-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
                   onClick={handleLogout}
                 >
                   Log Out
