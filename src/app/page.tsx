@@ -282,7 +282,7 @@ export default function HomePage() {
           </div>
           <button 
             className="px-6 py-2 bg-white text-black rounded-full font-medium flex items-center gap-2 w-full md:w-auto justify-center"
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push('/brand/onboarding/page')}
           >
             Start a Campaign <ArrowUpRight className="h-4 w-4" />
           </button>
