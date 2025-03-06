@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft, ArrowRight, Calendar, Plus, Trash, Check,
-  Upload, DollarSign, Target, Layers, Users, Clock, Hash, X,
-  HelpCircle, ExternalLink
+  Upload, DollarSign, Target, Layers, Users, Clock, Hash,
+  HelpCircle, ExternalLink, X
 } from 'lucide-react';
 
 // Interface for campaign form data
@@ -21,6 +21,10 @@ interface CampaignFormData {
     twitter: boolean;
   };
   contentType: 'original' | 'repurposed' | 'both';
+  budgetAllocation: {
+    original: number;
+    repurposed: number;
+  };
   startDate: string;
   endDate: string;
   budget: string;
@@ -40,6 +44,50 @@ interface Step {
   subtitle: string;
   isComplete: (data: CampaignFormData) => boolean;
 }
+
+// Calculate estimated views based on budget and rates
+const calculateEstimatedViews = (
+  budget: string, 
+  originalRate: string, 
+  repurposedRate: string, 
+  contentType: 'original' | 'repurposed' | 'both',
+  budgetAllocation: { original: number, repurposed: number }
+) => {
+  const budgetValue = parseFloat(budget);
+  if (isNaN(budgetValue) || budgetValue <= 0) return { originalViews: 0, repurposedViews: 0, totalViews: 0 };
+  
+  if (contentType === 'original') {
+    const originalRateValue = parseFloat(originalRate);
+    if (isNaN(originalRateValue) || originalRateValue <= 0) return { originalViews: 0, repurposedViews: 0, totalViews: 0 };
+    const views = (budgetValue / originalRateValue) * 1000000;
+    return { originalViews: views, repurposedViews: 0, totalViews: views };
+  } 
+  else if (contentType === 'repurposed') {
+    const repurposedRateValue = parseFloat(repurposedRate);
+    if (isNaN(repurposedRateValue) || repurposedRateValue <= 0) return { originalViews: 0, repurposedViews: 0, totalViews: 0 };
+    const views = (budgetValue / repurposedRateValue) * 1000000;
+    return { originalViews: 0, repurposedViews: views, totalViews: views };
+  }
+  else {
+    const originalRateValue = parseFloat(originalRate);
+    const repurposedRateValue = parseFloat(repurposedRate);
+    if (isNaN(originalRateValue) || originalRateValue <= 0 || isNaN(repurposedRateValue) || repurposedRateValue <= 0) {
+      return { originalViews: 0, repurposedViews: 0, totalViews: 0 };
+    }
+    
+    const originalBudget = budgetValue * (budgetAllocation.original / 100);
+    const repurposedBudget = budgetValue * (budgetAllocation.repurposed / 100);
+    
+    const originalViews = (originalBudget / originalRateValue) * 1000000;
+    const repurposedViews = (repurposedBudget / repurposedRateValue) * 1000000;
+    
+    return {
+      originalViews,
+      repurposedViews,
+      totalViews: originalViews + repurposedViews
+    };
+  }
+};
 
 const CampaignCreationPage: React.FC = () => {
   const router = useRouter();
@@ -66,6 +114,10 @@ const CampaignCreationPage: React.FC = () => {
       twitter: false
     },
     contentType: 'original',
+    budgetAllocation: {
+      original: 70,
+      repurposed: 30
+    },
     startDate: today,
     endDate: defaultEndDate,
     budget: '',
@@ -170,6 +222,17 @@ const CampaignCreationPage: React.FC = () => {
       platforms: {
         ...formData.platforms,
         [platform]: !formData.platforms[platform]
+      }
+    });
+  };
+  
+  // Handle budget allocation slider
+  const handleBudgetAllocationChange = (value: number) => {
+    setFormData({
+      ...formData,
+      budgetAllocation: {
+        original: value,
+        repurposed: 100 - value
       }
     });
   };
@@ -667,7 +730,91 @@ const CampaignCreationPage: React.FC = () => {
               </p>
             </div>
           )}
+
+          {formData.contentType === 'both' && (
+            <div className="mt-6 pt-4 border-t border-gray-700">
+              <label className="block text-sm font-medium text-gray-300 mb-3">
+                Budget Allocation
+              </label>
+              <div className="mb-2 flex justify-between text-sm text-gray-400">
+                <span>Original: {formData.budgetAllocation.original}%</span>
+                <span>Repurposed: {formData.budgetAllocation.repurposed}%</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={formData.budgetAllocation.original}
+                onChange={(e) => handleBudgetAllocationChange(parseInt(e.target.value))}
+                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+              />
+              <div className="mt-2 grid grid-cols-2 gap-4">
+                <div className="p-3 bg-black/40 border border-gray-800 rounded-lg">
+                  <p className="text-sm text-gray-400">Original Budget</p>
+                  <p className="font-medium">
+                    ${formData.budget 
+                      ? ((parseFloat(formData.budget) * formData.budgetAllocation.original) / 100).toLocaleString(undefined, {maximumFractionDigits: 2}) 
+                      : 0}
+                  </p>
+                </div>
+                <div className="p-3 bg-black/40 border border-gray-800 rounded-lg">
+                  <p className="text-sm text-gray-400">Repurposed Budget</p>
+                  <p className="font-medium">
+                    ${formData.budget 
+                      ? ((parseFloat(formData.budget) * formData.budgetAllocation.repurposed) / 100).toLocaleString(undefined, {maximumFractionDigits: 2}) 
+                      : 0}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
+        
+        {/* View Calculator */}
+        {formData.budget && (
+          formData.contentType === 'original' && formData.payoutRate.original ||
+          formData.contentType === 'repurposed' && formData.payoutRate.repurposed ||
+          formData.contentType === 'both' && formData.payoutRate.original && formData.payoutRate.repurposed
+        ) && (
+          <div className="mt-6 p-4 bg-green-900/10 border border-green-800 rounded-lg">
+            <h3 className="font-medium text-lg text-green-400 mb-3">Estimated Campaign Reach</h3>
+            
+            {(() => {
+              const { originalViews, repurposedViews, totalViews } = calculateEstimatedViews(
+                formData.budget,
+                formData.payoutRate.original,
+                formData.payoutRate.repurposed,
+                formData.contentType,
+                formData.budgetAllocation
+              );
+              
+              return (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-4">
+                    {formData.contentType === 'both' || formData.contentType === 'original' ? (
+                      <div>
+                        <p className="text-sm text-gray-400">Original Content</p>
+                        <p className="text-xl font-bold">{(originalViews / 1000000).toFixed(1)}M views</p>
+                      </div>
+                    ) : null}
+                    
+                    {formData.contentType === 'both' || formData.contentType === 'repurposed' ? (
+                      <div>
+                        <p className="text-sm text-gray-400">Repurposed Content</p>
+                        <p className="text-xl font-bold">{(repurposedViews / 1000000).toFixed(1)}M views</p>
+                      </div>
+                    ) : null}
+                  </div>
+                  
+                  <div className="pt-3 border-t border-green-800/30">
+                    <p className="text-sm text-gray-400">Total Estimated Views</p>
+                    <p className="text-2xl font-bold text-green-400">{(totalViews / 1000000).toFixed(1)}M views</p>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        )}
         
         {/* Payment explainer */}
         <div className="mt-6 pt-4 border-t border-gray-700">
@@ -844,8 +991,13 @@ const CampaignCreationPage: React.FC = () => {
   // Render campaign preview
   const renderCampaignPreview = () => {
     // Calculate estimated reach based on budget
-    const budgetValue = parseFloat(formData.budget);
-    const estimatedReach = !isNaN(budgetValue) ? Math.round(budgetValue * 200) : 0; // Simple estimate
+    const { originalViews, repurposedViews, totalViews } = calculateEstimatedViews(
+      formData.budget,
+      formData.payoutRate.original,
+      formData.payoutRate.repurposed,
+      formData.contentType,
+      formData.budgetAllocation
+    );
     
     return (
       <div className="space-y-8">
@@ -921,8 +1073,33 @@ const CampaignCreationPage: React.FC = () => {
               </div>
               
               <div>
+                <h4 className="text-sm text-gray-400 mb-1">Budget Allocation</h4>
+                {formData.contentType === 'both' ? (
+                  <div className="space-y-1">
+                    <div className="flex justify-between">
+                      <span>Original Content:</span>
+                      <span className="font-medium">{formData.budgetAllocation.original}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Repurposed Content:</span>
+                      <span className="font-medium">{formData.budgetAllocation.repurposed}%</span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="font-medium">{formData.contentType === 'original' ? '100% Original' : '100% Repurposed'}</p>
+                )}
+              </div>
+              
+              <div>
                 <h4 className="text-sm text-gray-400 mb-1">Estimated Reach</h4>
-                <p className="font-medium">~{estimatedReach.toLocaleString()} views</p>
+                <div>
+                  <p className="text-2xl font-bold text-green-400">{(totalViews / 1000000).toFixed(1)}M views</p>
+                  {formData.contentType === 'both' && (
+                    <div className="text-xs text-gray-400 mt-1">
+                      <div>{(originalViews / 1000000).toFixed(1)}M original + {(repurposedViews / 1000000).toFixed(1)}M repurposed</div>
+                    </div>
+                  )}
+                </div>
               </div>
               
               <div>

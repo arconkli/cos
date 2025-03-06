@@ -10,8 +10,8 @@ import {
 } from 'recharts';
 import {
   Plus, Search, Eye, DollarSign, TrendingUp, Filter,
-  Users, Calendar, ArrowUpRight, Clock, CheckCircle, X,
-  Settings, LogOut, BarChart2, Activity, User, AlertTriangle
+  Users, Calendar, ArrowUpRight, Clock, CheckCircle,
+  Settings, LogOut, BarChart2, Activity, User, AlertTriangle, X
 } from 'lucide-react';
 
 // Sample data for dashboard visualizations
@@ -28,10 +28,50 @@ const platformData = [
   { name: 'TikTok', value: 45 },
   { name: 'Instagram', value: 30 },
   { name: 'YouTube', value: 20 },
-  { name: 'X (Twitter)', value: 5 }
+  { name: 'Twitter', value: 5 }
 ];
 
 const PLATFORM_COLORS = ['#69C9D0', '#E1306C', '#FF0000', '#1DA1F2'];
+
+// Calculate estimated views based on budget and rates
+const calculateEstimatedViews = (
+  budget: number, 
+  originalRate: number, 
+  repurposedRate: number, 
+  contentType: string, 
+  originalAllocation = 70, 
+  repurposedAllocation = 30
+) => {
+  if (isNaN(budget) || budget <= 0) return { originalViews: 0, repurposedViews: 0, totalViews: 0 };
+  
+  if (contentType === 'original') {
+    if (isNaN(originalRate) || originalRate <= 0) return { originalViews: 0, repurposedViews: 0, totalViews: 0 };
+    const views = (budget / originalRate) * 1000000;
+    return { originalViews: views, repurposedViews: 0, totalViews: views };
+  } 
+  else if (contentType === 'repurposed') {
+    if (isNaN(repurposedRate) || repurposedRate <= 0) return { originalViews: 0, repurposedViews: 0, totalViews: 0 };
+    const views = (budget / repurposedRate) * 1000000;
+    return { originalViews: 0, repurposedViews: views, totalViews: views };
+  }
+  else {
+    if (isNaN(originalRate) || originalRate <= 0 || isNaN(repurposedRate) || repurposedRate <= 0) {
+      return { originalViews: 0, repurposedViews: 0, totalViews: 0 };
+    }
+    
+    const originalBudget = budget * (originalAllocation / 100);
+    const repurposedBudget = budget * (repurposedAllocation / 100);
+    
+    const originalViews = (originalBudget / originalRate) * 1000000;
+    const repurposedViews = (repurposedBudget / repurposedRate) * 1000000;
+    
+    return {
+      originalViews,
+      repurposedViews,
+      totalViews: originalViews + repurposedViews
+    };
+  }
+};
 
 // TypeScript interfaces
 interface TeamMember {
@@ -56,6 +96,18 @@ interface Campaign {
   endDate: string;
   brief: string;
   creatorCount: number;
+  contentType: 'original' | 'repurposed' | 'both';
+  payoutRate: {
+    original: number;
+    repurposed: number;
+  };
+  budgetAllocation?: {
+    original: number;
+    repurposed: number;
+  };
+  minViews: number;
+  hashtags: string[];
+  guidelines: string[];
 }
 
 // Dashboard component
@@ -90,7 +142,15 @@ const BrandDashboard: React.FC = () => {
       startDate: '2025-06-01',
       endDate: '2025-06-30',
       brief: 'Promote our new summer collection with creative, authentic content.',
-      creatorCount: 8
+      creatorCount: 8,
+      contentType: 'original',
+      payoutRate: {
+        original: 500,
+        repurposed: 0
+      },
+      minViews: 10000,
+      hashtags: ['#SummerLaunch', '#YourBrand'],
+      guidelines: ['Show product in use', 'Highlight key features', 'Be authentic']
     },
     {
       id: '2',
@@ -104,7 +164,19 @@ const BrandDashboard: React.FC = () => {
       startDate: '2025-07-15',
       endDate: '2025-08-15',
       brief: 'Increase brand awareness among 18-24 year olds.',
-      creatorCount: 0
+      creatorCount: 0,
+      contentType: 'both',
+      payoutRate: {
+        original: 600,
+        repurposed: 300
+      },
+      budgetAllocation: {
+        original: 70,
+        repurposed: 30
+      },
+      minViews: 8000,
+      hashtags: ['#BrandAwareness', '#YourBrand'],
+      guidelines: ['Tell your audience why you love our brand', 'Be creative']
     },
     {
       id: '3',
@@ -118,7 +190,15 @@ const BrandDashboard: React.FC = () => {
       startDate: '2025-07-01',
       endDate: '2025-07-31',
       brief: 'Honest reviews of our flagship products by trusted creators.',
-      creatorCount: 0
+      creatorCount: 0,
+      contentType: 'repurposed',
+      payoutRate: {
+        original: 0,
+        repurposed: 350
+      },
+      minViews: 15000,
+      hashtags: ['#ProductReview', '#YourBrand'],
+      guidelines: ['Honest review', 'Show product in detail', 'Compare with competitors']
     }
   ]);
   
@@ -660,9 +740,19 @@ const BrandDashboard: React.FC = () => {
     </div>
   );
   
-  // Campaign Detail Modal
+  // Add campaign details section to the modal
   const renderCampaignDetailModal = () => {
     if (!selectedCampaign) return null;
+    
+    // Calculate estimated views
+    const viewsEstimate = calculateEstimatedViews(
+      selectedCampaign.budget - selectedCampaign.spent,
+      selectedCampaign.payoutRate.original,
+      selectedCampaign.payoutRate.repurposed,
+      selectedCampaign.contentType,
+      selectedCampaign.budgetAllocation?.original || 70,
+      selectedCampaign.budgetAllocation?.repurposed || 30
+    );
     
     return (
       <div
@@ -711,6 +801,22 @@ const BrandDashboard: React.FC = () => {
                   </div>
                   
                   <div>
+                    <p className="text-sm text-gray-400">Content Type</p>
+                    <p className="font-medium">
+                      {selectedCampaign.contentType === 'original' ? 'Original Content' :
+                       selectedCampaign.contentType === 'repurposed' ? 'Repurposed Content' : 'Both Content Types'}
+                    </p>
+                    
+                    {selectedCampaign.contentType === 'both' && selectedCampaign.budgetAllocation && (
+                      <div className="mt-1 text-sm">
+                        <span className="text-gray-400">Budget Split: </span>
+                        <span>{selectedCampaign.budgetAllocation.original}% Original, </span>
+                        <span>{selectedCampaign.budgetAllocation.repurposed}% Repurposed</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div>
                     <p className="text-sm text-gray-400">Campaign Brief</p>
                     <p className="bg-black/40 p-4 rounded-lg border border-gray-800 mt-1">
                       {selectedCampaign.brief}
@@ -729,6 +835,34 @@ const BrandDashboard: React.FC = () => {
                         </span>
                       ))}
                     </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-medium mb-3">Creator Guidelines</h3>
+                <div className="bg-black/40 border border-gray-800 rounded-lg p-4">
+                  <div className="mb-3">
+                    <p className="text-sm text-gray-400 mb-2">Required Hashtags</p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedCampaign.hashtags.map((hashtag, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 bg-black/30 border border-gray-700 rounded-full text-sm"
+                        >
+                          {hashtag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm text-gray-400 mb-2">Content Guidelines</p>
+                    <ul className="list-disc pl-5 space-y-1 text-gray-300">
+                      {selectedCampaign.guidelines.map((guideline, index) => (
+                        <li key={index}>{guideline}</li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
               </div>
@@ -767,7 +901,37 @@ const BrandDashboard: React.FC = () => {
               </div>
               
               <div>
-                <h3 className="text-lg font-medium mb-3">Campaign Performance</h3>
+                <h3 className="text-lg font-medium mb-3">Creator Payments</h3>
+                <div className="bg-black/40 border border-gray-800 rounded-lg p-4">
+                  <div className="mb-3">
+                    <p className="text-sm text-gray-400">Minimum Views Required</p>
+                    <p className="font-medium">{selectedCampaign.minViews.toLocaleString()} views</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {(selectedCampaign.contentType === 'original' || selectedCampaign.contentType === 'both') && (
+                      <div className="flex justify-between items-center">
+                        <p className="text-sm text-gray-400">Original Content Rate</p>
+                        <p className="font-medium">${selectedCampaign.payoutRate.original} per 1M views</p>
+                      </div>
+                    )}
+                    
+                    {(selectedCampaign.contentType === 'repurposed' || selectedCampaign.contentType === 'both') && (
+                      <div className="flex justify-between items-center">
+                        <p className="text-sm text-gray-400">Repurposed Content Rate</p>
+                        <p className="font-medium">${selectedCampaign.payoutRate.repurposed} per 1M views</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-medium mb-3">
+                  {selectedCampaign.status === 'active' || selectedCampaign.status === 'completed' 
+                    ? 'Campaign Performance' 
+                    : 'Estimated Performance'}
+                </h3>
                 {selectedCampaign.status === 'active' || selectedCampaign.status === 'completed' ? (
                   <div className="bg-black/40 border border-gray-800 rounded-lg p-4">
                     <div className="grid grid-cols-2 gap-4">
@@ -794,8 +958,28 @@ const BrandDashboard: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-black/40 border border-gray-800 rounded-lg p-4 flex items-center justify-center h-32">
-                    <p className="text-gray-400">Performance data will be available once the campaign is active</p>
+                  <div className="bg-black/40 border border-gray-800 rounded-lg p-4">
+                    <div>
+                      <p className="text-sm text-gray-400 mb-2">Estimated Total Views</p>
+                      <p className="text-2xl font-bold text-green-400">
+                        {(viewsEstimate.totalViews / 1000000).toFixed(1)}M
+                      </p>
+                      
+                      {selectedCampaign.contentType === 'both' && (
+                        <div className="text-sm text-gray-400 mt-2">
+                          <div className="grid grid-cols-2 gap-4 mt-3">
+                            <div>
+                              <p className="text-sm">Original Content</p>
+                              <p className="font-medium">{(viewsEstimate.originalViews / 1000000).toFixed(1)}M views</p>
+                            </div>
+                            <div>
+                              <p className="text-sm">Repurposed Content</p>
+                              <p className="font-medium">{(viewsEstimate.repurposedViews / 1000000).toFixed(1)}M views</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -861,19 +1045,6 @@ const BrandDashboard: React.FC = () => {
                 className="w-full p-3 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 focus:outline-none"
                 readOnly
               />
-            </div>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <p className="block text-sm text-gray-400 mb-1">Brand Logo</p>
-              <div className="h-32 w-32 border border-dashed border-gray-700 rounded-lg flex items-center justify-center">
-                {brandData.logo ? (
-                  <img src={URL.createObjectURL(brandData.logo as unknown as Blob)} alt="Brand logo" className="max-h-full max-w-full object-contain" />
-                ) : (
-                  <p className="text-sm text-gray-500">No logo uploaded</p>
-                )}
-              </div>
             </div>
           </div>
         </div>

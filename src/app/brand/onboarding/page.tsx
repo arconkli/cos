@@ -11,7 +11,6 @@ import {
   CreditCard, 
   Check, 
   X, 
-  Upload,
   DollarSign,
   Globe
 } from 'lucide-react';
@@ -25,8 +24,6 @@ interface FormData {
   contactEmail: string;
   contactPhone: string;
   password: string;
-  logo: File | null;
-  brandColor: string;
   billingAddress: {
     street: string;
     city: string;
@@ -42,7 +39,7 @@ interface FormData {
   skipPayment: boolean;
 }
 
-type StepField = 'company' | 'contact' | 'password' | 'branding' | 'payment';
+type StepField = 'company' | 'contact' | 'password' | 'payment';
 
 interface Option {
   id: string;
@@ -73,8 +70,6 @@ const BrandOnboardingPage: React.FC = () => {
     contactEmail: '',
     contactPhone: '',
     password: '',
-    logo: null,
-    brandColor: '#FF4444', // Default to the platform red color
     billingAddress: {
       street: '',
       city: '',
@@ -134,13 +129,6 @@ const BrandOnboardingPage: React.FC = () => {
       nextEnabled: (data: FormData) => data.password.length >= 8,
     },
     {
-      title: "Brand identity",
-      subtitle: "Upload your logo and set your brand color",
-      field: "branding",
-      type: "branding",
-      nextEnabled: (data: FormData) => true, // Optional
-    },
-    {
       title: "Payment Information",
       subtitle: "Set up your campaign funding method",
       field: "payment",
@@ -161,25 +149,6 @@ const BrandOnboardingPage: React.FC = () => {
       },
     }
   ];
-  
-  // Handle file upload for logo
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setFormData({
-        ...formData,
-        logo: event.target.files[0]
-      });
-    }
-  };
-  
-  // Navigate to the next step or complete onboarding
-  const handleNext = () => {
-    if (step < steps.length - 1) {
-      setStep(step + 1);
-    } else {
-      handleComplete();
-    }
-  };
   
   // Handle field value changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -223,6 +192,15 @@ const BrandOnboardingPage: React.FC = () => {
     }
   };
   
+  // Navigate to the next step or complete onboarding
+  const handleNext = () => {
+    if (step < steps.length - 1) {
+      setStep(step + 1);
+    } else {
+      handleComplete();
+    }
+  };
+  
   // Complete onboarding and redirect to dashboard
   const handleComplete = () => {
     // Create brand data object
@@ -233,7 +211,6 @@ const BrandOnboardingPage: React.FC = () => {
       contactName: formData.contactName,
       contactEmail: formData.contactEmail,
       contactPhone: formData.contactPhone,
-      brandColor: formData.brandColor,
       paymentAdded: !formData.skipPayment
     };
     
@@ -350,81 +327,6 @@ const BrandOnboardingPage: React.FC = () => {
             className="w-full p-3 bg-transparent border rounded focus:border-red-500 outline-none transition-colors"
             placeholder="Your phone number"
           />
-        </div>
-      </div>
-    );
-  };
-  
-  // Render branding fields
-  const renderBrandingFields = () => {
-    return (
-      <div className="space-y-6">
-        <div>
-          <label className="block text-sm opacity-70 mb-2">Company Logo</label>
-          <div className="flex items-center justify-center border-2 border-dashed border-gray-600 rounded-lg p-6 cursor-pointer hover:border-red-500 transition-colors">
-            <input
-              type="file"
-              id="logo"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileChange}
-            />
-            <label htmlFor="logo" className="flex flex-col items-center cursor-pointer">
-              {formData.logo ? (
-                <div className="flex flex-col items-center">
-                  <img
-                    src={URL.createObjectURL(formData.logo)}
-                    alt="Logo preview"
-                    className="w-32 h-32 object-contain mb-4"
-                  />
-                  <span className="text-sm text-gray-400">{formData.logo.name}</span>
-                  <button
-                    type="button"
-                    className="mt-2 text-red-500 hover:text-red-400"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setFormData({ ...formData, logo: null });
-                    }}
-                  >
-                    Remove
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <Upload className="h-12 w-12 text-gray-500 mb-3" />
-                  <span className="text-gray-400">Drag and drop your logo here, or click to browse</span>
-                  <span className="text-sm text-gray-500 mt-2">Recommended size: 512x512px</span>
-                </>
-              )}
-            </label>
-          </div>
-        </div>
-        
-        <div>
-          <label htmlFor="brandColor" className="block text-sm opacity-70 mb-2">Brand Color</label>
-          <div className="flex items-center space-x-4">
-            <input
-              id="brandColor"
-              type="color"
-              name="brandColor"
-              value={formData.brandColor}
-              onChange={handleChange}
-              className="h-10 w-10 rounded cursor-pointer"
-            />
-            <input
-              type="text"
-              name="brandColor"
-              value={formData.brandColor}
-              onChange={handleChange}
-              className="w-32 p-2 bg-transparent border rounded focus:border-red-500 outline-none transition-colors"
-              placeholder="#RRGGBB"
-            />
-            <div className="flex-1">
-              <div className="text-sm text-gray-400">
-                This color will be used to customize your dashboard experience
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     );
@@ -575,8 +477,6 @@ const BrandOnboardingPage: React.FC = () => {
             <p className="text-xs text-gray-500 mt-2">Use at least 8 characters with a mix of letters, numbers, and symbols</p>
           </div>
         );
-      case 'branding':
-        return renderBrandingFields();
       case 'payment':
         return renderPaymentFields();
       default:
@@ -661,8 +561,7 @@ const BrandOnboardingPage: React.FC = () => {
             {step === 0 && "We're excited to have your brand on CREATE_OS"}
             {step === 1 && "We'll never share your contact information with third parties"}
             {step === 2 && "Your password secures your brand's campaign data and analytics"}
-            {step === 3 && "Your logo and brand colors help creators identify your campaigns"}
-            {step === 4 && "You can always set up your payment method later in settings"}
+            {step === 3 && "You can always set up your payment method later in settings"}
           </div>
         </div>
       </main>
