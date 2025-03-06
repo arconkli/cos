@@ -13,7 +13,10 @@ import {
 // Interface for campaign form data
 interface CampaignFormData {
   title: string;
-  brief: string;
+  brief: {
+    original: string;
+    repurposed: string;
+  };
   goal: string;
   platforms: {
     tiktok: boolean;
@@ -37,7 +40,10 @@ interface CampaignFormData {
     original: string;
     repurposed: string;
   };
-  guidelines: string[];
+  guidelines: {
+    original: string[];
+    repurposed: string[];
+  };
   assets: File[];
   paymentMethod: string;
   termsAccepted: boolean;
@@ -58,27 +64,21 @@ const calculateEstimatedViews = (
   contentType: 'original' | 'repurposed' | 'both',
   budgetAllocation: { original: number, repurposed: number }
 ) => {
-  const budgetValue = parseFloat(budget);
-  if (isNaN(budgetValue) || budgetValue <= 0) return { originalViews: 0, repurposedViews: 0, totalViews: 0 };
+  const budgetValue = parseFloat(budget) || 1000; // Default to 1000 if empty
   
   if (contentType === 'original') {
-    const originalRateValue = parseFloat(originalRate);
-    if (isNaN(originalRateValue) || originalRateValue <= 0) return { originalViews: 0, repurposedViews: 0, totalViews: 0 };
+    const originalRateValue = parseFloat(originalRate) || 500; // Default to 500 if empty
     const views = (budgetValue / originalRateValue) * 1000000;
     return { originalViews: views, repurposedViews: 0, totalViews: views };
   } 
   else if (contentType === 'repurposed') {
-    const repurposedRateValue = parseFloat(repurposedRate);
-    if (isNaN(repurposedRateValue) || repurposedRateValue <= 0) return { originalViews: 0, repurposedViews: 0, totalViews: 0 };
+    const repurposedRateValue = parseFloat(repurposedRate) || 250; // Default to 250 if empty
     const views = (budgetValue / repurposedRateValue) * 1000000;
     return { originalViews: 0, repurposedViews: views, totalViews: views };
   }
   else {
-    const originalRateValue = parseFloat(originalRate);
-    const repurposedRateValue = parseFloat(repurposedRate);
-    if (isNaN(originalRateValue) || originalRateValue <= 0 || isNaN(repurposedRateValue) || repurposedRateValue <= 0) {
-      return { originalViews: 0, repurposedViews: 0, totalViews: 0 };
-    }
+    const originalRateValue = parseFloat(originalRate) || 500;
+    const repurposedRateValue = parseFloat(repurposedRate) || 250;
     
     const originalBudget = budgetValue * (budgetAllocation.original / 100);
     const repurposedBudget = budgetValue * (budgetAllocation.repurposed / 100);
@@ -126,10 +126,13 @@ const CampaignCreationPage = () => {
   thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
   const defaultEndDate = thirtyDaysFromNow.toISOString().split('T')[0];
   
-  // Initialize form data
+  // Initialize form data with improved structure
   const [formData, setFormData] = useState<CampaignFormData>({
     title: '',
-    brief: '',
+    brief: {
+      original: '',
+      repurposed: ''
+    },
     goal: '',
     platforms: {
       tiktok: false,
@@ -144,16 +147,19 @@ const CampaignCreationPage = () => {
     },
     startDate: today,
     endDate: defaultEndDate,
-    budget: '',
+    budget: '1000', // Start with minimum budget
     payoutRate: {
       original: '500',  // Default to $500 per 1M views for original
       repurposed: '250'  // Default to $250 per 1M views for repurposed
     },
     hashtags: {
-      original: '#YourBrand #ad',
-      repurposed: '#YourBrand #ad'
+      original: '#YourBrand',
+      repurposed: '#YourBrand'
     },
-    guidelines: [''],
+    guidelines: {
+      original: [''],
+      repurposed: ['']
+    },
     assets: [],
     paymentMethod: paymentMethods.find(method => method.isDefault)?.id || '',
     termsAccepted: false
@@ -163,15 +169,10 @@ const CampaignCreationPage = () => {
   const steps: Step[] = [
     {
       title: 'Campaign Details',
-      subtitle: 'Let\'s start with the basic information',
+      subtitle: 'Let\'s set up your basic campaign information',
       isComplete: (data) => 
         data.title.trim().length > 0 && 
-        data.goal.trim().length > 0
-    },
-    {
-      title: 'Platforms & Content',
-      subtitle: 'Choose where your campaign will run',
-      isComplete: (data) => 
+        data.goal.trim().length > 0 &&
         (data.platforms.tiktok || data.platforms.instagram || 
         data.platforms.youtube || data.platforms.twitter) &&
         Boolean(data.contentType)
@@ -180,18 +181,37 @@ const CampaignCreationPage = () => {
       title: 'Content Guidelines',
       subtitle: 'Create your campaign brief, hashtags, and assets',
       isComplete: (data) => {
-        const validGuidelines = data.guidelines.filter(g => g.trim().length > 0).length > 0;
-        const validHashtags = data.contentType === 'both' 
-          ? data.hashtags.original.includes('#ad') && data.hashtags.repurposed.includes('#ad') && 
-            data.hashtags.original !== data.hashtags.repurposed 
-          : data.contentType === 'original' 
-            ? data.hashtags.original.includes('#ad')
-            : data.hashtags.repurposed.includes('#ad');
+        const validOriginalGuidelines = data.contentType === 'original' || data.contentType === 'both' 
+          ? data.guidelines.original.filter(g => g.trim().length > 0).length > 0
+          : true;
+        const validRepurposedGuidelines = data.contentType === 'repurposed' || data.contentType === 'both'
+          ? data.guidelines.repurposed.filter(g => g.trim().length > 0).length > 0
+          : true;
+          
+        const validOriginalBrief = data.contentType === 'original' || data.contentType === 'both'
+          ? data.brief.original.trim().length > 0
+          : true;
+        const validRepurposedBrief = data.contentType === 'repurposed' || data.contentType === 'both'
+          ? data.brief.repurposed.trim().length > 0
+          : true;
+          
+        const validOriginalHashtag = data.contentType === 'original' || data.contentType === 'both'
+          ? data.hashtags.original.toLowerCase().includes('#ad')
+          : true;
+        const validRepurposedHashtag = data.contentType === 'repurposed' || data.contentType === 'both'
+          ? data.hashtags.repurposed.toLowerCase().includes('#ad')
+          : true;
             
-        return validGuidelines && validHashtags && 
-               data.startDate !== '' && data.endDate !== '' &&
-               data.brief.trim().length > 0;
+        return validOriginalGuidelines && validRepurposedGuidelines &&
+               validOriginalBrief && validRepurposedBrief &&
+               validOriginalHashtag && validRepurposedHashtag &&
+               data.startDate !== '' && data.endDate !== '';
       }
+    },
+    {
+      title: 'Creator View',
+      subtitle: 'Preview how your campaign appears to creators',
+      isComplete: (data) => true // This step is always completable
     },
     {
       title: 'Budget & Rates',
@@ -200,16 +220,20 @@ const CampaignCreationPage = () => {
         const budgetValue = parseFloat(data.budget);
         const originalRateValue = parseFloat(data.payoutRate.original);
         
-        let isValid = !isNaN(budgetValue) && budgetValue > 0 && 
-                     !isNaN(originalRateValue) && originalRateValue > 0;
-                     
-        // If content type includes repurposed, check repurposed rate too
-        if (data.contentType === 'both' || data.contentType === 'repurposed') {
-          const repurposedRateValue = parseFloat(data.payoutRate.repurposed);
-          isValid = isValid && !isNaN(repurposedRateValue) && repurposedRateValue > 0;
-        }
+        // Check if budget is at least $1000
+        const validBudget = !isNaN(budgetValue) && budgetValue >= 1000;
         
-        return isValid;
+        // Check original rate if applicable
+        const validOriginalRate = data.contentType === 'original' || data.contentType === 'both'
+          ? !isNaN(originalRateValue) && originalRateValue >= 500
+          : true;
+        
+        // Check repurposed rate if applicable
+        const validRepurposedRate = data.contentType === 'repurposed' || data.contentType === 'both'
+          ? !isNaN(parseFloat(data.payoutRate.repurposed)) && parseFloat(data.payoutRate.repurposed) >= 250
+          : true;
+        
+        return validBudget && validOriginalRate && validRepurposedRate;
       }
     },
     {
@@ -219,8 +243,8 @@ const CampaignCreationPage = () => {
         data.paymentMethod !== ''
     },
     {
-      title: 'Campaign Review',
-      subtitle: 'Preview how your campaign appears to creators',
+      title: 'Final Review',
+      subtitle: 'Review your campaign before submission',
       isComplete: (data) => 
         data.termsAccepted
     }
@@ -253,11 +277,32 @@ const CampaignCreationPage = () => {
     
     if (name.includes('.')) {
       // Handle nested fields (e.g., payoutRate.original)
-      const [parent, child] = name.split('.');
-      const parentKey = parent as keyof typeof formData;
-      const parentObj = formData[parentKey];
+      const [parent, child, subChild] = name.split('.');
       
-      if (typeof parentObj === 'object' && parentObj !== null) {
+      if (subChild) {
+        // Handle deeply nested fields (e.g., guidelines.original.0)
+        const parentKey = parent as keyof typeof formData;
+        const parentObj = formData[parentKey] as any;
+        const index = parseInt(subChild);
+        
+        if (!isNaN(index) && Array.isArray(parentObj[child])) {
+          // This is an array item update (like guidelines.original.0)
+          const newArray = [...parentObj[child]];
+          newArray[index] = value;
+          
+          setFormData({
+            ...formData,
+            [parent]: {
+              ...parentObj,
+              [child]: newArray
+            }
+          });
+        }
+      } else {
+        // Handle regular nested fields (like payoutRate.original)
+        const parentKey = parent as keyof typeof formData;
+        const parentObj = formData[parentKey] as any;
+        
         setFormData({
           ...formData,
           [parent]: {
@@ -298,47 +343,49 @@ const CampaignCreationPage = () => {
   
   // Handle hashtag changes with #ad validation
   const handleHashtagChange = (type: 'original' | 'repurposed', value: string) => {
-    // Ensure value contains #ad - add it if it doesn't
-    let newValue = value;
-    if (!newValue.includes('#ad')) {
-      // If they removed #ad, add it back
-      newValue += ' #ad';
-    }
-    
     setFormData({
       ...formData,
       hashtags: {
         ...formData.hashtags,
-        [type]: newValue
+        [type]: value
       }
     });
   };
   
-  // Handle adding/removing guidelines
-  const handleAddGuideline = () => {
+  // Handle adding/removing guidelines for a specific content type
+  const handleAddGuideline = (type: 'original' | 'repurposed') => {
     setFormData({
       ...formData,
-      guidelines: [...formData.guidelines, '']
+      guidelines: {
+        ...formData.guidelines,
+        [type]: [...formData.guidelines[type], '']
+      }
     });
   };
   
-  const handleGuidelineChange = (index: number, value: string) => {
-    const newGuidelines = [...formData.guidelines];
+  const handleGuidelineChange = (type: 'original' | 'repurposed', index: number, value: string) => {
+    const newGuidelines = [...formData.guidelines[type]];
     newGuidelines[index] = value;
     
     setFormData({
       ...formData,
-      guidelines: newGuidelines
+      guidelines: {
+        ...formData.guidelines,
+        [type]: newGuidelines
+      }
     });
   };
   
-  const handleRemoveGuideline = (index: number) => {
-    const newGuidelines = [...formData.guidelines];
+  const handleRemoveGuideline = (type: 'original' | 'repurposed', index: number) => {
+    const newGuidelines = [...formData.guidelines[type]];
     newGuidelines.splice(index, 1);
     
     setFormData({
       ...formData,
-      guidelines: newGuidelines
+      guidelines: {
+        ...formData.guidelines,
+        [type]: newGuidelines
+      }
     });
   };
   
@@ -365,27 +412,9 @@ const CampaignCreationPage = () => {
   
   // Update content type and ensure proper hashtags
   const handleContentTypeChange = (type: 'original' | 'repurposed' | 'both') => {
-    // Make sure we preserve existing hashtags when changing content types
-    const updatedHashtags = { ...formData.hashtags };
-    
-    // Ensure both hashtags have #ad
-    if (!updatedHashtags.original.includes('#ad')) {
-      updatedHashtags.original += ' #ad';
-    }
-    if (!updatedHashtags.repurposed.includes('#ad')) {
-      updatedHashtags.repurposed += ' #ad';
-    }
-    
-    // If transitioning to "both" type and both hashtags are the same,
-    // slightly modify the repurposed hashtag to make it different
-    if (type === 'both' && updatedHashtags.original === updatedHashtags.repurposed) {
-      updatedHashtags.repurposed = updatedHashtags.repurposed.replace('#ad', '#Repurposed #ad');
-    }
-    
     setFormData({
       ...formData,
-      contentType: type,
-      hashtags: updatedHashtags
+      contentType: type
     });
   };
   
@@ -487,20 +516,7 @@ const CampaignCreationPage = () => {
     return (num / 1000000).toFixed(1) + 'M';
   };
   
-  // Helper to check if hashtags contain #ad
-  const hashtagsValid = () => {
-    if (formData.contentType === 'both') {
-      return formData.hashtags.original.includes('#ad') && 
-             formData.hashtags.repurposed.includes('#ad') &&
-             formData.hashtags.original !== formData.hashtags.repurposed;
-    } else if (formData.contentType === 'original') {
-      return formData.hashtags.original.includes('#ad');
-    } else {
-      return formData.hashtags.repurposed.includes('#ad');
-    }
-  };
-  
-  // Render STEP 1: Campaign Details step (title and goal only)
+  // Render STEP 1: Campaign Details step (now combined with platforms & content type)
   const renderDetailsStep = () => (
     <div className="space-y-6">
       <div>
@@ -542,28 +558,7 @@ const CampaignCreationPage = () => {
         </select>
       </div>
       
-      {/* Simple platform explanation */}
-      <div className="mt-8 p-5 rounded-lg bg-black/40 border border-gray-800">
-        <div className="flex items-start gap-4">
-          <div className="p-3 bg-black/60 rounded-lg border border-gray-700">
-            <DollarSign className="h-6 w-6 text-green-400" />
-          </div>
-          <div>
-            <h3 className="text-lg font-medium text-white mb-2">Simple View-Based Pricing</h3>
-            <p className="text-gray-400">
-              You pay for exactly the number of views your campaign receives. No hidden fees, 
-              no extra commissions - just straightforward view-based pricing.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-  
-  // Render STEP 2: Platforms and content type (without dates or budget allocation)
-  const renderPlatformsStep = () => (
-    <div className="space-y-6">
-      <div>
+      <div className="mt-8">
         <div className="flex items-center gap-2 mb-3">
           <Globe className="h-5 w-5 text-blue-400" />
           <label className="block text-sm font-medium text-gray-300">
@@ -701,158 +696,290 @@ const CampaignCreationPage = () => {
     </div>
   );
   
-  // Render STEP 3: Content Guidelines, Campaign Brief, Hashtags, Assets, and Dates
+  // Render STEP 2: Content Guidelines with separate sections for each content type
   const renderCreativeStep = () => (
-    <div className="space-y-6">
-      {/* Campaign Brief */}
+    <div className="space-y-8">
+      {/* Campaign Dates */}
       <div>
-        <label htmlFor="brief" className="block text-sm font-medium text-gray-300 mb-1">
-          Campaign Brief <span className="text-red-500">*</span>
-        </label>
-        <textarea
-          id="brief"
-          name="brief"
-          value={formData.brief}
-          onChange={handleChange}
-          className="w-full p-3 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 outline-none min-h-32"
-          placeholder="Describe your campaign and what you're looking for from creators..."
-          required
-          rows={5}
-        />
-        <p className="text-xs text-gray-500 mt-1">
-          Be specific about your entertainment brand, show, movie, or event that you want creators to showcase.
-        </p>
-      </div>
-      
-      {/* Campaign Guidelines */}
-      <div>
-        <div className="flex justify-between items-center mb-3">
-          <div className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-blue-400" />
-            <label className="block text-sm font-medium text-gray-300">
-              Content Guidelines <span className="text-red-500">*</span>
-            </label>
-          </div>
-          <button
-            type="button"
-            onClick={handleAddGuideline}
-            className="text-sm flex items-center text-red-400 hover:text-red-300"
-          >
-            <Plus className="h-4 w-4 mr-1" /> Add Guideline
-          </button>
-        </div>
-        
-        <div className="p-4 bg-black/40 border border-gray-800 rounded-lg mb-4">
-          <p className="text-sm text-gray-400 mb-3">
-            Provide clear instructions for creators to follow when making content for your campaign.
-            Be specific about what to include, mention, or show.
-          </p>
-        </div>
-        
-        <div className="space-y-3">
-          {formData.guidelines.map((guideline, index) => (
-            <div key={index} className="flex items-center gap-2">
-              <input
-                type="text"
-                value={guideline}
-                onChange={(e) => handleGuidelineChange(index, e.target.value)}
-                className="flex-1 p-3 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 outline-none"
-                placeholder="e.g., Show excitement for the upcoming season premiere"
-              />
-              {index > 0 && (
-                <button
-                  type="button"
-                  onClick={() => handleRemoveGuideline(index)}
-                  className="p-2 text-gray-400 hover:text-red-400"
-                  aria-label="Remove guideline"
-                >
-                  <Trash className="h-5 w-5" />
-                </button>
-              )}
+        <h3 className="text-lg font-medium mb-4">Campaign Dates</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Calendar className="h-5 w-5 text-orange-400" />
+              <label htmlFor="startDate" className="block text-sm font-medium text-gray-300">
+                Start Date <span className="text-red-500">*</span>
+              </label>
             </div>
-          ))}
+            <div className="relative">
+              <input
+                id="startDate"
+                name="startDate"
+                type="date"
+                value={formData.startDate}
+                onChange={handleChange}
+                min={today}
+                className="w-full p-3 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 outline-none"
+                required
+              />
+            </div>
+          </div>
+          
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Calendar className="h-5 w-5 text-red-400" />
+              <label htmlFor="endDate" className="block text-sm font-medium text-gray-300">
+                End Date <span className="text-red-500">*</span>
+              </label>
+            </div>
+            <div className="relative">
+              <input
+                id="endDate"
+                name="endDate"
+                type="date"
+                value={formData.endDate}
+                onChange={handleChange}
+                min={formData.startDate || today}
+                className="w-full p-3 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 outline-none"
+                required
+              />
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Campaigns run for a minimum of 30 days. If your campaign budget is not fully used,
+              you will receive a refund or credit for the remainder.
+            </p>
+          </div>
         </div>
       </div>
-      
-      {/* Campaign Hashtags */}
-      <div className="mt-8">
-        <div className="flex items-center gap-2 mb-3">
-          <Hash className="h-5 w-5 text-purple-400" />
-          <label className="block text-sm font-medium text-gray-300">
-            Campaign Hashtags <span className="text-red-500">*</span>
-          </label>
-        </div>
-        
-        <div className="p-4 bg-black/40 border border-gray-800 rounded-lg mb-4">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
-            <div>
+    
+      {/* Original Content Section */}
+      {(formData.contentType === 'original' || formData.contentType === 'both') && (
+        <div className="p-6 border border-green-800 bg-green-900/10 rounded-lg">
+          <h3 className="text-xl font-bold mb-4 text-green-400">Original Content</h3>
+          
+          {/* Campaign Brief */}
+          <div className="mb-6">
+            <label htmlFor="brief.original" className="block text-sm font-medium text-gray-300 mb-1">
+              Campaign Brief <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              id="brief.original"
+              name="brief.original"
+              value={formData.brief.original}
+              onChange={handleChange}
+              className="w-full p-3 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 outline-none min-h-32"
+              placeholder="Describe what you want creators to make for your campaign..."
+              required
+              rows={4}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Be specific about your entertainment brand, show, movie, or event that you want creators to showcase.
+            </p>
+          </div>
+          
+          {/* Campaign Guidelines */}
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-3">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5 text-blue-400" />
+                <label className="block text-sm font-medium text-gray-300">
+                  Content Guidelines <span className="text-red-500">*</span>
+                </label>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleAddGuideline('original')}
+                className="text-sm flex items-center text-green-400 hover:text-green-300"
+              >
+                <Plus className="h-4 w-4 mr-1" /> Add Guideline
+              </button>
+            </div>
+            
+            <div className="p-3 bg-black/60 border border-gray-800 rounded-lg mb-4">
               <p className="text-sm text-gray-400">
-                <span className="text-yellow-400 font-medium">All hashtags must include #ad</span> to comply with 
-                disclosure requirements. If you select both content types, you must use different hashtags for each.
+                Provide clear instructions for creators to follow when making original content.
               </p>
             </div>
+            
+            <div className="space-y-3">
+              {formData.guidelines.original.map((guideline, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={guideline}
+                    onChange={(e) => handleGuidelineChange('original', index, e.target.value)}
+                    className="flex-1 p-3 bg-transparent border border-gray-700 rounded-lg focus:border-green-500 outline-none"
+                    placeholder="e.g., Show excitement for our upcoming movie premiere"
+                  />
+                  {index > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveGuideline('original', index)}
+                      className="p-2 text-gray-400 hover:text-red-400"
+                      aria-label="Remove guideline"
+                    >
+                      <Trash className="h-5 w-5" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Campaign Hashtag */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Hash className="h-5 w-5 text-purple-400" />
+              <label className="block text-sm font-medium text-gray-300">
+                Campaign Hashtag <span className="text-red-500">*</span>
+              </label>
+            </div>
+            
+            <div className="p-3 bg-black/60 border border-gray-800 rounded-lg mb-4">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm text-gray-400">
+                    <span className="text-yellow-400 font-medium">Hashtag must include #ad</span> to comply with 
+                    disclosure requirements.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <input
+              type="text"
+              value={formData.hashtags.original}
+              onChange={(e) => handleHashtagChange('original', e.target.value)}
+              className={`w-full p-3 bg-transparent border rounded-lg outline-none ${
+                formData.hashtags.original.toLowerCase().includes('#ad') 
+                  ? 'border-gray-700 focus:border-green-500' 
+                  : 'border-red-500 focus:border-red-500'
+              }`}
+              placeholder="#YourCampaign #ad"
+            />
+            {!formData.hashtags.original.toLowerCase().includes('#ad') && (
+              <p className="text-xs text-red-400 mt-1">
+                Hashtag must include #ad
+              </p>
+            )}
           </div>
         </div>
-        
-        <div className="space-y-4">
-          {(formData.contentType === 'original' || formData.contentType === 'both') && (
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
-                Original Content Hashtag
-              </label>
-              <input
-                type="text"
-                value={formData.hashtags.original}
-                onChange={(e) => handleHashtagChange('original', e.target.value)}
-                className={`w-full p-3 bg-transparent border rounded-lg outline-none ${
-                  formData.hashtags.original.includes('#ad') 
-                    ? 'border-gray-700 focus:border-green-500' 
-                    : 'border-red-500 focus:border-red-500'
-                }`}
-                placeholder="#YourBrand #ad"
-              />
-              {!formData.hashtags.original.includes('#ad') && (
-                <p className="text-xs text-red-400 mt-1">
-                  Hashtag must include #ad
-                </p>
-              )}
-            </div>
-          )}
+      )}
+      
+      {/* Repurposed Content Section */}
+      {(formData.contentType === 'repurposed' || formData.contentType === 'both') && (
+        <div className="p-6 border border-blue-800 bg-blue-900/10 rounded-lg">
+          <h3 className="text-xl font-bold mb-4 text-blue-400">Repurposed Content</h3>
           
-          {(formData.contentType === 'repurposed' || formData.contentType === 'both') && (
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
-                Repurposed Content Hashtag
-              </label>
-              <input
-                type="text"
-                value={formData.hashtags.repurposed}
-                onChange={(e) => handleHashtagChange('repurposed', e.target.value)}
-                className={`w-full p-3 bg-transparent border rounded-lg outline-none ${
-                  formData.hashtags.repurposed.includes('#ad') 
-                    ? 'border-gray-700 focus:border-green-500' 
-                    : 'border-red-500 focus:border-red-500'
-                }`}
-                placeholder="#YourBrand #ad"
-              />
-              {!formData.hashtags.repurposed.includes('#ad') && (
-                <p className="text-xs text-red-400 mt-1">
-                  Hashtag must include #ad
-                </p>
-              )}
-            </div>
-          )}
-          
-          {formData.contentType === 'both' && 
-           formData.hashtags.original === formData.hashtags.repurposed && 
-           formData.hashtags.original.includes('#ad') && (
-            <p className="text-xs text-red-400 mt-1">
-              Original and repurposed content must use different hashtags
+          {/* Campaign Brief */}
+          <div className="mb-6">
+            <label htmlFor="brief.repurposed" className="block text-sm font-medium text-gray-300 mb-1">
+              Campaign Brief <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              id="brief.repurposed"
+              name="brief.repurposed"
+              value={formData.brief.repurposed}
+              onChange={handleChange}
+              className="w-full p-3 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 outline-none min-h-32"
+              placeholder="Describe how creators should adapt their existing content for your campaign..."
+              required
+              rows={4}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Explain how creators can adapt their existing content to feature your entertainment brand.
             </p>
-          )}
+          </div>
+          
+          {/* Campaign Guidelines */}
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-3">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5 text-blue-400" />
+                <label className="block text-sm font-medium text-gray-300">
+                  Content Guidelines <span className="text-red-500">*</span>
+                </label>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleAddGuideline('repurposed')}
+                className="text-sm flex items-center text-blue-400 hover:text-blue-300"
+              >
+                <Plus className="h-4 w-4 mr-1" /> Add Guideline
+              </button>
+            </div>
+            
+            <div className="p-3 bg-black/60 border border-gray-800 rounded-lg mb-4">
+              <p className="text-sm text-gray-400">
+                Provide clear instructions for creators to follow when adapting existing content.
+              </p>
+            </div>
+            
+            <div className="space-y-3">
+              {formData.guidelines.repurposed.map((guideline, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={guideline}
+                    onChange={(e) => handleGuidelineChange('repurposed', index, e.target.value)}
+                    className="flex-1 p-3 bg-transparent border border-gray-700 rounded-lg focus:border-blue-500 outline-none"
+                    placeholder="e.g., Add our movie trailer to your existing reaction videos"
+                  />
+                  {index > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveGuideline('repurposed', index)}
+                      className="p-2 text-gray-400 hover:text-red-400"
+                      aria-label="Remove guideline"
+                    >
+                      <Trash className="h-5 w-5" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Campaign Hashtag */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Hash className="h-5 w-5 text-purple-400" />
+              <label className="block text-sm font-medium text-gray-300">
+                Campaign Hashtag <span className="text-red-500">*</span>
+              </label>
+            </div>
+            
+            <div className="p-3 bg-black/60 border border-gray-800 rounded-lg mb-4">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm text-gray-400">
+                    <span className="text-yellow-400 font-medium">Hashtag must include #ad</span> to comply with 
+                    disclosure requirements.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <input
+              type="text"
+              value={formData.hashtags.repurposed}
+              onChange={(e) => handleHashtagChange('repurposed', e.target.value)}
+              className={`w-full p-3 bg-transparent border rounded-lg outline-none ${
+                formData.hashtags.repurposed.toLowerCase().includes('#ad') 
+                  ? 'border-gray-700 focus:border-blue-500' 
+                  : 'border-red-500 focus:border-red-500'
+              }`}
+              placeholder="#YourCampaign #ad"
+            />
+            {!formData.hashtags.repurposed.toLowerCase().includes('#ad') && (
+              <p className="text-xs text-red-400 mt-1">
+                Hashtag must include #ad
+              </p>
+            )}
+          </div>
         </div>
-      </div>
+      )}
       
       {/* Campaign Assets */}
       <div>
@@ -863,7 +990,7 @@ const CampaignCreationPage = () => {
           </label>
         </div>
         
-        <div className="p-4 bg-black/40 border border-gray-800 rounded-lg mb-4">
+        <div className="p-3 bg-black/60 border border-gray-800 rounded-lg mb-4">
           <p className="text-sm text-gray-400">
             Upload images, videos, logos, or other assets for creators to use in their content.
             For entertainment brands, consider including trailers, promotional images, or event details.
@@ -925,60 +1052,167 @@ const CampaignCreationPage = () => {
           </div>
         )}
       </div>
-      
-      {/* Campaign Dates - Moved from platforms step */}
-      <div className="mt-8">
-        <h3 className="text-lg font-medium mb-4">Campaign Dates</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Calendar className="h-5 w-5 text-orange-400" />
-              <label htmlFor="startDate" className="block text-sm font-medium text-gray-300">
-                Start Date <span className="text-red-500">*</span>
-              </label>
-            </div>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Calendar className="h-5 w-5 text-gray-400" />
+    </div>
+  );
+  
+  // Render STEP 3: Creator View Preview
+  const renderCreatorView = () => (
+    <div className="space-y-6">
+      <div className="p-6 rounded-lg bg-black/40 border border-gray-800">
+        <h3 className="text-xl font-bold mb-6">Creator View Preview</h3>
+        
+        <div className="p-5 border border-gray-700 rounded-lg bg-black/60 mb-6">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h4 className="text-xl font-bold text-white">{formData.title || "Your Campaign Title"}</h4>
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                <span className="px-3 py-1 rounded-full bg-red-900/20 text-red-400 text-sm">
+                  NEW
+                </span>
+                <span className="px-3 py-1 rounded-full bg-white/5 text-sm text-gray-300">
+                  {formData.goal === 'awareness' ? 'Brand Awareness' :
+                   formData.goal === 'consideration' ? 'Content Promotion' :
+                   formData.goal === 'conversion' ? 'Drive Viewership' :
+                   formData.goal === 'engagement' ? 'Community Engagement' :
+                   formData.goal === 'launch' ? 'New Release' :
+                   formData.goal === 'event' ? 'Event Promotion' : 'Campaign'}
+                </span>
               </div>
-              <input
-                id="startDate"
-                name="startDate"
-                type="date"
-                value={formData.startDate}
-                onChange={handleChange}
-                min={today}
-                className="w-full p-3 pl-10 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 outline-none"
-                required
-              />
+            </div>
+            <div className="text-sm text-gray-400 flex items-center">
+              <Calendar className="h-4 w-4 mr-1" />
+              {formData.endDate ? 
+                new Date(formData.endDate).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric'
+                }) : 
+                "Campaign End Date"
+              }
             </div>
           </div>
           
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Calendar className="h-5 w-5 text-red-400" />
-              <label htmlFor="endDate" className="block text-sm font-medium text-gray-300">
-                End Date <span className="text-red-500">*</span>
-              </label>
-            </div>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Calendar className="h-5 w-5 text-gray-400" />
+          <div className="space-y-5">
+            <div>
+              <p className="text-sm text-gray-400 mb-1">Platforms</p>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(formData.platforms)
+                  .filter(([_, active]) => active)
+                  .map(([platform]) => (
+                    <span
+                      key={platform}
+                      className="px-3 py-1 bg-black/40 border border-gray-700 rounded-lg text-sm text-gray-300"
+                    >
+                      {platform.charAt(0).toUpperCase() + platform.slice(1)}
+                    </span>
+                  ))}
               </div>
-              <input
-                id="endDate"
-                name="endDate"
-                type="date"
-                value={formData.endDate}
-                onChange={handleChange}
-                min={formData.startDate || today}
-                className="w-full p-3 pl-10 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 outline-none"
-                required
-              />
             </div>
-            <p className="text-xs text-gray-500 mt-1">
-              Campaigns run for a minimum of 30 days. If your campaign budget is not fully used,
-              you will receive a refund or credit for the remainder.
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Original Content Section */}
+              {(formData.contentType === 'original' || formData.contentType === 'both') && (
+                <div className="bg-black/40 p-4 rounded-lg border border-gray-800">
+                  <h5 className="font-medium text-green-400 mb-3">Original Content</h5>
+                  
+                  <div className="mb-3">
+                    <p className="text-sm text-gray-400 mb-1">Campaign Brief</p>
+                    <p className="bg-black/40 p-3 rounded-lg border border-gray-800 text-sm">
+                      {formData.brief.original || "Your campaign brief will appear here"}
+                    </p>
+                  </div>
+                  
+                  <div className="mb-3">
+                    <p className="text-sm text-gray-400 mb-1">Content Guidelines</p>
+                    <ul className="list-disc pl-5 space-y-1 text-sm">
+                      {formData.guidelines.original
+                        .filter(guideline => guideline.trim().length > 0)
+                        .map((guideline, index) => (
+                          <li key={index}>{guideline}</li>
+                        ))}
+                      {formData.guidelines.original.filter(g => g.trim().length > 0).length === 0 && (
+                        <li className="text-gray-500 italic">Your guidelines will appear here</li>
+                      )}
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm text-gray-400 mb-1">Required Hashtag</p>
+                    <p className="font-bold text-blue-400">
+                      {formData.hashtags.original || "#YourHashtag #ad"}
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Repurposed Content Section */}
+              {(formData.contentType === 'repurposed' || formData.contentType === 'both') && (
+                <div className="bg-black/40 p-4 rounded-lg border border-gray-800">
+                  <h5 className="font-medium text-blue-400 mb-3">Repurposed Content</h5>
+                  
+                  <div className="mb-3">
+                    <p className="text-sm text-gray-400 mb-1">Campaign Brief</p>
+                    <p className="bg-black/40 p-3 rounded-lg border border-gray-800 text-sm">
+                      {formData.brief.repurposed || "Your campaign brief will appear here"}
+                    </p>
+                  </div>
+                  
+                  <div className="mb-3">
+                    <p className="text-sm text-gray-400 mb-1">Content Guidelines</p>
+                    <ul className="list-disc pl-5 space-y-1 text-sm">
+                      {formData.guidelines.repurposed
+                        .filter(guideline => guideline.trim().length > 0)
+                        .map((guideline, index) => (
+                          <li key={index}>{guideline}</li>
+                        ))}
+                      {formData.guidelines.repurposed.filter(g => g.trim().length > 0).length === 0 && (
+                        <li className="text-gray-500 italic">Your guidelines will appear here</li>
+                      )}
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm text-gray-400 mb-1">Required Hashtag</p>
+                    <p className="font-bold text-blue-400">
+                      {formData.hashtags.repurposed || "#YourHashtag #ad"}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-400 mb-1">Payout Rate</p>
+                <div>
+                  {(formData.contentType === 'original' || formData.contentType === 'both') && (
+                    <p className="font-bold text-white">${formData.payoutRate.original || "500"} per 1M views <span className="font-normal text-sm text-green-400">(Original)</span></p>
+                  )}
+                  {(formData.contentType === 'repurposed' || formData.contentType === 'both') && (
+                    <p className="font-bold text-white">${formData.payoutRate.repurposed || "250"} per 1M views <span className="font-normal text-sm text-blue-400">(Repurposed)</span></p>
+                  )}
+                </div>
+              </div>
+              
+              {formData.assets.length > 0 && (
+                <div>
+                  <p className="text-sm text-gray-400 mb-1">Campaign Assets</p>
+                  <div className="bg-black/40 p-3 rounded-lg border border-gray-800 flex items-center">
+                    <FileText className="h-5 w-5 text-gray-400 mr-2" />
+                    <span>{formData.assets.length} file{formData.assets.length !== 1 ? 's' : ''} available</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        <div className="p-4 bg-blue-900/10 border border-blue-800 rounded-lg">
+          <div className="flex items-start gap-3">
+            <Info className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-gray-300">
+              This is how your campaign will appear to creators on their dashboard. 
+              They will be able to join the campaign and submit content that follows your guidelines.
             </p>
           </div>
         </div>
@@ -986,7 +1220,7 @@ const CampaignCreationPage = () => {
     </div>
   );
   
-  // Render STEP 4: Budget & Rates step
+  // Render STEP 4: Budget & Rates step (with improvements)
   const renderBudgetStep = () => (
     <div className="space-y-6">
       <div>
@@ -1042,7 +1276,7 @@ const CampaignCreationPage = () => {
                 <label htmlFor="payoutRate.original" className="block text-sm font-medium text-gray-300">
                   Original Content Rate <span className="text-red-500">*</span>
                 </label>
-                <span className="text-xs text-gray-400">Recommended: $500-$1,000</span>
+                <span className="text-xs text-gray-400">Minimum: $500</span>
               </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -1054,7 +1288,7 @@ const CampaignCreationPage = () => {
                   type="number"
                   value={formData.payoutRate.original}
                   onChange={handleChange}
-                  min="100"
+                  min="500"
                   className="w-full p-3 pl-10 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 outline-none transition-colors"
                   placeholder="500"
                   required={formData.contentType === 'original' || formData.contentType === 'both'}
@@ -1073,7 +1307,7 @@ const CampaignCreationPage = () => {
                 <label htmlFor="payoutRate.repurposed" className="block text-sm font-medium text-gray-300">
                   Repurposed Content Rate <span className="text-red-500">*</span>
                 </label>
-                <span className="text-xs text-gray-400">Recommended: $250-$500</span>
+                <span className="text-xs text-gray-400">Minimum: $250</span>
               </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -1085,7 +1319,7 @@ const CampaignCreationPage = () => {
                   type="number"
                   value={formData.payoutRate.repurposed}
                   onChange={handleChange}
-                  min="50"
+                  min="250"
                   className="w-full p-3 pl-10 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 outline-none transition-colors"
                   placeholder="250"
                   required={formData.contentType === 'repurposed' || formData.contentType === 'both'}
@@ -1118,63 +1352,53 @@ const CampaignCreationPage = () => {
         </div>
       )}
       
-      {/* View Calculator */}
-      {formData.budget && (
-        ((formData.contentType === 'original' && formData.payoutRate.original) ||
-         (formData.contentType === 'repurposed' && formData.payoutRate.repurposed) ||
-         (formData.contentType === 'both' && formData.payoutRate.original && formData.payoutRate.repurposed))
-      ) && (
-        <div className="p-5 rounded-lg bg-green-900/10 border border-green-800">
-          <h3 className="font-medium text-lg text-green-400 mb-4 flex items-center gap-2">
-            <Eye className="h-5 w-5" />
-            Estimated Campaign Reach
-          </h3>
-          
-          {(() => {
-            return (
-              <div className="space-y-5">
-                <div className="grid grid-cols-2 gap-6">
-                  {formData.contentType === 'both' || formData.contentType === 'original' ? (
-                    <div className="p-4 bg-black/40 border border-gray-800 rounded-lg">
-                      <p className="text-sm text-gray-400 mb-1">Original Content</p>
-                      <p className="text-2xl font-bold text-white">{formatMillions(viewEstimates.originalViews)} views</p>
-                      <div className="flex items-center text-xs text-gray-400 mt-1">
-                        <DollarSign className="h-3 w-3 mr-1" />
-                        {formData.budget && formData.contentType === 'both' 
-                          ? formatMoney(parseInt(formData.budget) * formData.budgetAllocation.original / 100) 
-                          : formatMoney(parseInt(formData.budget) || 0)}
-                      </div>
-                    </div>
-                  ) : null}
-                  
-                  {formData.contentType === 'both' || formData.contentType === 'repurposed' ? (
-                    <div className="p-4 bg-black/40 border border-gray-800 rounded-lg">
-                      <p className="text-sm text-gray-400 mb-1">Repurposed Content</p>
-                      <p className="text-2xl font-bold text-white">{formatMillions(viewEstimates.repurposedViews)} views</p>
-                      <div className="flex items-center text-xs text-gray-400 mt-1">
-                        <DollarSign className="h-3 w-3 mr-1" />
-                        {formData.budget && formData.contentType === 'both' 
-                          ? formatMoney(parseInt(formData.budget) * formData.budgetAllocation.repurposed / 100) 
-                          : formatMoney(parseInt(formData.budget) || 0)}
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
-                
-                <div className="p-4 bg-green-900/20 border border-green-800 rounded-lg">
-                  <p className="text-sm text-gray-400 mb-1">Total Estimated Views</p>
-                  <div className="flex justify-between items-end">
-                    <p className="text-3xl font-bold text-green-400">{formatMillions(viewEstimates.totalViews)} views</p>
-                    <p className="text-lg font-medium text-white">
-                      {formData.budget ? formatMoney(parseInt(formData.budget)) : '$0'}
-                    </p>
-                  </div>
+      {/* View Calculator - Always show with at least default values */}
+      <div className="p-5 rounded-lg bg-green-900/10 border border-green-800">
+        <h3 className="font-medium text-lg text-green-400 mb-4 flex items-center gap-2">
+          <Eye className="h-5 w-5" />
+          Estimated Campaign Reach
+        </h3>
+        
+        <div className="space-y-5">
+          <div className="grid grid-cols-2 gap-6">
+            {formData.contentType === 'both' || formData.contentType === 'original' ? (
+              <div className="p-4 bg-black/40 border border-gray-800 rounded-lg">
+                <p className="text-sm text-gray-400 mb-1">Original Content</p>
+                <p className="text-2xl font-bold text-white">{formatMillions(viewEstimates.originalViews)} views</p>
+                <div className="flex items-center text-xs text-gray-400 mt-1">
+                  <DollarSign className="h-3 w-3 mr-1" />
+                  {formData.budget && formData.contentType === 'both' 
+                    ? formatMoney(parseInt(formData.budget) * formData.budgetAllocation.original / 100) 
+                    : formatMoney(parseInt(formData.budget) || 0)}
                 </div>
               </div>
-            );
-          })()}
+            ) : null}
+            
+            {formData.contentType === 'both' || formData.contentType === 'repurposed' ? (
+              <div className="p-4 bg-black/40 border border-gray-800 rounded-lg">
+                <p className="text-sm text-gray-400 mb-1">Repurposed Content</p>
+                <p className="text-2xl font-bold text-white">{formatMillions(viewEstimates.repurposedViews)} views</p>
+                <div className="flex items-center text-xs text-gray-400 mt-1">
+                  <DollarSign className="h-3 w-3 mr-1" />
+                  {formData.budget && formData.contentType === 'both' 
+                    ? formatMoney(parseInt(formData.budget) * formData.budgetAllocation.repurposed / 100) 
+                    : formatMoney(parseInt(formData.budget) || 0)}
+                </div>
+              </div>
+            ) : null}
+          </div>
+          
+          <div className="p-4 bg-green-900/20 border border-green-800 rounded-lg">
+            <p className="text-sm text-gray-400 mb-1">Total Estimated Views</p>
+            <div className="flex justify-between items-end">
+              <p className="text-3xl font-bold text-green-400">{formatMillions(viewEstimates.totalViews)} views</p>
+              <p className="text-lg font-medium text-white">
+                {formData.budget ? formatMoney(parseInt(formData.budget)) : '$0'}
+              </p>
+            </div>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
   
@@ -1300,51 +1524,36 @@ const CampaignCreationPage = () => {
     </div>
   );
   
-  // Render STEP 6: Campaign Review
-  const renderReviewStep = () => (
+  // Render STEP 6: Final Review step
+  const renderFinalReviewStep = () => (
     <div className="space-y-6">
-      {/* Creator View Preview */}
       <div className="p-6 rounded-lg bg-black/40 border border-gray-800">
-        <h3 className="text-xl font-bold mb-6">Creator View Preview</h3>
+        <h3 className="text-xl font-bold mb-6">Campaign Details Review</h3>
         
-        <div className="p-5 border border-gray-700 rounded-lg bg-black/60 mb-6">
-          <div className="flex justify-between items-start mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="space-y-6">
             <div>
-              <h4 className="text-xl font-bold text-white">{formData.title}</h4>
-              <div className="flex flex-wrap items-center gap-2 mt-2">
-                <span className="px-3 py-1 rounded-full bg-red-900/20 text-red-400 text-sm">
-                  NEW
-                </span>
-                <span className="px-3 py-1 rounded-full bg-white/5 text-sm text-gray-300">
-                  {formData.goal === 'awareness' ? 'Brand Awareness' :
-                   formData.goal === 'consideration' ? 'Content Promotion' :
-                   formData.goal === 'conversion' ? 'Drive Viewership' :
-                   formData.goal === 'engagement' ? 'Community Engagement' :
-                   formData.goal === 'launch' ? 'New Release' :
-                   formData.goal === 'event' ? 'Event Promotion' : 'Campaign'}
-                </span>
-              </div>
+              <h4 className="text-sm text-gray-400 mb-1">Campaign Title & Goal</h4>
+              <p className="font-bold text-lg text-white">{formData.title}</p>
+              <p className="text-gray-300">
+                {formData.goal === 'awareness' ? 'Brand Awareness' :
+                 formData.goal === 'consideration' ? 'Content Promotion' :
+                 formData.goal === 'conversion' ? 'Drive Viewership/Streaming' :
+                 formData.goal === 'engagement' ? 'Community Engagement' :
+                 formData.goal === 'launch' ? 'New Release Promotion' :
+                 formData.goal === 'event' ? 'Event Promotion' : 'Other'}
+              </p>
             </div>
-            <div className="text-sm text-gray-400 flex items-center">
-              <Calendar className="h-4 w-4 mr-1" />
-              {new Date(formData.endDate).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-              })}
-            </div>
-          </div>
-          
-          <div className="space-y-5">
+            
             <div>
-              <p className="text-sm text-gray-400 mb-1">Platforms</p>
+              <h4 className="text-sm text-gray-400 mb-1">Platforms</h4>
               <div className="flex flex-wrap gap-2">
                 {Object.entries(formData.platforms)
-                  .filter(([_, active]) => active)
+                  .filter(([_, isEnabled]) => isEnabled)
                   .map(([platform]) => (
                     <span
                       key={platform}
-                      className="px-3 py-1 bg-black/40 border border-gray-700 rounded-lg text-sm text-gray-300"
+                      className="px-3 py-1 bg-black/40 border border-gray-700 rounded-lg text-sm"
                     >
                       {platform.charAt(0).toUpperCase() + platform.slice(1)}
                     </span>
@@ -1353,67 +1562,93 @@ const CampaignCreationPage = () => {
             </div>
             
             <div>
-              <p className="text-sm text-gray-400 mb-1">Campaign Brief</p>
-              <p className="bg-black/40 p-4 rounded-lg border border-gray-800">
-                {formData.brief}
+              <h4 className="text-sm text-gray-400 mb-1">Content Type</h4>
+              <p className="font-medium">
+                {formData.contentType === 'original' ? 'Original Content' :
+                 formData.contentType === 'repurposed' ? 'Repurposed Content' : 'Both Types'}
               </p>
+              
+              {formData.contentType === 'both' && (
+                <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <p className="text-gray-400">Original Allocation:</p>
+                    <p>{formData.budgetAllocation.original}%</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400">Repurposed Allocation:</p>
+                    <p>{formData.budgetAllocation.repurposed}%</p>
+                  </div>
+                </div>
+              )}
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-400 mb-1">Payout Rate</p>
-                <div>
-                  {(formData.contentType === 'original' || formData.contentType === 'both') && (
-                    <p className="font-bold text-white">${formData.payoutRate.original} per 1M views <span className="font-normal text-sm text-green-400">(Original)</span></p>
-                  )}
-                  {(formData.contentType === 'repurposed' || formData.contentType === 'both') && (
-                    <p className="font-bold text-white">${formData.payoutRate.repurposed} per 1M views <span className="font-normal text-sm text-blue-400">(Repurposed)</span></p>
-                  )}
+            <div>
+              <h4 className="text-sm text-gray-400 mb-1">Campaign Duration</h4>
+              <p className="font-medium">
+                {new Date(formData.startDate).toLocaleDateString()} to {new Date(formData.endDate).toLocaleDateString()}
+              </p>
+            </div>
+          </div>
+          
+          <div className="space-y-6">
+            <div>
+              <h4 className="text-sm text-gray-400 mb-1">Budget</h4>
+              <p className="text-2xl font-bold">{formData.budget ? formatMoney(parseInt(formData.budget)) : '$0'}</p>
+              
+              <div className="mt-2 p-3 bg-black/30 border border-gray-700 rounded-lg">
+                <div className="flex items-center gap-2 mb-1">
+                  <Eye className="h-4 w-4 text-green-400" />
+                  <p className="font-medium text-green-400">Estimated Campaign Reach</p>
                 </div>
-              </div>
-              <div>
-                <p className="text-sm text-gray-400 mb-1">Required Hashtag</p>
-                <div>
-                  {(formData.contentType === 'original' || formData.contentType === 'both') && (
-                    <p className="font-bold text-blue-400">{formData.hashtags.original}</p>
-                  )}
-                  {formData.contentType === 'both' && (
-                    <p className="font-bold text-blue-400 mt-1">{formData.hashtags.repurposed} <span className="font-normal text-sm text-gray-400">(for repurposed)</span></p>
-                  )}
-                </div>
+                <p className="text-xl font-bold">{formatMillions(viewEstimates.totalViews)} views</p>
+                {formData.contentType === 'both' && (
+                  <div className="text-sm text-gray-400 mt-1 grid grid-cols-2 gap-2">
+                    <div>Original: {formatMillions(viewEstimates.originalViews)}</div>
+                    <div>Repurposed: {formatMillions(viewEstimates.repurposedViews)}</div>
+                  </div>
+                )}
               </div>
             </div>
             
             <div>
-              <p className="text-sm text-gray-400 mb-1">Content Guidelines</p>
-              <ul className="list-disc pl-5 space-y-1 text-gray-300">
-                {formData.guidelines
-                  .filter(guideline => guideline.trim().length > 0)
-                  .map((guideline, index) => (
-                    <li key={index}>{guideline}</li>
-                  ))}
-              </ul>
+              <h4 className="text-sm text-gray-400 mb-1">View Rates</h4>
+              <div className="space-y-2">
+                {(formData.contentType === 'original' || formData.contentType === 'both') && (
+                  <div className="flex justify-between">
+                    <span>Original Content:</span>
+                    <span className="font-medium">${formData.payoutRate.original} per 1M views</span>
+                  </div>
+                )}
+                {(formData.contentType === 'repurposed' || formData.contentType === 'both') && (
+                  <div className="flex justify-between">
+                    <span>Repurposed Content:</span>
+                    <span className="font-medium">${formData.payoutRate.repurposed} per 1M views</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="text-sm text-gray-400 mb-1">Payment Method</h4>
+              {formData.paymentMethod ? (
+                <div className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5 text-gray-300" />
+                  <p className="font-medium">
+                    {paymentMethods.find(m => m.id === formData.paymentMethod)?.type || 'Card'} •••• 
+                    {paymentMethods.find(m => m.id === formData.paymentMethod)?.last4}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-yellow-400">No payment method selected</p>
+              )}
             </div>
             
             {formData.assets.length > 0 && (
               <div>
-                <p className="text-sm text-gray-400 mb-1">Campaign Assets</p>
-                <div className="bg-black/40 p-3 rounded-lg border border-gray-800 flex items-center">
-                  <FileText className="h-5 w-5 text-gray-400 mr-2" />
-                  <span>{formData.assets.length} file{formData.assets.length !== 1 ? 's' : ''} available</span>
-                </div>
+                <h4 className="text-sm text-gray-400 mb-1">Campaign Assets</h4>
+                <p className="font-medium">{formData.assets.length} file{formData.assets.length !== 1 ? 's' : ''} included</p>
               </div>
             )}
-          </div>
-        </div>
-        
-        <div className="p-4 bg-blue-900/10 border border-blue-800 rounded-lg">
-          <div className="flex items-start gap-3">
-            <Info className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-gray-300">
-              This is how your campaign will appear to creators on their dashboard. 
-              They will be able to join the campaign and submit content that follows your guidelines.
-            </p>
           </div>
         </div>
       </div>
@@ -1448,15 +1683,15 @@ const CampaignCreationPage = () => {
       case 0:
         return renderDetailsStep();
       case 1:
-        return renderPlatformsStep();
-      case 2:
         return renderCreativeStep();
+      case 2:
+        return renderCreatorView();
       case 3:
         return renderBudgetStep();
       case 4:
         return renderPaymentStep();
       case 5:
-        return renderReviewStep();
+        return renderFinalReviewStep();
       default:
         return null;
     }
@@ -1472,28 +1707,18 @@ const CampaignCreationPage = () => {
           <div className="flex justify-between items-start mb-6">
             <h3 className="text-xl font-bold">{formData.title}</h3>
             <span className="px-3 py-1 bg-gray-900/50 text-gray-300 rounded-full text-sm">
-              Draft
+              Ready to Submit
             </span>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-6">
               <div>
-                <h4 className="text-sm text-gray-400 mb-1">Campaign Brief</h4>
-                <p className="bg-black/40 p-4 rounded-lg border border-gray-800">
-                  {formData.brief}
-                </p>
-              </div>
-              
-              <div>
-                <h4 className="text-sm text-gray-400 mb-1">Campaign Goal</h4>
+                <h4 className="text-sm text-gray-400 mb-1">Content Types</h4>
                 <p className="font-medium">
-                  {formData.goal === 'awareness' ? 'Brand Awareness' :
-                   formData.goal === 'consideration' ? 'Content Promotion' :
-                   formData.goal === 'conversion' ? 'Drive Viewership/Streaming' :
-                   formData.goal === 'engagement' ? 'Community Engagement' :
-                   formData.goal === 'launch' ? 'New Release Promotion' :
-                   formData.goal === 'event' ? 'Event Promotion' : 'Other'}
+                  {formData.contentType === 'original' ? 'Original Content Only' :
+                   formData.contentType === 'repurposed' ? 'Repurposed Content Only' : 
+                   'Both Original & Repurposed Content'}
                 </p>
               </div>
               
@@ -1514,100 +1739,23 @@ const CampaignCreationPage = () => {
               </div>
               
               <div>
-                <h4 className="text-sm text-gray-400 mb-1">Content Type</h4>
-                <p className="font-medium">
-                  {formData.contentType === 'original' ? 'Original Content' :
-                   formData.contentType === 'repurposed' ? 'Repurposed Content' : 'Both Types'}
-                </p>
-                
-                {formData.contentType === 'both' && (
-                  <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      <p className="text-gray-400">Original Allocation:</p>
-                      <p>{formData.budgetAllocation.original}%</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400">Repurposed Allocation:</p>
-                      <p>{formData.budgetAllocation.repurposed}%</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              <div>
-                <h4 className="text-sm text-gray-400 mb-1">Campaign Dates</h4>
+                <h4 className="text-sm text-gray-400 mb-1">Campaign Duration</h4>
                 <p className="font-medium">
                   {new Date(formData.startDate).toLocaleDateString()} to {new Date(formData.endDate).toLocaleDateString()}
                 </p>
               </div>
               
               <div>
-                <h4 className="text-sm text-gray-400 mb-1">Required Hashtags</h4>
-                <div>
-                  {formData.contentType === 'original' || formData.contentType === 'both' ? (
-                    <div className="mb-2">
-                      <p className="text-xs text-gray-400">Original Content:</p>
-                      <p className="text-blue-400">{formData.hashtags.original}</p>
-                    </div>
-                  ) : null}
-                  
-                  {formData.contentType === 'repurposed' || formData.contentType === 'both' ? (
-                    <div>
-                      <p className="text-xs text-gray-400">Repurposed Content:</p>
-                      <p className="text-blue-400">{formData.hashtags.repurposed}</p>
-                    </div>
-                  ) : null}
+                <h4 className="text-sm text-gray-400 mb-1">Budget & Views</h4>
+                <p className="text-xl font-bold">{formData.budget ? formatMoney(parseInt(formData.budget)) : '$0'}</p>
+                <div className="flex items-center gap-2 mt-1 text-green-400">
+                  <Eye className="h-4 w-4" />
+                  <p>{formatMillions(viewEstimates.totalViews)} estimated views</p>
                 </div>
               </div>
             </div>
             
             <div className="space-y-6">
-              <div>
-                <h4 className="text-sm text-gray-400 mb-1">Budget</h4>
-                <p className="text-2xl font-bold">{formData.budget ? formatMoney(parseInt(formData.budget)) : '$0'}</p>
-                
-                <div className="mt-2 p-3 bg-black/30 border border-gray-700 rounded-lg">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Eye className="h-4 w-4 text-green-400" />
-                    <p className="font-medium text-green-400">Estimated Campaign Reach</p>
-                  </div>
-                  <p className="text-xl font-bold">{formatMillions(viewEstimates.totalViews)} views</p>
-                  {formData.contentType === 'both' && (
-                    <div className="text-sm text-gray-400 mt-1 grid grid-cols-2 gap-2">
-                      <div>Original: {formatMillions(viewEstimates.originalViews)}</div>
-                      <div>Repurposed: {formatMillions(viewEstimates.repurposedViews)}</div>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div>
-                <h4 className="text-sm text-gray-400 mb-1">View Rates</h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>Original Content:</span>
-                    <span className="font-medium">${formData.payoutRate.original} per 1M views</span>
-                  </div>
-                  {(formData.contentType === 'repurposed' || formData.contentType === 'both') && (
-                    <div className="flex justify-between">
-                      <span>Repurposed Content:</span>
-                      <span className="font-medium">${formData.payoutRate.repurposed} per 1M views</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div>
-                <h4 className="text-sm text-gray-400 mb-1">Content Guidelines</h4>
-                <ul className="list-disc pl-5 space-y-1">
-                  {formData.guidelines
-                    .filter(guideline => guideline.trim().length > 0)
-                    .map((guideline, index) => (
-                      <li key={index}>{guideline}</li>
-                    ))}
-                </ul>
-              </div>
-              
               <div>
                 <h4 className="text-sm text-gray-400 mb-1">Payment Method</h4>
                 {formData.paymentMethod ? (
@@ -1623,10 +1771,47 @@ const CampaignCreationPage = () => {
                 )}
               </div>
               
+              <div>
+                <h4 className="text-sm text-gray-400 mb-1">View Rates</h4>
+                <div className="space-y-2">
+                  {(formData.contentType === 'original' || formData.contentType === 'both') && (
+                    <div className="flex justify-between">
+                      <span>Original Content:</span>
+                      <span className="font-medium">${formData.payoutRate.original} per 1M views</span>
+                    </div>
+                  )}
+                  {(formData.contentType === 'repurposed' || formData.contentType === 'both') && (
+                    <div className="flex justify-between">
+                      <span>Repurposed Content:</span>
+                      <span className="font-medium">${formData.payoutRate.repurposed} per 1M views</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {formData.contentType === 'both' && (
+                <div>
+                  <h4 className="text-sm text-gray-400 mb-1">Budget Allocation</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <p className="text-gray-300">Original Content:</p>
+                      <p className="font-medium">{formData.budgetAllocation.original}%</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-300">Repurposed Content:</p>
+                      <p className="font-medium">{formData.budgetAllocation.repurposed}%</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {formData.assets.length > 0 && (
                 <div>
-                  <h4 className="text-sm text-gray-400 mb-1">Campaign Assets</h4>
-                  <p className="font-medium">{formData.assets.length} file{formData.assets.length !== 1 ? 's' : ''} included</p>
+                  <h4 className="text-sm text-gray-400 mb-1">Assets</h4>
+                  <div className="flex items-center">
+                    <FileText className="h-5 w-5 text-gray-300 mr-2" />
+                    <p>{formData.assets.length} file{formData.assets.length !== 1 ? 's' : ''}</p>
+                  </div>
                 </div>
               )}
             </div>
