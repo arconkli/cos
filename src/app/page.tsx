@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import Navigation from '@/components/Navigation';
+// Import updated LoginModal (you'll need to replace the original component)
 import LoginModal from '@/components/LoginModal';
 import { useRouter } from 'next/navigation';
 import { useOnboarding } from '@/components/OnboardingProvider';
@@ -251,6 +252,11 @@ export default function HomePage() {
       document.removeEventListener('openLogin', handleOpenLogin);
     };
   }, []);
+  
+  // Handle login button click
+  const handleLoginClick = () => {
+    setShowLogin(true);
+  };
   
   const handleJoinCreator = () => {
     if (isLoggedIn) {
