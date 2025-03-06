@@ -319,8 +319,6 @@ const SettingsView: React.FC = () => {
   // Get content for connected accounts section
   const renderAccountsContent = () => (
     <div className="space-y-6">
-      <h3 className="text-lg font-bold mb-4">Connected Platforms</h3>
-      
       <div className="space-y-3">
         {connectedAccounts.map((account, index) => (
           <div 
@@ -331,11 +329,24 @@ const SettingsView: React.FC = () => {
               {/* Account info */}
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-gray-800 rounded-full">
-                  <span className="text-xl" aria-hidden="true">
-                    {account.platform === 'youtube' ? '📹' : 
-                     account.platform === 'instagram' ? '📸' : 
-                     account.platform === 'tiktok' ? '🎵' : '🔗'}
-                  </span>
+                  {account.platform === 'youtube' ? (
+                    <svg className="h-5 w-5 text-red-500" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    </svg>
+                  ) : account.platform === 'instagram' ? (
+                    <svg className="h-5 w-5 text-pink-500" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0z"/>
+                      <path d="M12 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
+                    </svg>
+                  ) : account.platform === 'tiktok' ? (
+                    <svg className="h-5 w-5 text-cyan-400" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12.53.02C13.84 0 15.14.01 16.44 0c.12 1.13.43 2.27 1.22 3.06.83.82 1.95 1.15 3.07 1.4v3.12c-1.02-.02-2.05-.25-3-.75-.57-.3-1.08-.71-1.53-1.17-.01 1.8.01 3.61 0 5.42-.07 1.83-.69 3.72-2 5.08-1.57 1.68-3.95 2.51-6.26 2.36-1.43-.08-2.83-.49-4.08-1.21C1.55 16.06.38 13.13 1.14 10.5c.7-2.55 2.94-4.51 5.5-5.08 1.38-.31 2.84-.14 4.2.18v3.34c-.67-.26-1.41-.38-2.14-.29-1.25.17-2.4 1.05-2.94 2.24-.61 1.33-.47 3.05.55 4.16.88.97 2.21 1.39 3.53 1.27 1.24-.09 2.48-.78 3.08-1.81.4-.68.61-1.47.61-2.25l.01-9.32c-.01-.53-.01-1.07-.01-1.59z"/>
+                    </svg>
+                  ) : (
+                    <svg className="h-5 w-5 text-blue-400" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                    </svg>
+                  )}
                 </div>
                 <div>
                   <div className="flex items-center flex-wrap gap-2 mb-1">
@@ -403,8 +414,11 @@ const SettingsView: React.FC = () => {
               <div className="flex items-center gap-3">
                 <div className={`p-2.5 rounded-full ${method.default ? 'bg-red-900/20' : 'bg-gray-800'}`}>
                   {method.type === 'bank' ? 
-                    <span className="text-xl" aria-hidden="true">🏦</span> : 
-                    <span className="text-xl" aria-hidden="true">💳</span>
+                    <CreditCard className="h-5 w-5" /> : 
+                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M9.5 13.75C9.5 14.72 10.25 15.5 11.17 15.5H13.05C13.85 15.5 14.5 14.82 14.5 13.97C14.5 13.06 14.1 12.73 13.51 12.52L10.5 11.47C9.91 11.26 9.51 10.94 9.51 10.02C9.51 9.18 10.16 8.49 10.96 8.49H12.84C13.76 8.49 14.51 9.27 14.51 10.24" />
+                      <path d="M12 7.5V16.5" />
+                    </svg>
                   }
                 </div>
                 <div>
@@ -457,6 +471,41 @@ const SettingsView: React.FC = () => {
           <CreditCard className="h-5 w-5" />
           <span className="font-medium">Add Payment Method</span>
         </motion.button>
+      </div>
+      
+      <div className="mt-6 pt-6 border-t border-gray-800">
+        <h3 className="text-lg font-bold mb-4">Payment History</h3>
+        
+        <div className="space-y-3">
+          {[
+            { date: 'Feb 15, 2025', amount: 2500, method: 'PayPal', status: 'Completed' },
+            { date: 'Jan 15, 2025', amount: 1800, method: 'Bank Transfer', status: 'Completed' },
+            { date: 'Dec 15, 2024', amount: 3200, method: 'PayPal', status: 'Completed' }
+          ].map((payment, index) => (
+            <div key={index} className="p-4 bg-black/40 border border-gray-800 rounded-lg">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <div className="text-sm text-gray-400">Date</div>
+                  <div className="font-medium">{payment.date}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-400">Amount</div>
+                  <div className="font-bold">${payment.amount.toLocaleString()}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-400">Method</div>
+                  <div>{payment.method}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-400">Status</div>
+                  <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-red-900/20 text-red-400 text-xs font-medium">
+                    {payment.status}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
       
       <div className="mt-6 pt-6 border-t border-gray-800">
@@ -550,7 +599,9 @@ const SettingsView: React.FC = () => {
       <main 
         className="flex-grow bg-black/40 border border-gray-800 rounded-lg p-6"
         role="region"
-        aria-label={`${navItems.find(item => item.id === activeSection)?.label || 'Settings'} section`}
+        aria-label={`${activeSection === 'profile' ? 'Profile Settings' : 
+                     activeSection === 'accounts' ? 'Connected Platforms' : 
+                     activeSection === 'payments' ? 'Payment Settings' : 'Settings'} section`}
       >
         <div className="mb-6 flex justify-between items-center">
           <h2 className="text-xl font-bold">

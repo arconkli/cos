@@ -9,7 +9,7 @@ const NavigationTabs: React.FC<{
   setActiveView: (view: 'campaigns' | 'analytics' | 'payments' | 'settings') => void;
 }> = memo(({ activeView, setActiveView }) => {
   return (
-    <div className="mb-6 md:mb-8 flex overflow-x-auto custom-scrollbar border-b border-gray-800 relative z-20">
+    <div className="mb-6 md:mb-8 flex overflow-x-auto scrollbar-none relative z-20 border-b border-gray-800">
       <motion.button
         className={`px-4 md:px-6 py-3 font-medium relative whitespace-nowrap ${
           activeView === 'campaigns' ? 'text-white' : 'text-gray-400'
