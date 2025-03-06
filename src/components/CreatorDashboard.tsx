@@ -848,18 +848,18 @@ const AnalyticsView = memo(() => {
 
 AnalyticsView.displayName = 'AnalyticsView';
 
-// PaymentsView Component - Simplified
+// PaymentsView Component - Updated with better payment history layout
 const PaymentsView = memo(() => {
   return (
     <div className="space-y-10">
       {/* Payment Summary */}
       <section aria-labelledby="payment-summary" className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <h2 id="payment-summary" className="sr-only">Payment Summary</h2>
-        
+
         <div className="p-6 rounded-lg bg-black/40 border border-gray-800">
           <h3 className="text-xl font-medium mb-2 text-gray-300">Total Earned</h3>
           <p className="text-3xl font-bold mb-3 text-white">$74,600</p>
-          <div className="flex items-center text-sm text-green-400">
+          <div className="flex items-center text-sm text-red-400">
             <TrendingUp className="h-4 w-4 mr-1" aria-hidden="true" />
             <span>+23% from last period</span>
           </div>
@@ -874,7 +874,7 @@ const PaymentsView = memo(() => {
         <div className="p-6 rounded-lg bg-black/40 border border-gray-800">
           <h3 className="text-xl font-medium mb-2 text-gray-300">Average Per Campaign</h3>
           <p className="text-3xl font-bold mb-3 text-white">$350</p>
-          <div className="flex items-center text-sm text-green-400">
+          <div className="flex items-center text-sm text-red-400">
             <TrendingUp className="h-4 w-4 mr-1" aria-hidden="true" />
             <span>+12% from last period</span>
           </div>
@@ -887,7 +887,7 @@ const PaymentsView = memo(() => {
           <h2 id="payment-history" className="text-xl font-bold text-white">Payment History</h2>
           <div className="flex items-center">
             <select
-              className="px-3 py-1 bg-transparent border border-gray-700 rounded text-sm focus:outline-none focus:border-red-500 text-gray-300"
+              className="px-3 py-2 bg-black/60 border border-gray-700 rounded text-sm focus:outline-none focus:border-red-500 text-gray-300"
               aria-label="Filter by time period"
             >
               <option value="6M">Last 6 Months</option>
@@ -897,43 +897,41 @@ const PaymentsView = memo(() => {
           </div>
         </div>
 
-        <div className="overflow-x-auto" tabIndex={0} aria-label="Payment history table with dates, amounts, and status">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-800 text-left">
-                <th className="py-3 font-medium text-gray-400">Date</th>
-                <th className="py-3 font-medium text-gray-400">Amount</th>
-                <th className="py-3 font-medium text-gray-400">Method</th>
-                <th className="py-3 font-medium text-gray-400">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                { date: 'Feb 15, 2025', amount: 2500, method: 'PayPal', status: 'Completed' },
-                { date: 'Jan 15, 2025', amount: 1800, method: 'Bank Transfer', status: 'Completed' },
-                { date: 'Dec 15, 2024', amount: 3200, method: 'PayPal', status: 'Completed' }
-              ].map((payment, index) => (
-                <tr
-                  key={index}
-                  className="border-b border-gray-800 hover:bg-white/5 transition-colors"
-                >
-                  <td className="py-4 text-gray-300">{payment.date}</td>
-                  <td className="py-4 font-bold text-white">${payment.amount.toLocaleString()}</td>
-                  <td className="py-4 text-gray-300">{payment.method}</td>
-                  <td className="py-4">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-green-900/20 text-green-400 text-xs font-medium">
-                      {payment.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* Updated payment history layout */}
+        <div className="space-y-3" tabIndex={0} aria-label="Payment history list">
+          {[
+            { date: 'Feb 15, 2025', amount: 2500, method: 'PayPal', status: 'Completed' },
+            { date: 'Jan 15, 2025', amount: 1800, method: 'Bank Transfer', status: 'Completed' },
+            { date: 'Dec 15, 2024', amount: 3200, method: 'PayPal', status: 'Completed' }
+          ].map((payment, index) => (
+            <div key={index} className="p-4 bg-black/40 border border-gray-800 rounded-lg">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <div className="text-sm text-gray-400">Date</div>
+                  <div className="font-medium text-gray-300">{payment.date}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-400">Amount</div>
+                  <div className="font-bold text-white">${payment.amount.toLocaleString()}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-400">Method</div>
+                  <div className="text-gray-300">{payment.method}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-400">Status</div>
+                  <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-green-900/20 text-green-400 text-xs font-medium">
+                    {payment.status}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className="mt-6 text-center">
           <button
-            className="px-4 py-2 border border-gray-700 rounded-lg hover:bg-black/60 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 text-gray-300"
+            className="px-5 py-2 border border-gray-700 rounded-lg hover:bg-black/60 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 text-gray-300"
           >
             View All Transactions
           </button>
@@ -954,7 +952,7 @@ const PaymentsView = memo(() => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-4 rounded-lg bg-white/5 border border-gray-800 relative">
+          <div className="p-4 rounded-lg bg-black/40 border border-gray-800 relative">
             <div className="absolute top-2 right-2">
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-green-900/20 text-green-400 text-xs font-medium">
                 Default
@@ -962,10 +960,11 @@ const PaymentsView = memo(() => {
             </div>
             <div className="flex items-center gap-3 mb-3">
               <div className="p-2 rounded-full bg-gray-800">
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" strokeWidth="2" stroke="currentColor">
-                  <rect x="3" y="5" width="18" height="14" rx="2" />
-                  <line x1="3" y1="10" x2="21" y2="10" />
+                {/* Replace with CreditCard icon from lucide-react */}
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6 text-gray-300">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 2.25 19.5Z" />
                 </svg>
+
               </div>
               <div>
                 <p className="font-medium text-gray-300">Bank Account</p>
@@ -979,11 +978,12 @@ const PaymentsView = memo(() => {
             </div>
           </div>
 
-          <div className="p-4 rounded-lg bg-white/5 border border-gray-800">
+          <div className="p-4 rounded-lg bg-black/40 border border-gray-800">
             <div className="flex items-center gap-3 mb-3">
               <div className="p-2 rounded-full bg-gray-800">
-                <svg className="h-5 w-5 text-blue-400" viewBox="0 0 24 24" fill="none" strokeWidth="2" stroke="currentColor">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M9.5 13.75C9.5 14.72 10.25 15.5 11.17 15.5H13.05C13.85 15.5 14.5 14.82 14.5 13.97C14.5 13.06 14.1 12.73 13.51 12.52L10.5 11.47C9.91 11.26 9.51 10.94 9.51 10.02C9.51 9.18 10.16 8.49 10.96 8.49H12.84C13.76 8.49 14.51 9.27 14.51 10.24" />
+                  <path d="M12 7.5V16.5" />
                 </svg>
               </div>
               <div>

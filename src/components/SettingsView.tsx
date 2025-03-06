@@ -474,41 +474,6 @@ const SettingsView: React.FC = () => {
       </div>
       
       <div className="mt-6 pt-6 border-t border-gray-800">
-        <h3 className="text-lg font-bold mb-4">Payment History</h3>
-        
-        <div className="space-y-3">
-          {[
-            { date: 'Feb 15, 2025', amount: 2500, method: 'PayPal', status: 'Completed' },
-            { date: 'Jan 15, 2025', amount: 1800, method: 'Bank Transfer', status: 'Completed' },
-            { date: 'Dec 15, 2024', amount: 3200, method: 'PayPal', status: 'Completed' }
-          ].map((payment, index) => (
-            <div key={index} className="p-4 bg-black/40 border border-gray-800 rounded-lg">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <div className="text-sm text-gray-400">Date</div>
-                  <div className="font-medium">{payment.date}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-400">Amount</div>
-                  <div className="font-bold">${payment.amount.toLocaleString()}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-400">Method</div>
-                  <div>{payment.method}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-400">Status</div>
-                  <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-red-900/20 text-red-400 text-xs font-medium">
-                    {payment.status}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-      
-      <div className="mt-6 pt-6 border-t border-gray-800">
         <h3 className="text-lg font-bold mb-4">Account Management</h3>
         
         <motion.button
