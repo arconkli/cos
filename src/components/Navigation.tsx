@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { LogOut, ArrowUpRight, User } from 'lucide-react';
+import { LogOut, ArrowUpRight, User, LogIn } from 'lucide-react';
 import { useOnboarding } from './OnboardingProvider';
 
 interface NavigationProps {
@@ -37,6 +37,11 @@ const Navigation: React.FC<NavigationProps> = ({ isLoggedIn = false }) => {
   };
 
   const handleLogin = () => {
+    // Open the login modal by dispatching a custom event
+    document.dispatchEvent(new CustomEvent('openLogin'));
+  };
+
+  const handleJoin = () => {
     // Always redirect to the full onboarding page
     router.push('/onboarding');
   };
@@ -87,18 +92,35 @@ const Navigation: React.FC<NavigationProps> = ({ isLoggedIn = false }) => {
           )}
           
           {!authStatus && (
-            <motion.button
-              onClick={handleLogin}
-              className="px-3 py-1.5 md:px-6 md:py-2 border-2 border-red-500 rounded-lg flex items-center gap-2 text-white"
-              whileHover={{ scale: 1.05, backgroundColor: "rgba(255,68,68,0.1)" }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            >
-              <span>Join as Creator</span>
-              <ArrowUpRight className="h-4 w-4" />
-            </motion.button>
+            <>
+              {/* Login Button */}
+              <motion.button
+                onClick={handleLogin}
+                className="px-3 py-1.5 md:px-4 md:py-2 border border-gray-600 hover:border-gray-400 rounded-lg text-white flex items-center gap-2"
+                whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
+                whileTap={{ scale: 0.98 }}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              >
+                <span>Login</span>
+                <LogIn className="h-4 w-4" />
+              </motion.button>
+              
+              {/* Join as Creator Button */}
+              <motion.button
+                onClick={handleJoin}
+                className="px-3 py-1.5 md:px-6 md:py-2 border-2 border-red-500 rounded-lg flex items-center gap-2 text-white"
+                whileHover={{ scale: 1.05, backgroundColor: "rgba(255,68,68,0.1)" }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.1 }}
+              >
+                <span>Join as Creator</span>
+                <ArrowUpRight className="h-4 w-4" />
+              </motion.button>
+            </>
           )}
         </div>
       </div>

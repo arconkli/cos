@@ -1,4 +1,3 @@
-// src/app/page.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -10,7 +9,6 @@ import {
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import Navigation from '@/components/Navigation';
-// Import updated LoginModal (you'll need to replace the original component)
 import LoginModal from '@/components/LoginModal';
 import { useRouter } from 'next/navigation';
 import { useOnboarding } from '@/components/OnboardingProvider';
