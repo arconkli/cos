@@ -258,9 +258,9 @@ const SettingsView: React.FC = () => {
         <h3 className="text-lg font-bold mb-4">Notification Preferences</h3>
         
         <div className="space-y-3 max-w-md">
-          <div className="flex items-center justify-between p-3 bg-gray-900 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-black/40 border border-gray-800 rounded-lg">
             <div className="flex items-center gap-2">
-              <Bell className="h-5 w-5 text-blue-400" />
+              <Bell className="h-5 w-5 text-red-400" />
               <span>Email Notifications</span>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
@@ -276,9 +276,9 @@ const SettingsView: React.FC = () => {
             </label>
           </div>
           
-          <div className="flex items-center justify-between p-3 bg-gray-900 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-black/40 border border-gray-800 rounded-lg">
             <div className="flex items-center gap-2">
-              <Check className="h-5 w-5 text-green-400" />
+              <Check className="h-5 w-5 text-gray-300" />
               <span>Campaign Alerts</span>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
@@ -294,9 +294,9 @@ const SettingsView: React.FC = () => {
             </label>
           </div>
           
-          <div className="flex items-center justify-between p-3 bg-gray-900 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-black/40 border border-gray-800 rounded-lg">
             <div className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5 text-yellow-400" />
+              <CreditCard className="h-5 w-5 text-gray-300" />
               <span>Payment Notifications</span>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
@@ -325,7 +325,7 @@ const SettingsView: React.FC = () => {
         {connectedAccounts.map((account, index) => (
           <div 
             key={index}
-            className="p-4 bg-gray-900 rounded-lg"
+            className="p-4 bg-black/40 border border-gray-800 rounded-lg"
           >
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
               <div className="flex items-center gap-3">
@@ -340,7 +340,7 @@ const SettingsView: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <span className="font-bold capitalize">{account.platform}</span>
                     {account.isVerified && (
-                      <span className="text-xs bg-green-900 bg-opacity-30 text-green-400 px-2 py-0.5 rounded-full">
+                      <span className="text-xs bg-red-900/30 text-red-400 px-2 py-0.5 rounded-full">
                         Verified
                       </span>
                     )}
@@ -393,11 +393,11 @@ const SettingsView: React.FC = () => {
         {paymentMethods.map((method) => (
           <div 
             key={method.id}
-            className={`p-4 ${method.default ? 'bg-green-900 bg-opacity-10 border border-green-500 border-opacity-30' : 'bg-gray-900'} rounded-lg`}
+            className={`p-4 ${method.default ? 'bg-red-900/10 border border-red-500/30' : 'bg-black/40 border border-gray-800'} rounded-lg`}
           >
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-full ${method.default ? 'bg-green-900 bg-opacity-20' : 'bg-gray-800'}`}>
+                <div className={`p-2 rounded-full ${method.default ? 'bg-red-900/20' : 'bg-gray-800'}`}>
                   {method.type === 'bank' ? 
                     <span aria-hidden="true">🏦</span> : 
                     <span aria-hidden="true">💳</span>
@@ -409,7 +409,7 @@ const SettingsView: React.FC = () => {
                       {method.type === 'bank' ? 'Bank Account' : 'PayPal'}
                     </span>
                     {method.default && (
-                      <span className="text-xs bg-green-900 bg-opacity-30 text-green-400 px-2 py-0.5 rounded-full">
+                      <span className="text-xs bg-red-900/30 text-red-400 px-2 py-0.5 rounded-full">
                         Default
                       </span>
                     )}
@@ -474,7 +474,7 @@ const SettingsView: React.FC = () => {
   const SuccessNotification = () => (
     showSuccess ? (
       <div 
-        className="fixed top-4 right-4 flex items-center gap-2 px-4 py-2 bg-green-900 bg-opacity-90 text-green-400 rounded-lg shadow-lg"
+        className="fixed top-4 right-4 flex items-center gap-2 px-4 py-2 bg-red-900/90 text-white rounded-lg shadow-lg"
         role="alert"
       >
         <Check className="h-5 w-5" />
@@ -516,7 +516,7 @@ const SettingsView: React.FC = () => {
       
       {/* Settings navigation - simplified */}
       <nav 
-        className="w-full md:w-64 flex-shrink-0 bg-gray-900 rounded-lg overflow-hidden"
+        className="w-full md:w-64 flex-shrink-0 bg-black/40 border border-gray-800 rounded-lg overflow-hidden"
         aria-label="Settings navigation"
       >
         <div className="p-2">
@@ -543,7 +543,7 @@ const SettingsView: React.FC = () => {
       
       {/* Main content area - simplified */}
       <main 
-        className="flex-grow bg-gray-900 rounded-lg p-6"
+        className="flex-grow bg-black/40 border border-gray-800 rounded-lg p-6"
         role="region"
         aria-label={`${navItems.find(item => item.id === activeSection)?.label || 'Settings'} section`}
       >
