@@ -321,7 +321,7 @@ export default function HomePage() {
                 Join as Creator
               </button>
               <button 
-                className="px-8 py-4 bg-black border border-gray-600 hover:border-white text-white rounded-lg font-bold transition-colors hidden sm:block"
+                className="px-8 py-4 bg-black border border-gray-600 hover:border-white text-white rounded-lg font-bold transition-colors"
                 onClick={() => setShowLogin(true)}
               >
                 Login

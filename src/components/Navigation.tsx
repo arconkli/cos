@@ -95,33 +95,49 @@ const Navigation: React.FC<NavigationProps> = ({ isLoggedIn = false }) => {
           
           {!authStatus && (
             <>
-              {/* Login Button */}
-              <motion.button
-                onClick={handleLogin}
-                className="px-3 py-1.5 md:px-4 md:py-2 border border-gray-600 hover:border-gray-400 rounded-lg text-white flex items-center gap-2"
-                whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
-                whileTap={{ scale: 0.98 }}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              >
-                <span>Login</span>
-                <LogIn className="h-4 w-4" />
-              </motion.button>
+              {/* Mobile: Single Action Button */}
+              <div className="md:hidden">
+                <motion.button
+                  onClick={handleJoin}
+                  className="p-2 rounded-full bg-gradient-to-r from-red-500 to-red-700 flex items-center justify-center shadow-lg"
+                  whileHover={{ scale: 1.05, boxShadow: "0 0 10px rgba(255,68,68,0.3)" }}
+                  whileTap={{ scale: 0.98 }}
+                  aria-label="Sign up or login"
+                >
+                  <User className="h-5 w-5" />
+                </motion.button>
+              </div>
               
-              {/* Join as Creator Button */}
-              <motion.button
-                onClick={handleJoin}
-                className="px-3 py-1.5 md:px-6 md:py-2 border-2 border-red-500 rounded-lg flex items-center gap-2 text-white"
-                whileHover={{ scale: 1.05, backgroundColor: "rgba(255,68,68,0.1)" }}
-                whileTap={{ scale: 0.95 }}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.1 }}
-              >
-                <span>Join as Creator</span>
-                <ArrowUpRight className="h-4 w-4" />
-              </motion.button>
+              {/* Desktop: Separate Login & Join Buttons */}
+              <div className="hidden md:flex items-center gap-3">
+                {/* Login Button */}
+                <motion.button
+                  onClick={handleLogin}
+                  className="px-4 py-2 border border-gray-600 hover:border-gray-400 rounded-lg text-white flex items-center gap-2"
+                  whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
+                  whileTap={{ scale: 0.98 }}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                >
+                  <span>Login</span>
+                  <LogIn className="h-4 w-4" />
+                </motion.button>
+                
+                {/* Join as Creator Button */}
+                <motion.button
+                  onClick={handleJoin}
+                  className="px-6 py-2 border-2 border-red-500 rounded-lg flex items-center gap-2 text-white"
+                  whileHover={{ scale: 1.05, backgroundColor: "rgba(255,68,68,0.1)" }}
+                  whileTap={{ scale: 0.95 }}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.1 }}
+                >
+                  <span>Join as Creator</span>
+                  <ArrowUpRight className="h-4 w-4" />
+                </motion.button>
+              </div>
             </>
           )}
         </div>
