@@ -485,14 +485,16 @@ export default function HomePage() {
         <div
           className="border border-gray-800 p-6 rounded-lg mb-8"
         >
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold flex items-center gap-2 text-white">
-              <Eye className="h-6 w-6 text-blue-400" />
-              MONTHLY VIEWS IN MILLIONS_
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2 text-white">
+              <div className="flex items-center justify-center p-1 rounded-full bg-blue-900/30">
+                <Eye className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
+              </div>
+              <span className="whitespace-normal sm:whitespace-nowrap">MONTHLY VIEWS</span>
             </h2>
-            <div className="flex items-center gap-2 border border-gray-700 px-3 py-1 rounded">
+            <div className="flex items-center gap-2 border border-gray-700 px-3 py-1.5 rounded">
               <Calendar className="h-4 w-4 text-gray-400" />
-              <select className="bg-transparent border-none outline-none text-sm text-gray-300">
+              <select className="bg-transparent border-none outline-none text-xs sm:text-sm text-gray-300 pr-2">
                 <option value="6M">Last 6 Months</option>
                 <option value="1Y">Last Year</option>
                 <option value="ALL">All Time</option>
@@ -502,24 +504,32 @@ export default function HomePage() {
           
           <div className="h-64 md:h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={growthData}>
+              <LineChart data={growthData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                 <XAxis 
                   dataKey="month" 
-                  stroke="#FFFFFF" 
-                  tick={{ fill: '#FFFFFF' }}
+                  stroke="#9CA3AF" 
+                  tick={{ fill: '#FFFFFF', fontSize: 12 }}
+                  tickLine={{ stroke: '#4B5563' }}
+                  axisLine={{ stroke: '#4B5563' }}
+                  dy={10}
                 />
                 <YAxis 
-                  stroke="#FFFFFF"
-                  tick={{ fill: '#FFFFFF' }}
+                  stroke="#9CA3AF"
+                  tick={{ fill: '#FFFFFF', fontSize: 12 }}
+                  tickLine={{ stroke: '#4B5563' }}
+                  axisLine={{ stroke: '#4B5563' }}
+                  tickFormatter={(value) => `${value}M`}
+                  width={40}
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Line 
                   type="monotone" 
                   dataKey="views" 
+                  name="Views"
                   stroke="#4287f5"
                   strokeWidth={3}
-                  dot={{ fill: '#FFFFFF', r: 4, strokeWidth: 2 }}
+                  dot={{ fill: '#FFFFFF', r: 3, strokeWidth: 2 }}
                   activeDot={{ r: 6, fill: '#4287f5' }}
                 />
               </LineChart>
