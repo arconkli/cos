@@ -313,12 +313,20 @@ export default function HomePage() {
               <br /><br />
               No minimum follower requirements. No complex sign-up.
             </p>
-            <button 
-              className="px-8 py-4 bg-black border border-red-500 hover:bg-red-500 hover:text-black text-white rounded-lg font-bold transition-colors"
-              onClick={handleJoinCreator}
-            >
-              Join as Creator
-            </button>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button 
+                className="px-8 py-4 bg-gradient-to-r from-red-500 to-red-700 text-white rounded-lg font-bold transition-colors hover:shadow-lg hover:shadow-red-900/40"
+                onClick={handleJoinCreator}
+              >
+                Join as Creator
+              </button>
+              <button 
+                className="px-8 py-4 bg-black border border-gray-600 hover:border-white text-white rounded-lg font-bold transition-colors hidden sm:block"
+                onClick={() => setShowLogin(true)}
+              >
+                Login
+              </button>
+            </div>
           </div>
         </div>
 
