@@ -325,11 +325,12 @@ const SettingsView: React.FC = () => {
         {connectedAccounts.map((account, index) => (
           <div 
             key={index}
-            className="p-4 bg-black/40 border border-gray-800 rounded-lg"
+            className="p-5 bg-black/40 border border-gray-800 rounded-lg"
           >
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+            <div className="flex flex-col gap-4">
+              {/* Account info */}
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-gray-800 rounded-full">
+                <div className="p-2.5 bg-gray-800 rounded-full">
                   <span className="text-xl" aria-hidden="true">
                     {account.platform === 'youtube' ? '📹' : 
                      account.platform === 'instagram' ? '📸' : 
@@ -337,7 +338,7 @@ const SettingsView: React.FC = () => {
                   </span>
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center flex-wrap gap-2 mb-1">
                     <span className="font-bold capitalize">{account.platform}</span>
                     {account.isVerified && (
                       <span className="text-xs bg-red-900/30 text-red-400 px-2 py-0.5 rounded-full">
@@ -351,16 +352,17 @@ const SettingsView: React.FC = () => {
                 </div>
               </div>
               
-              <div className="flex gap-2 mt-2 sm:mt-0">
+              {/* Account actions */}
+              <div className="flex flex-wrap gap-3 justify-end">
                 <motion.button
-                  className="text-sm border border-gray-700 bg-gray-800 px-3 py-1 rounded-lg"
+                  className="text-sm border border-gray-700 bg-gray-800 px-3 py-1.5 rounded-lg"
                   whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
                   aria-label={`Refresh ${account.platform} data`}
                 >
                   Refresh
                 </motion.button>
                 <motion.button
-                  className="text-sm border border-red-500 border-opacity-40 text-red-400 px-3 py-1 rounded-lg"
+                  className="text-sm border border-red-500 border-opacity-40 text-red-400 px-3 py-1.5 rounded-lg"
                   whileHover={{ backgroundColor: "rgba(239,68,68,0.1)" }}
                   onClick={() => disconnectPlatform(account.platform)}
                   aria-label={`Disconnect ${account.platform} account`}
@@ -374,11 +376,11 @@ const SettingsView: React.FC = () => {
         
         {/* Add platform button */}
         <motion.button
-          className="w-full p-4 border border-dashed border-gray-700 rounded-lg flex items-center justify-center gap-2"
+          className="w-full p-5 border border-dashed border-gray-700 rounded-lg flex items-center justify-center gap-3"
           whileHover={{ borderColor: 'rgba(255,255,255,0.3)', backgroundColor: "rgba(255,255,255,0.03)" }}
         >
           <Link className="h-5 w-5" />
-          <span>Connect New Platform</span>
+          <span className="font-medium">Connect New Platform</span>
         </motion.button>
       </div>
     </div>
@@ -393,18 +395,20 @@ const SettingsView: React.FC = () => {
         {paymentMethods.map((method) => (
           <div 
             key={method.id}
-            className={`p-4 ${method.default ? 'bg-red-900/10 border border-red-500/30' : 'bg-black/40 border border-gray-800'} rounded-lg`}
+            className={`p-5 ${method.default ? 'bg-red-900/10 border border-red-500/30' : 'bg-black/40 border border-gray-800'} rounded-lg`}
           >
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+            {/* Main content area */}
+            <div className="flex flex-col gap-4">
+              {/* Payment method info */}
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-full ${method.default ? 'bg-red-900/20' : 'bg-gray-800'}`}>
+                <div className={`p-2.5 rounded-full ${method.default ? 'bg-red-900/20' : 'bg-gray-800'}`}>
                   {method.type === 'bank' ? 
-                    <span aria-hidden="true">🏦</span> : 
-                    <span aria-hidden="true">💳</span>
+                    <span className="text-xl" aria-hidden="true">🏦</span> : 
+                    <span className="text-xl" aria-hidden="true">💳</span>
                   }
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center flex-wrap gap-2 mb-1">
                     <span className="font-bold">
                       {method.type === 'bank' ? 'Bank Account' : 'PayPal'}
                     </span>
@@ -420,10 +424,11 @@ const SettingsView: React.FC = () => {
                 </div>
               </div>
               
-              <div className="flex gap-2 mt-2 sm:mt-0">
+              {/* Actions area - buttons in a separate row on mobile, aligned right on desktop */}
+              <div className="flex flex-wrap gap-3 justify-end mt-2">
                 {!method.default && (
                   <motion.button
-                    className="text-sm border border-gray-700 bg-gray-800 px-3 py-1 rounded-lg"
+                    className="text-sm border border-gray-700 bg-gray-800 px-3 py-1.5 rounded-lg"
                     whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
                     onClick={() => setDefaultPaymentMethod(method.id)}
                     aria-label={`Make ${method.type === 'bank' ? 'bank account' : 'PayPal'} default payment method`}
@@ -432,7 +437,7 @@ const SettingsView: React.FC = () => {
                   </motion.button>
                 )}
                 <motion.button
-                  className="text-sm border border-red-500 border-opacity-40 text-red-400 px-3 py-1 rounded-lg"
+                  className="text-sm border border-red-500 border-opacity-40 text-red-400 px-3 py-1.5 rounded-lg"
                   whileHover={{ backgroundColor: "rgba(239,68,68,0.1)" }}
                   onClick={() => removePaymentMethod(method.id)}
                   aria-label={`Remove ${method.type === 'bank' ? 'bank account' : 'PayPal'} payment method`}
@@ -446,11 +451,11 @@ const SettingsView: React.FC = () => {
         
         {/* Add payment method button */}
         <motion.button
-          className="w-full p-4 border border-dashed border-gray-700 rounded-lg flex items-center justify-center gap-2"
+          className="w-full p-5 border border-dashed border-gray-700 rounded-lg flex items-center justify-center gap-3"
           whileHover={{ borderColor: 'rgba(255,255,255,0.3)', backgroundColor: "rgba(255,255,255,0.03)" }}
         >
           <CreditCard className="h-5 w-5" />
-          <span>Add Payment Method</span>
+          <span className="font-medium">Add Payment Method</span>
         </motion.button>
       </div>
       
