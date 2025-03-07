@@ -2414,22 +2414,7 @@ const renderCreativeStep = () => (
               <h4 className="text-sm text-gray-400 mb-1">
                 Campaign Title & Goal
               </h4>
-              <p className="font-bold text-lg text-white">{formData.title}</p>
-              <p className="text-gray-300">
-                {formData.goal === 'awareness'
-                  ? 'Brand Awareness'
-                  : formData.goal === 'consideration'
-                  ? 'Content Promotion'
-                  : formData.goal === 'conversion'
-                  ? 'Drive Viewership/Streaming'
-                  : formData.goal === 'engagement'
-                  ? 'Community Engagement'
-                  : formData.goal === 'launch'
-                  ? 'New Release Promotion'
-                  : formData.goal === 'event'
-                  ? 'Event Promotion'
-                  : 'Other'}
-              </p>
+
             </div>
 
             <div>
