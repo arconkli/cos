@@ -420,11 +420,6 @@ const CampaignCreationPage = () => {
           newValue = '#' + newValue;
         }
 
-        // Ensure it includes 'ad' , but don't force to end.
-        if (newValue && !newValue.toLowerCase().includes('ad')) {
-          newValue = newValue + 'ad'; //Adds ad if not present
-        }
-
         setFormData((prevData) => ({
           ...prevData,
           hashtags: {
