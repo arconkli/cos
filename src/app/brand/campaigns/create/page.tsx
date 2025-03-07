@@ -1797,21 +1797,6 @@ const renderCreativeStep = () => (
                 <span className="px-3 py-1 rounded-full bg-red-900/20 text-red-400 text-sm">
                   NEW
                 </span>
-                <span className="px-3 py-1 rounded-full bg-white/5 text-sm text-gray-300">
-                  {formData.goal === 'awareness'
-                    ? 'Brand Awareness'
-                    : formData.goal === 'consideration'
-                    ? 'Content Promotion'
-                    : formData.goal === 'conversion'
-                    ? 'Drive Viewership'
-                    : formData.goal === 'engagement'
-                    ? 'Community Engagement'
-                    : formData.goal === 'launch'
-                    ? 'New Release'
-                    : formData.goal === 'event'
-                    ? 'Event Promotion'
-                    : 'Campaign'}
-                </span>
               </div>
             </div>
             <div className="text-sm text-gray-400 flex items-center">
@@ -2414,7 +2399,22 @@ const renderCreativeStep = () => (
               <h4 className="text-sm text-gray-400 mb-1">
                 Campaign Title & Goal
               </h4>
-
+              <p className="font-bold text-lg text-white">{formData.title}</p>
+              <p className="text-gray-300">
+                {formData.goal === 'awareness'
+                  ? 'Brand Awareness'
+                  : formData.goal === 'consideration'
+                  ? 'Content Promotion'
+                  : formData.goal === 'conversion'
+                  ? 'Drive Viewership/Streaming'
+                  : formData.goal === 'engagement'
+                  ? 'Community Engagement'
+                  : formData.goal === 'launch'
+                  ? 'New Release Promotion'
+                  : formData.goal === 'event'
+                  ? 'Event Promotion'
+                  : 'Other'}
+              </p>
             </div>
 
             <div>
