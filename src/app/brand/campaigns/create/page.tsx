@@ -7,7 +7,8 @@ import {
   ArrowLeft, ArrowRight, Calendar, Plus, Trash, Check,
   Upload, DollarSign, Target, Layers, Users, Clock, Hash,
   HelpCircle, ExternalLink, X, AlertCircle, CreditCard, Info, Eye,
-  FileText, Image, MessageSquare, Globe
+  FileText, Image, MessageSquare, Globe,
+  CalendarIcon
 } from 'lucide-react';
 
 // Interface for campaign form data
@@ -56,6 +57,11 @@ interface Step {
   isComplete: (data: CampaignFormData) => boolean;
 }
 
+// Interface for field errors
+interface FieldErrors {
+  [key: string]: string;
+}
+
 // Calculate estimated views based on budget and rates
 const calculateEstimatedViews = (
   budget: string, 
@@ -100,6 +106,8 @@ const CampaignCreationPage = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState<'start' | 'end' | null>(null);
+  const [validationErrors, setValidationErrors] = useState<FieldErrors>({});
   
   // Sample payment methods (in a real app, this would come from an API)
   const [paymentMethods, setPaymentMethods] = useState([
@@ -153,8 +161,8 @@ const CampaignCreationPage = () => {
       repurposed: '250'  // Default to $250 per 1M views for repurposed
     },
     hashtags: {
-      original: '#YourBrand',
-      repurposed: '#YourBrand'
+      original: '#YourBrand #ad',
+      repurposed: '#YourBrand #ad'
     },
     guidelines: {
       original: [''],
@@ -170,42 +178,111 @@ const CampaignCreationPage = () => {
     {
       title: 'Campaign Details',
       subtitle: 'Let\'s set up your basic campaign information',
-      isComplete: (data) => 
-        data.title.trim().length > 0 && 
-        data.goal.trim().length > 0 &&
-        (data.platforms.tiktok || data.platforms.instagram || 
-        data.platforms.youtube || data.platforms.twitter) &&
-        Boolean(data.contentType)
+      isComplete: (data) => {
+        let isValid = data.title.trim().length > 0 && 
+                      data.goal.trim().length > 0 &&
+                      (data.platforms.tiktok || data.platforms.instagram || 
+                      data.platforms.youtube || data.platforms.twitter) &&
+                      Boolean(data.contentType);
+        
+        // Update validation errors
+        const newErrors: FieldErrors = {};
+        if (!data.title.trim()) newErrors['title'] = 'Please enter a campaign title';
+        if (!data.goal) newErrors['goal'] = 'Please select a campaign goal';
+        if (!(data.platforms.tiktok || data.platforms.instagram || 
+              data.platforms.youtube || data.platforms.twitter)) {
+          newErrors['platforms'] = 'Please select at least one platform';
+        }
+        
+        // Only set errors if trying to proceed and validation fails
+        if (!isValid && step === 0) {
+          setValidationErrors(newErrors);
+        }
+        
+        return isValid;
+      }
     },
     {
       title: 'Content Guidelines',
       subtitle: 'Create your campaign brief, hashtags, and assets',
       isComplete: (data) => {
-        const validOriginalGuidelines = data.contentType === 'original' || data.contentType === 'both' 
-          ? data.guidelines.original.filter(g => g.trim().length > 0).length > 0
-          : true;
-        const validRepurposedGuidelines = data.contentType === 'repurposed' || data.contentType === 'both'
-          ? data.guidelines.repurposed.filter(g => g.trim().length > 0).length > 0
-          : true;
+        const newErrors: FieldErrors = {};
+        let isValid = true;
+        
+        // Validate dates
+        if (!data.startDate) {
+          newErrors['startDate'] = 'Please select a start date';
+          isValid = false;
+        }
+        if (!data.endDate) {
+          newErrors['endDate'] = 'Please select an end date';
+          isValid = false;
+        }
+        
+        // Validate original content if applicable
+        if (data.contentType === 'original' || data.contentType === 'both') {
+          // Check brief
+          if (!data.brief.original.trim()) {
+            newErrors['brief.original'] = 'Please provide a brief for original content';
+            isValid = false;
+          }
           
-        const validOriginalBrief = data.contentType === 'original' || data.contentType === 'both'
-          ? data.brief.original.trim().length > 0
-          : true;
-        const validRepurposedBrief = data.contentType === 'repurposed' || data.contentType === 'both'
-          ? data.brief.repurposed.trim().length > 0
-          : true;
+          // Check guidelines
+          const validGuidelinesOriginal = data.guidelines.original.filter(g => g.trim().length > 0).length > 0;
+          if (!validGuidelinesOriginal) {
+            newErrors['guidelines.original'] = 'Please add at least one guideline';
+            isValid = false;
+          }
           
-        const validOriginalHashtag = data.contentType === 'original' || data.contentType === 'both'
-          ? data.hashtags.original.toLowerCase().includes('#ad')
-          : true;
-        const validRepurposedHashtag = data.contentType === 'repurposed' || data.contentType === 'both'
-          ? data.hashtags.repurposed.toLowerCase().includes('#ad')
-          : true;
-            
-        return validOriginalGuidelines && validRepurposedGuidelines &&
-               validOriginalBrief && validRepurposedBrief &&
-               validOriginalHashtag && validRepurposedHashtag &&
-               data.startDate !== '' && data.endDate !== '';
+          // Check hashtag format
+          if (!data.hashtags.original.toLowerCase().includes('#ad')) {
+            newErrors['hashtags.original'] = 'Hashtag must include #ad';
+            isValid = false;
+          }
+          
+          // Check if more than one hashtag
+          const hashtagCount = data.hashtags.original.split(/\s+/).filter(tag => tag.startsWith('#')).length;
+          if (hashtagCount > 1) {
+            newErrors['hashtags.original'] = 'Please include only ONE hashtag with #ad in it';
+            isValid = false;
+          }
+        }
+        
+        // Validate repurposed content if applicable
+        if (data.contentType === 'repurposed' || data.contentType === 'both') {
+          // Check brief
+          if (!data.brief.repurposed.trim()) {
+            newErrors['brief.repurposed'] = 'Please provide a brief for repurposed content';
+            isValid = false;
+          }
+          
+          // Check guidelines
+          const validGuidelinesRepurposed = data.guidelines.repurposed.filter(g => g.trim().length > 0).length > 0;
+          if (!validGuidelinesRepurposed) {
+            newErrors['guidelines.repurposed'] = 'Please add at least one guideline';
+            isValid = false;
+          }
+          
+          // Check hashtag format
+          if (!data.hashtags.repurposed.toLowerCase().includes('#ad')) {
+            newErrors['hashtags.repurposed'] = 'Hashtag must include #ad';
+            isValid = false;
+          }
+          
+          // Check if more than one hashtag
+          const hashtagCount = data.hashtags.repurposed.split(/\s+/).filter(tag => tag.startsWith('#')).length;
+          if (hashtagCount > 1) {
+            newErrors['hashtags.repurposed'] = 'Please include only ONE hashtag with #ad in it';
+            isValid = false;
+          }
+        }
+        
+        // Only set errors if trying to proceed and validation fails
+        if (!isValid && step === 1) {
+          setValidationErrors(newErrors);
+        }
+        
+        return isValid;
       }
     },
     {
@@ -217,36 +294,82 @@ const CampaignCreationPage = () => {
       title: 'Budget & Rates',
       subtitle: 'Set your campaign budget for views',
       isComplete: (data) => {
+        const newErrors: FieldErrors = {};
+        let isValid = true;
+        
         const budgetValue = parseFloat(data.budget);
         const originalRateValue = parseFloat(data.payoutRate.original);
+        const repurposedRateValue = parseFloat(data.payoutRate.repurposed);
         
         // Check if budget is at least $1000
-        const validBudget = !isNaN(budgetValue) && budgetValue >= 1000;
+        if (isNaN(budgetValue) || budgetValue < 1000) {
+          newErrors['budget'] = 'Minimum budget is $1,000';
+          isValid = false;
+        }
         
         // Check original rate if applicable
-        const validOriginalRate = data.contentType === 'original' || data.contentType === 'both'
-          ? !isNaN(originalRateValue) && originalRateValue >= 500
-          : true;
+        if (data.contentType === 'original' || data.contentType === 'both') {
+          if (isNaN(originalRateValue) || originalRateValue < 500) {
+            newErrors['payoutRate.original'] = 'Minimum rate is $500 per 1M views';
+            isValid = false;
+          }
+        }
         
         // Check repurposed rate if applicable
-        const validRepurposedRate = data.contentType === 'repurposed' || data.contentType === 'both'
-          ? !isNaN(parseFloat(data.payoutRate.repurposed)) && parseFloat(data.payoutRate.repurposed) >= 250
-          : true;
+        if (data.contentType === 'repurposed' || data.contentType === 'both') {
+          if (isNaN(repurposedRateValue) || repurposedRateValue < 250) {
+            newErrors['payoutRate.repurposed'] = 'Minimum rate is $250 per 1M views';
+            isValid = false;
+          }
+        }
         
-        return validBudget && validOriginalRate && validRepurposedRate;
+        // Only set errors if trying to proceed and validation fails
+        if (!isValid && step === 3) {
+          setValidationErrors(newErrors);
+        }
+        
+        return isValid;
       }
     },
     {
       title: 'Payment Summary',
       subtitle: 'Review your payment details',
-      isComplete: (data) => 
-        data.paymentMethod !== ''
+      isComplete: (data) => {
+        const newErrors: FieldErrors = {};
+        let isValid = true;
+        
+        if (!data.paymentMethod) {
+          newErrors['paymentMethod'] = 'Please select a payment method';
+          isValid = false;
+        }
+        
+        // Only set errors if trying to proceed and validation fails
+        if (!isValid && step === 4) {
+          setValidationErrors(newErrors);
+        }
+        
+        return isValid;
+      }
     },
     {
       title: 'Final Review',
       subtitle: 'Review your campaign before submission',
-      isComplete: (data) => 
-        data.termsAccepted
+      isComplete: (data) => {
+        const newErrors: FieldErrors = {};
+        let isValid = true;
+        
+        if (!data.termsAccepted) {
+          newErrors['termsAccepted'] = 'Please accept the terms to continue';
+          isValid = false;
+        }
+        
+        // Only set errors if trying to proceed and validation fails
+        if (!isValid && step === 5) {
+          setValidationErrors(newErrors);
+        }
+        
+        return data.termsAccepted;
+      }
     }
   ];
   
@@ -256,13 +379,34 @@ const CampaignCreationPage = () => {
     if (!isBrandLoggedIn) {
       router.push('/brand/login');
     }
-  }, [router]);
+    
+    // Close date picker when clicking outside
+    const handleClickOutside = (e: MouseEvent) => {
+      if (showDatePicker && !(e.target as Element).closest('.date-picker-container')) {
+        setShowDatePicker(null);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [router, showDatePicker]);
   
   // Handle form input changes
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target;
+    
+    // Clear validation error when field is changed
+    if (validationErrors[name]) {
+      setValidationErrors(prev => {
+        const newErrors = {...prev};
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
     
     // For checkbox inputs, we need to handle the checked property
     if (type === 'checkbox') {
@@ -275,8 +419,30 @@ const CampaignCreationPage = () => {
       return;
     }
     
+    // Special handling for hashtags to enforce single hashtag
+    if (name === 'hashtags.original' || name === 'hashtags.repurposed') {
+      const hashtagType = name.split('.')[1] as 'original' | 'repurposed';
+      
+      // Always transform to a single hashtag containing #ad
+      let newValue = value.trim();
+      
+      // If no # at beginning, add it
+      if (newValue && !newValue.startsWith('#')) {
+        newValue = '#' + newValue;
+      }
+      
+      setFormData({
+        ...formData,
+        hashtags: {
+          ...formData.hashtags,
+          [hashtagType]: newValue
+        }
+      });
+      return;
+    }
+    
     if (name.includes('.')) {
-      // Handle nested fields (e.g., payoutRate.original)
+      // Handle nested fields (e.g., brief.original)
       const [parent, child, subChild] = name.split('.');
       
       if (subChild) {
@@ -299,7 +465,7 @@ const CampaignCreationPage = () => {
           });
         }
       } else {
-        // Handle regular nested fields (like payoutRate.original)
+        // Handle regular nested fields (like brief.original)
         const parentKey = parent as keyof typeof formData;
         const parentObj = formData[parentKey] as any;
         
@@ -321,6 +487,15 @@ const CampaignCreationPage = () => {
   
   // Handle checkbox changes for platforms
   const handlePlatformChange = (platform: keyof typeof formData.platforms) => {
+    // Clear platform validation error
+    if (validationErrors['platforms']) {
+      setValidationErrors(prev => {
+        const newErrors = {...prev};
+        delete newErrors['platforms'];
+        return newErrors;
+      });
+    }
+    
     setFormData({
       ...formData,
       platforms: {
@@ -341,19 +516,43 @@ const CampaignCreationPage = () => {
     });
   };
   
-  // Handle hashtag changes with #ad validation
-  const handleHashtagChange = (type: 'original' | 'repurposed', value: string) => {
-    setFormData({
-      ...formData,
-      hashtags: {
-        ...formData.hashtags,
-        [type]: value
-      }
-    });
+  // Handle date selection from calendar
+  const handleDateSelect = (type: 'start' | 'end', date: string) => {
+    // Clear any date-related validation errors
+    if (validationErrors[`${type}Date`]) {
+      setValidationErrors(prev => {
+        const newErrors = {...prev};
+        delete newErrors[`${type}Date`];
+        return newErrors;
+      });
+    }
+    
+    if (type === 'start') {
+      setFormData({
+        ...formData,
+        startDate: date
+      });
+    } else {
+      setFormData({
+        ...formData,
+        endDate: date
+      });
+    }
+    
+    setShowDatePicker(null);
   };
   
   // Handle adding/removing guidelines for a specific content type
   const handleAddGuideline = (type: 'original' | 'repurposed') => {
+    // Clear guidelines validation error
+    if (validationErrors[`guidelines.${type}`]) {
+      setValidationErrors(prev => {
+        const newErrors = {...prev};
+        delete newErrors[`guidelines.${type}`];
+        return newErrors;
+      });
+    }
+    
     setFormData({
       ...formData,
       guidelines: {
@@ -364,6 +563,15 @@ const CampaignCreationPage = () => {
   };
   
   const handleGuidelineChange = (type: 'original' | 'repurposed', index: number, value: string) => {
+    // Clear guidelines validation error
+    if (validationErrors[`guidelines.${type}`]) {
+      setValidationErrors(prev => {
+        const newErrors = {...prev};
+        delete newErrors[`guidelines.${type}`];
+        return newErrors;
+      });
+    }
+    
     const newGuidelines = [...formData.guidelines[type]];
     newGuidelines[index] = value;
     
@@ -420,15 +628,24 @@ const CampaignCreationPage = () => {
   
   // Navigate between steps
   const handleNext = () => {
-    if (step < steps.length - 1) {
-      setStep(step + 1);
-      window.scrollTo(0, 0);
-    } else {
-      setShowPreview(true);
+    // Clear any previous validation errors
+    setValidationErrors({});
+    
+    // Only proceed if current step is valid
+    if (steps[step].isComplete(formData)) {
+      if (step < steps.length - 1) {
+        setStep(step + 1);
+        window.scrollTo(0, 0);
+      } else {
+        setShowPreview(true);
+      }
     }
   };
   
   const handleBack = () => {
+    // Clear any validation errors when going back
+    setValidationErrors({});
+    
     if (step > 0) {
       setStep(step - 1);
       window.scrollTo(0, 0);
@@ -487,6 +704,123 @@ const CampaignCreationPage = () => {
     }, 2500);
   };
   
+  // Generate calendar dates for the date picker
+  const generateCalendarDates = (year: number, month: number) => {
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    
+    // Create an array to hold all days
+    const days = [];
+    
+    // Add empty spaces for days before the first day of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
+    }
+    
+    // Add all days of the month
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(new Date(year, month, i));
+    }
+    
+    return days;
+  };
+  
+  // Create a custom calendar component
+  const Calendar = ({ type, onSelect }: { type: 'start' | 'end', onSelect: (date: string) => void }) => {
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+    
+    const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const calendarDates = generateCalendarDates(currentYear, currentMonth);
+    
+    const isDateDisabled = (date: Date | null) => {
+      if (!date) return true;
+      
+      // Convert to YYYY-MM-DD format for comparison
+      const dateStr = date.toISOString().split('T')[0];
+      const todayStr = today;
+      
+      // For start date, disable dates before today
+      if (type === 'start') {
+        return dateStr < todayStr;
+      }
+      
+      // For end date, disable dates before start date
+      return dateStr < formData.startDate;
+    };
+    
+    const handlePrevMonth = () => {
+      setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
+    };
+    
+    const handleNextMonth = () => {
+      setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
+    };
+    
+    const handleDateClick = (date: Date | null) => {
+      if (date && !isDateDisabled(date)) {
+        const dateStr = date.toISOString().split('T')[0];
+        onSelect(dateStr);
+      }
+    };
+    
+    return (
+      <div className="bg-black border border-gray-700 rounded-lg p-4 shadow-lg w-full max-w-xs">
+        <div className="flex justify-between items-center mb-4">
+          <button
+            onClick={handlePrevMonth}
+            className="p-1 hover:bg-gray-800 rounded-full"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          
+          <div className="font-bold">
+            {currentDate.toLocaleString('default', { month: 'long' })} {currentYear}
+          </div>
+          
+          <button
+            onClick={handleNextMonth}
+            className="p-1 hover:bg-gray-800 rounded-full"
+          >
+            <ArrowRight className="h-4 w-4" />
+          </button>
+        </div>
+        
+        <div className="grid grid-cols-7 gap-1 mb-2">
+          {daysOfWeek.map(day => (
+            <div key={day} className="text-center text-xs font-medium text-gray-400">
+              {day}
+            </div>
+          ))}
+        </div>
+        
+        <div className="grid grid-cols-7 gap-1">
+          {calendarDates.map((date, index) => (
+            <button
+              key={index}
+              onClick={() => handleDateClick(date)}
+              className={`
+                h-8 w-8 flex items-center justify-center rounded-full text-sm
+                ${date ? 'hover:bg-gray-700' : ''}
+                ${date && isDateDisabled(date) ? 'text-gray-600 cursor-not-allowed' : ''}
+                ${date && date.toISOString().split('T')[0] === (type === 'start' ? formData.startDate : formData.endDate) 
+                  ? 'bg-red-600 text-white' 
+                  : ''
+                }
+              `}
+              disabled={date ? isDateDisabled(date) : true}
+            >
+              {date ? date.getDate() : ''}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+  
   // Check if current step is complete
   const isCurrentStepComplete = () => {
     return steps[step].isComplete(formData);
@@ -516,7 +850,18 @@ const CampaignCreationPage = () => {
     return (num / 1000000).toFixed(1) + 'M';
   };
   
-  // Render STEP 1: Campaign Details step (now combined with platforms & content type)
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+  
+  // Render STEP 1: Campaign Details step
   const renderDetailsStep = () => (
     <div className="space-y-6">
       <div>
@@ -529,10 +874,15 @@ const CampaignCreationPage = () => {
           type="text"
           value={formData.title}
           onChange={handleChange}
-          className="w-full p-3 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 outline-none"
+          className={`w-full p-3 bg-transparent border rounded-lg focus:outline-none ${
+            validationErrors['title'] ? 'border-red-500' : 'border-gray-700 focus:border-red-500'
+          }`}
           placeholder="e.g., Summer Movie Launch"
           required
         />
+        {validationErrors['title'] && (
+          <p className="mt-1 text-sm text-red-500">{validationErrors['title']}</p>
+        )}
       </div>
       
       <div>
@@ -544,7 +894,9 @@ const CampaignCreationPage = () => {
           name="goal"
           value={formData.goal}
           onChange={handleChange}
-          className="w-full p-3 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 outline-none"
+          className={`w-full p-3 bg-transparent border rounded-lg focus:outline-none ${
+            validationErrors['goal'] ? 'border-red-500' : 'border-gray-700 focus:border-red-500'
+          }`}
           required
         >
           <option value="">Select a primary goal</option>
@@ -556,6 +908,9 @@ const CampaignCreationPage = () => {
           <option value="event">Event Promotion</option>
           <option value="other">Other</option>
         </select>
+        {validationErrors['goal'] && (
+          <p className="mt-1 text-sm text-red-500">{validationErrors['goal']}</p>
+        )}
       </div>
       
       <div className="mt-8">
@@ -566,7 +921,9 @@ const CampaignCreationPage = () => {
           </label>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 ${
+          validationErrors['platforms'] ? 'border border-red-500 rounded-lg p-4' : ''
+        }`}>
           <div
             className={`p-4 border rounded-lg flex flex-col items-center cursor-pointer transition-colors ${
               formData.platforms.tiktok 
@@ -624,6 +981,9 @@ const CampaignCreationPage = () => {
             <span className="font-medium">X/Twitter</span>
           </div>
         </div>
+        {validationErrors['platforms'] && (
+          <p className="mt-1 text-sm text-red-500">{validationErrors['platforms']}</p>
+        )}
       </div>
       
       <div className="mt-8">
@@ -699,49 +1059,73 @@ const CampaignCreationPage = () => {
   // Render STEP 2: Content Guidelines with separate sections for each content type
   const renderCreativeStep = () => (
     <div className="space-y-8">
-      {/* Campaign Dates */}
-      <div>
+      {/* Campaign Dates - Improved with calendar selector */}
+      <div className="p-6 border border-gray-800 rounded-lg bg-black/40">
         <h3 className="text-lg font-medium mb-4">Campaign Dates</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <Calendar className="h-5 w-5 text-orange-400" />
+              <CalendarIcon className="h-5 w-5 text-orange-400" />
               <label htmlFor="startDate" className="block text-sm font-medium text-gray-300">
                 Start Date <span className="text-red-500">*</span>
               </label>
             </div>
-            <div className="relative">
-              <input
-                id="startDate"
-                name="startDate"
-                type="date"
-                value={formData.startDate}
-                onChange={handleChange}
-                min={today}
-                className="w-full p-3 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 outline-none"
-                required
-              />
+            <div className="relative date-picker-container">
+              <div 
+                className={`w-full p-3 bg-transparent border rounded-lg cursor-pointer flex items-center justify-between ${
+                  validationErrors['startDate'] ? 'border-red-500' : 'border-gray-700'
+                }`}
+                onClick={() => setShowDatePicker('start')}
+              >
+                <div>{formData.startDate ? formatDate(formData.startDate) : 'Select start date'}</div>
+                <CalendarIcon className="h-5 w-5 text-gray-500" />
+              </div>
+              
+              {showDatePicker === 'start' && (
+                <div className="absolute z-10 mt-2">
+                  <Calendar 
+                    type="start" 
+                    onSelect={(date) => handleDateSelect('start', date)} 
+                  />
+                </div>
+              )}
+              
+              {validationErrors['startDate'] && (
+                <p className="mt-1 text-sm text-red-500">{validationErrors['startDate']}</p>
+              )}
             </div>
           </div>
           
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <Calendar className="h-5 w-5 text-red-400" />
+              <CalendarIcon className="h-5 w-5 text-red-400" />
               <label htmlFor="endDate" className="block text-sm font-medium text-gray-300">
                 End Date <span className="text-red-500">*</span>
               </label>
             </div>
-            <div className="relative">
-              <input
-                id="endDate"
-                name="endDate"
-                type="date"
-                value={formData.endDate}
-                onChange={handleChange}
-                min={formData.startDate || today}
-                className="w-full p-3 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 outline-none"
-                required
-              />
+            <div className="relative date-picker-container">
+              <div 
+                className={`w-full p-3 bg-transparent border rounded-lg cursor-pointer flex items-center justify-between ${
+                  validationErrors['endDate'] ? 'border-red-500' : 'border-gray-700'
+                }`}
+                onClick={() => setShowDatePicker('end')}
+              >
+                <div>{formData.endDate ? formatDate(formData.endDate) : 'Select end date'}</div>
+                <CalendarIcon className="h-5 w-5 text-gray-500" />
+              </div>
+              
+              {showDatePicker === 'end' && (
+                <div className="absolute z-10 mt-2">
+                  <Calendar 
+                    type="end" 
+                    onSelect={(date) => handleDateSelect('end', date)} 
+                  />
+                </div>
+              )}
+              
+              {validationErrors['endDate'] && (
+                <p className="mt-1 text-sm text-red-500">{validationErrors['endDate']}</p>
+              )}
             </div>
             <p className="text-xs text-gray-500 mt-1">
               Campaigns run for a minimum of 30 days. If your campaign budget is not fully used,
@@ -766,11 +1150,16 @@ const CampaignCreationPage = () => {
               name="brief.original"
               value={formData.brief.original}
               onChange={handleChange}
-              className="w-full p-3 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 outline-none min-h-32"
+              className={`w-full p-3 bg-transparent border rounded-lg focus:outline-none min-h-32 ${
+                validationErrors['brief.original'] ? 'border-red-500' : 'border-gray-700 focus:border-red-500'
+              }`}
               placeholder="Describe what you want creators to make for your campaign..."
               required
               rows={4}
             />
+            {validationErrors['brief.original'] && (
+              <p className="mt-1 text-sm text-red-500">{validationErrors['brief.original']}</p>
+            )}
             <p className="text-xs text-gray-500 mt-1">
               Be specific about your entertainment brand, show, movie, or event that you want creators to showcase.
             </p>
@@ -800,14 +1189,16 @@ const CampaignCreationPage = () => {
               </p>
             </div>
             
-            <div className="space-y-3">
+            <div className={`space-y-3 ${
+              validationErrors['guidelines.original'] ? 'border border-red-500 rounded-lg p-4' : ''
+            }`}>
               {formData.guidelines.original.map((guideline, index) => (
                 <div key={index} className="flex items-center gap-2">
                   <input
                     type="text"
                     value={guideline}
                     onChange={(e) => handleGuidelineChange('original', index, e.target.value)}
-                    className="flex-1 p-3 bg-transparent border border-gray-700 rounded-lg focus:border-green-500 outline-none"
+                    className="flex-1 p-3 bg-transparent border border-gray-700 rounded-lg focus:border-green-500 focus:outline-none"
                     placeholder="e.g., Show excitement for our upcoming movie premiere"
                   />
                   {index > 0 && (
@@ -823,9 +1214,12 @@ const CampaignCreationPage = () => {
                 </div>
               ))}
             </div>
+            {validationErrors['guidelines.original'] && (
+              <p className="mt-1 text-sm text-red-500">{validationErrors['guidelines.original']}</p>
+            )}
           </div>
           
-          {/* Campaign Hashtag */}
+          {/* Campaign Hashtag - Improved single hashtag validation */}
           <div>
             <div className="flex items-center gap-2 mb-3">
               <Hash className="h-5 w-5 text-purple-400" />
@@ -839,8 +1233,8 @@ const CampaignCreationPage = () => {
                 <AlertCircle className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm text-gray-400">
-                    <span className="text-yellow-400 font-medium">Hashtag must include #ad</span> to comply with 
-                    disclosure requirements.
+                    <span className="text-yellow-400 font-medium">Include ONE hashtag with #ad</span> in it (e.g., #NetflixAd).
+                    This is required for disclosure compliance.
                   </p>
                 </div>
               </div>
@@ -849,18 +1243,14 @@ const CampaignCreationPage = () => {
             <input
               type="text"
               value={formData.hashtags.original}
-              onChange={(e) => handleHashtagChange('original', e.target.value)}
-              className={`w-full p-3 bg-transparent border rounded-lg outline-none ${
-                formData.hashtags.original.toLowerCase().includes('#ad') 
-                  ? 'border-gray-700 focus:border-green-500' 
-                  : 'border-red-500 focus:border-red-500'
+              onChange={(e) => handleChange({ target: { name: 'hashtags.original', value: e.target.value } } as React.ChangeEvent<HTMLInputElement>)}
+              className={`w-full p-3 bg-transparent border rounded-lg focus:outline-none ${
+                validationErrors['hashtags.original'] ? 'border-red-500' : 'border-gray-700 focus:border-green-500'
               }`}
-              placeholder="#YourCampaign #ad"
+              placeholder="#YourBrandAd"
             />
-            {!formData.hashtags.original.toLowerCase().includes('#ad') && (
-              <p className="text-xs text-red-400 mt-1">
-                Hashtag must include #ad
-              </p>
+            {validationErrors['hashtags.original'] && (
+              <p className="mt-1 text-sm text-red-500">{validationErrors['hashtags.original']}</p>
             )}
           </div>
         </div>
@@ -881,11 +1271,16 @@ const CampaignCreationPage = () => {
               name="brief.repurposed"
               value={formData.brief.repurposed}
               onChange={handleChange}
-              className="w-full p-3 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 outline-none min-h-32"
+              className={`w-full p-3 bg-transparent border rounded-lg focus:outline-none min-h-32 ${
+                validationErrors['brief.repurposed'] ? 'border-red-500' : 'border-gray-700 focus:border-red-500'
+              }`}
               placeholder="Describe how creators should adapt their existing content for your campaign..."
               required
               rows={4}
             />
+            {validationErrors['brief.repurposed'] && (
+              <p className="mt-1 text-sm text-red-500">{validationErrors['brief.repurposed']}</p>
+            )}
             <p className="text-xs text-gray-500 mt-1">
               Explain how creators can adapt their existing content to feature your entertainment brand.
             </p>
@@ -915,14 +1310,16 @@ const CampaignCreationPage = () => {
               </p>
             </div>
             
-            <div className="space-y-3">
+            <div className={`space-y-3 ${
+              validationErrors['guidelines.repurposed'] ? 'border border-red-500 rounded-lg p-4' : ''
+            }`}>
               {formData.guidelines.repurposed.map((guideline, index) => (
                 <div key={index} className="flex items-center gap-2">
                   <input
                     type="text"
                     value={guideline}
                     onChange={(e) => handleGuidelineChange('repurposed', index, e.target.value)}
-                    className="flex-1 p-3 bg-transparent border border-gray-700 rounded-lg focus:border-blue-500 outline-none"
+                    className="flex-1 p-3 bg-transparent border border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none"
                     placeholder="e.g., Add our movie trailer to your existing reaction videos"
                   />
                   {index > 0 && (
@@ -938,9 +1335,12 @@ const CampaignCreationPage = () => {
                 </div>
               ))}
             </div>
+            {validationErrors['guidelines.repurposed'] && (
+              <p className="mt-1 text-sm text-red-500">{validationErrors['guidelines.repurposed']}</p>
+            )}
           </div>
           
-          {/* Campaign Hashtag */}
+          {/* Campaign Hashtag - Improved single hashtag validation */}
           <div>
             <div className="flex items-center gap-2 mb-3">
               <Hash className="h-5 w-5 text-purple-400" />
@@ -954,8 +1354,8 @@ const CampaignCreationPage = () => {
                 <AlertCircle className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm text-gray-400">
-                    <span className="text-yellow-400 font-medium">Hashtag must include #ad</span> to comply with 
-                    disclosure requirements.
+                    <span className="text-yellow-400 font-medium">Include ONE hashtag with #ad</span> in it (e.g., #NetflixAd).
+                    This is required for disclosure compliance.
                   </p>
                 </div>
               </div>
@@ -964,18 +1364,14 @@ const CampaignCreationPage = () => {
             <input
               type="text"
               value={formData.hashtags.repurposed}
-              onChange={(e) => handleHashtagChange('repurposed', e.target.value)}
-              className={`w-full p-3 bg-transparent border rounded-lg outline-none ${
-                formData.hashtags.repurposed.toLowerCase().includes('#ad') 
-                  ? 'border-gray-700 focus:border-blue-500' 
-                  : 'border-red-500 focus:border-red-500'
+              onChange={(e) => handleChange({ target: { name: 'hashtags.repurposed', value: e.target.value } } as React.ChangeEvent<HTMLInputElement>)}
+              className={`w-full p-3 bg-transparent border rounded-lg focus:outline-none ${
+                validationErrors['hashtags.repurposed'] ? 'border-red-500' : 'border-gray-700 focus:border-blue-500'
               }`}
-              placeholder="#YourCampaign #ad"
+              placeholder="#YourBrandAd"
             />
-            {!formData.hashtags.repurposed.toLowerCase().includes('#ad') && (
-              <p className="text-xs text-red-400 mt-1">
-                Hashtag must include #ad
-              </p>
+            {validationErrors['hashtags.repurposed'] && (
+              <p className="mt-1 text-sm text-red-500">{validationErrors['hashtags.repurposed']}</p>
             )}
           </div>
         </div>
@@ -1080,15 +1476,8 @@ const CampaignCreationPage = () => {
               </div>
             </div>
             <div className="text-sm text-gray-400 flex items-center">
-              <Calendar className="h-4 w-4 mr-1" />
-              {formData.endDate ? 
-                new Date(formData.endDate).toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric'
-                }) : 
-                "Campaign End Date"
-              }
+              <CalendarIcon className="h-4 w-4 mr-1" />
+              {formData.endDate ? formatDate(formData.endDate) : "Campaign End Date"}
             </div>
           </div>
           
@@ -1139,7 +1528,7 @@ const CampaignCreationPage = () => {
                   <div>
                     <p className="text-sm text-gray-400 mb-1">Required Hashtag</p>
                     <p className="font-bold text-blue-400">
-                      {formData.hashtags.original || "#YourHashtag #ad"}
+                      {formData.hashtags.original || "#YourBrandAd"}
                     </p>
                   </div>
                 </div>
@@ -1174,7 +1563,7 @@ const CampaignCreationPage = () => {
                   <div>
                     <p className="text-sm text-gray-400 mb-1">Required Hashtag</p>
                     <p className="font-bold text-blue-400">
-                      {formData.hashtags.repurposed || "#YourHashtag #ad"}
+                      {formData.hashtags.repurposed || "#YourBrandAd"}
                     </p>
                   </div>
                 </div>
@@ -1242,10 +1631,15 @@ const CampaignCreationPage = () => {
             value={formData.budget}
             onChange={handleChange}
             min="1000"
-            className="w-full p-3 pl-10 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 outline-none"
+            className={`w-full p-3 pl-10 bg-transparent border rounded-lg focus:outline-none ${
+              validationErrors['budget'] ? 'border-red-500' : 'border-gray-700 focus:border-red-500'
+            }`}
             placeholder="5000"
             required
           />
+          {validationErrors['budget'] && (
+            <p className="mt-1 text-sm text-red-500">{validationErrors['budget']}</p>
+          )}
         </div>
         
         <div className="flex items-center p-3 mt-2 bg-black/40 border border-gray-800 rounded-lg">
@@ -1289,10 +1683,15 @@ const CampaignCreationPage = () => {
                   value={formData.payoutRate.original}
                   onChange={handleChange}
                   min="500"
-                  className="w-full p-3 pl-10 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 outline-none transition-colors"
+                  className={`w-full p-3 pl-10 bg-transparent border rounded-lg focus:outline-none transition-colors ${
+                    validationErrors['payoutRate.original'] ? 'border-red-500' : 'border-gray-700 focus:border-red-500'
+                  }`}
                   placeholder="500"
                   required={formData.contentType === 'original' || formData.contentType === 'both'}
                 />
+                {validationErrors['payoutRate.original'] && (
+                  <p className="mt-1 text-sm text-red-500">{validationErrors['payoutRate.original']}</p>
+                )}
               </div>
               <p className="text-xs text-gray-500 mt-1">
                 Rate for brand-new content created specifically for your campaign
@@ -1320,10 +1719,15 @@ const CampaignCreationPage = () => {
                   value={formData.payoutRate.repurposed}
                   onChange={handleChange}
                   min="250"
-                  className="w-full p-3 pl-10 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 outline-none transition-colors"
+                  className={`w-full p-3 pl-10 bg-transparent border rounded-lg focus:outline-none transition-colors ${
+                    validationErrors['payoutRate.repurposed'] ? 'border-red-500' : 'border-gray-700 focus:border-red-500'
+                  }`}
                   placeholder="250"
                   required={formData.contentType === 'repurposed' || formData.contentType === 'both'}
                 />
+                {validationErrors['payoutRate.repurposed'] && (
+                  <p className="mt-1 text-sm text-red-500">{validationErrors['payoutRate.repurposed']}</p>
+                )}
               </div>
               <p className="text-xs text-gray-500 mt-1">
                 Rate for existing content adapted to include your campaign messaging
@@ -1432,7 +1836,9 @@ const CampaignCreationPage = () => {
       <div>
         <h3 className="text-lg font-medium mb-4">Select Payment Method</h3>
         
-        <div className="space-y-3">
+        <div className={`space-y-3 ${
+          validationErrors['paymentMethod'] ? 'border border-red-500 rounded-lg p-4' : ''
+        }`}>
           {paymentMethods.map(method => (
             <label
               key={method.id}
@@ -1478,6 +1884,9 @@ const CampaignCreationPage = () => {
             <Plus className="h-4 w-4" /> Add New Payment Method
           </button>
         </div>
+        {validationErrors['paymentMethod'] && (
+          <p className="mt-1 text-sm text-red-500">{validationErrors['paymentMethod']}</p>
+        )}
       </div>
       
       <div className="mt-6 pt-6 border-t border-gray-700">
@@ -1553,7 +1962,7 @@ const CampaignCreationPage = () => {
                   .map(([platform]) => (
                     <span
                       key={platform}
-                      className="px-3 py-1 bg-black/40 border border-gray-700 rounded-lg text-sm"
+                      className="px-2 py-1 bg-black/40 border border-gray-700 rounded-lg text-sm"
                     >
                       {platform.charAt(0).toUpperCase() + platform.slice(1)}
                     </span>
@@ -1585,7 +1994,7 @@ const CampaignCreationPage = () => {
             <div>
               <h4 className="text-sm text-gray-400 mb-1">Campaign Duration</h4>
               <p className="font-medium">
-                {new Date(formData.startDate).toLocaleDateString()} to {new Date(formData.endDate).toLocaleDateString()}
+                {formatDate(formData.startDate)} to {formatDate(formData.endDate)}
               </p>
             </div>
           </div>
@@ -1663,7 +2072,9 @@ const CampaignCreationPage = () => {
               name="termsAccepted"
               checked={formData.termsAccepted}
               onChange={handleChange}
-              className="rounded text-red-500 focus:ring-red-500"
+              className={`rounded text-red-500 focus:ring-red-500 ${
+                validationErrors['termsAccepted'] ? 'border-red-500' : ''
+              }`}
             />
           </div>
           <label htmlFor="termsAccepted" className="text-sm leading-relaxed text-gray-300">
@@ -1673,6 +2084,9 @@ const CampaignCreationPage = () => {
             period, I will receive a refund or credit for the unused portion.
           </label>
         </div>
+        {validationErrors['termsAccepted'] && (
+          <p className="mt-1 text-sm text-red-500">{validationErrors['termsAccepted']}</p>
+        )}
       </div>
     </div>
   );
@@ -1741,7 +2155,7 @@ const CampaignCreationPage = () => {
               <div>
                 <h4 className="text-sm text-gray-400 mb-1">Campaign Duration</h4>
                 <p className="font-medium">
-                  {new Date(formData.startDate).toLocaleDateString()} to {new Date(formData.endDate).toLocaleDateString()}
+                  {formatDate(formData.startDate)} to {formatDate(formData.endDate)}
                 </p>
               </div>
               
@@ -1958,11 +2372,10 @@ const CampaignCreationPage = () => {
               <button
                 type="button"
                 onClick={handleNext}
-                disabled={!isCurrentStepComplete()}
                 className={`px-4 py-2 flex items-center gap-2 rounded-lg ${
                   isCurrentStepComplete()
                     ? 'bg-red-600 hover:bg-red-700 text-white'
-                    : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                    : 'bg-gray-800 text-gray-500'
                 }`}
               >
                 {step === steps.length - 1 ? 'Review Campaign' : 'Continue'}
