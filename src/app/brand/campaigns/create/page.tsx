@@ -194,8 +194,8 @@ const CampaignCreationPage = () => {
       repurposed: '250', // Default to $250 per 1M views for repurposed
     },
     hashtags: {
-      original: '#YourBrand #ad',
-      repurposed: '#YourBrand #ad',
+      original: '#YourBrandAd',
+      repurposed: '#YourBrandAd',
     },
     guidelines: {
       original: [''],
@@ -1511,8 +1511,8 @@ const renderCreativeStep = () => (
                   <span className="text-yellow-400 font-medium">
                     Include ONE hashtag with #ad
                   </span>{' '}
-                  in it (e.g., #NetflixAd). This is required for disclosure
-                  compliance.
+                  in it (e.g. #MusicAd). This is required for disclosure
+                  compliance. If you are running "both" content types the hashtags must be different.
                 </p>
               </div>
             </div>
@@ -1666,8 +1666,8 @@ const renderCreativeStep = () => (
                   <span className="text-yellow-400 font-medium">
                     Include ONE hashtag with #ad
                   </span>{' '}
-                  in it (e.g., #NetflixAd). This is required for disclosure
-                  compliance.
+                  in it (e.g., #MusicAd). This is required for disclosure
+                  compliance. If you are running "both" content types the hashtags must be different.
                 </p>
               </div>
             </div>
@@ -1689,7 +1689,7 @@ const renderCreativeStep = () => (
                   ? 'border-red-500'
                   : 'border-gray-700 focus:border-blue-500'
               }`}
-              placeholder="#YourBrandAd"
+              placeholder="#YourCampaignAd"
             />
             {validationErrors['hashtags.repurposed'] && (
               <p className="mt-1 text-sm text-red-500">
