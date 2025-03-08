@@ -1439,56 +1439,6 @@ const BrandDashboard: React.FC = () => {
           
           <div className="flex items-center justify-between p-4 border border-gray-800 rounded-lg">
             <div>
-              <h4 className="font-medium">Creator Joins</h4>
-              <p className="text-sm text-gray-400">When creators join your campaigns</p>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input 
-                type="checkbox" 
-                className="sr-only peer"
-                checked={brandData.notificationPreferences.creatorJoins}
-                onChange={() => {
-                  setBrandData({
-                    ...brandData, 
-                    notificationPreferences: {
-                      ...brandData.notificationPreferences,
-                      creatorJoins: !brandData.notificationPreferences.creatorJoins
-                    }
-                  });
-                }}
-                aria-label="Toggle creator join notifications"
-              />
-              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-            </label>
-          </div>
-          
-          <div className="flex items-center justify-between p-4 border border-gray-800 rounded-lg">
-            <div>
-              <h4 className="font-medium">Content Submissions</h4>
-              <p className="text-sm text-gray-400">When creators submit content for approval</p>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input 
-                type="checkbox" 
-                className="sr-only peer"
-                checked={brandData.notificationPreferences.contentSubmissions}
-                onChange={() => {
-                  setBrandData({
-                    ...brandData, 
-                    notificationPreferences: {
-                      ...brandData.notificationPreferences,
-                      contentSubmissions: !brandData.notificationPreferences.contentSubmissions
-                    }
-                  });
-                }}
-                aria-label="Toggle content submission notifications"
-              />
-              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-            </label>
-          </div>
-          
-          <div className="flex items-center justify-between p-4 border border-gray-800 rounded-lg">
-            <div>
               <h4 className="font-medium">Payment Alerts</h4>
               <p className="text-sm text-gray-400">Billing and payment notifications</p>
             </div>
