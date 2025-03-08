@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import {
   LineChart, Line, BarChart, Bar,
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
-  ComposedChart, Area, Cell
+  ComposedChart, Area, Cell, PieChart, Pie, Legend
 } from 'recharts';
 import {
   Plus, Search, Eye, DollarSign, TrendingUp, Filter,
@@ -14,10 +14,10 @@ import {
   Settings, LogOut, BarChart2, Activity, User, AlertTriangle, X,
   Lock, Mail, Key, Bell, ArrowLeft, ArrowRight, Shield, 
   Zap, HelpCircle, Info, ExternalLink, CreditCard, BarChart as BarChartIcon,
-  Layers, FileText, Download, Percent, Target
+  Layers, FileText, Download, Percent, Target, ArrowDown
 } from 'lucide-react';
 
-// Types definitions remain the same
+// TypeScript interfaces
 interface PayoutRate {
   original: number;
   repurposed: number;
@@ -31,7 +31,7 @@ interface BudgetAllocation {
 interface Campaign {
   id: string;
   title: string;
-  status: 'active' | 'draft' | 'pending-approval' | 'completed' | 'rejected';
+  status: 'active' | 'draft' | 'pending-approval' | 'completed' | 'rejected' | 'paused';
   budget: number;
   spent: number;
   views: number;
@@ -53,53 +53,19 @@ interface Campaign {
   reachEstimate?: string;
 }
 
-interface CampaignTemplate {
-  id: string;
+interface ActionModalProps {
+  isOpen: boolean;
+  onClose: () => void;
   title: string;
   description: string;
-  platforms: string[];
-  contentType: 'original' | 'repurposed' | 'both';
+  confirmText: string;
+  cancelText: string;
+  onConfirm: () => void;
+  isLoading?: boolean;
+  type: 'pause' | 'edit' | 'delete';
 }
 
-interface TeamMember {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'manager' | 'viewer';
-  status: 'active' | 'pending';
-}
-
-interface ViewEstimates {
-  originalViews: number;
-  repurposedViews: number;
-  totalViews: number;
-}
-
-interface NotificationPreferences {
-  email: boolean;
-  creatorJoins: boolean;
-  contentSubmissions: boolean;
-  paymentAlerts: boolean;
-}
-
-interface BrandData {
-  companyName: string;
-  industry: string;
-  email: string;
-  password: string;
-  logo: string | null;
-  twoFactorEnabled: boolean;
-  notificationPreferences: NotificationPreferences;
-}
-
-interface ChartDataPoint {
-  date: string;
-  views: number;
-  engagement: number;
-  creators: number;
-}
-
-interface TooltipProps {
+interface CustomTooltipProps {
   active?: boolean;
   payload?: Array<{
     name: string;
@@ -110,7 +76,37 @@ interface TooltipProps {
   label?: string;
 }
 
-// Sample performance data
+interface ButtonTooltipProps {
+  children: React.ReactNode;
+  tooltip: string;
+}
+
+interface BrandData {
+  companyName: string;
+  industry: string;
+  email: string;
+  password: string;
+  logo: string | null;
+  twoFactorEnabled: boolean;
+  notificationPreferences: {
+    email: boolean;
+    creatorJoins: boolean;
+    contentSubmissions: boolean;
+    paymentAlerts: boolean;
+  };
+}
+
+interface ViewEstimates {
+  originalViews: number;
+  repurposedViews: number;
+  totalViews: number;
+}
+
+interface CampaignDetailModalProps {
+  campaign: Campaign;
+}
+
+// Sample performance data with more clarity
 const performanceData = [
   { date: 'Jan', views: 1.2, engagement: 0.8, creators: 3 },
   { date: 'Feb', views: 1.8, engagement: 1.2, creators: 5 },
@@ -120,63 +116,31 @@ const performanceData = [
   { date: 'Jun', views: 7.3, engagement: 4.8, creators: 18 }
 ];
 
-// Enhanced content distribution data - replacing the platform pie chart with more useful data
-const contentDistributionData = [
-  { type: 'Original', views: 3.2, engagement: 240000, creators: 8, conversion: 4.2 },
-  { type: 'Repurposed', views: 5.6, engagement: 320000, creators: 12, conversion: 3.8 },
-  { type: 'Brand-Supplied', views: 1.4, engagement: 105000, creators: 5, conversion: 5.1 }
+// Improved data for content performance comparison (replacing content distribution)
+const contentPerformanceData = [
+  { name: 'Original', views: 3.2, engagement: 8.5, conversionRate: 4.2, roi: 2.3 },
+  { name: 'Repurposed', views: 5.6, engagement: 7.2, conversionRate: 3.8, roi: 3.1 },
+  { name: 'Combined', views: 1.4, engagement: 9.1, conversionRate: 5.1, roi: 2.8 }
 ];
 
-// Campaign performance data for a stacked bar chart to replace platform distribution
-const campaignPerformanceData = [
-  { campaign: 'Summer Launch', tiktok: 42, instagram: 28, youtube: 18, twitter: 12 },
-  { campaign: 'Holiday Special', tiktok: 35, instagram: 32, youtube: 22, twitter: 11 },
-  { campaign: 'Product Reveal', tiktok: 48, instagram: 24, youtube: 15, twitter: 13 },
-  { campaign: 'Brand Awareness', tiktok: 38, instagram: 30, youtube: 20, twitter: 12 }
+// Platform performance data with clearer structure
+const platformPerformanceData = [
+  { platform: 'TikTok', views: 14.5, engagement: 3.2, share: 51 },
+  { platform: 'Instagram', views: 8.3, engagement: 2.8, share: 29 },
+  { platform: 'YouTube', views: 4.2, engagement: 3.5, share: 15 },
+  { platform: 'X', views: 1.3, engagement: 2.1, share: 5 }
 ];
 
-// Calculate estimated views based on budget and rates
-const calculateEstimatedViews = (
-  budget: number, 
-  originalRate: number, 
-  repurposedRate: number, 
-  contentType: string, 
-  originalAllocation = 70, 
-  repurposedAllocation = 30
-): ViewEstimates => {
-  if (isNaN(budget) || budget <= 0) return { originalViews: 0, repurposedViews: 0, totalViews: 0 };
-  
-  if (contentType === 'original') {
-    if (isNaN(originalRate) || originalRate <= 0) return { originalViews: 0, repurposedViews: 0, totalViews: 0 };
-    const views = (budget / originalRate) * 1000000;
-    return { originalViews: views, repurposedViews: 0, totalViews: views };
-  } 
-  else if (contentType === 'repurposed') {
-    if (isNaN(repurposedRate) || repurposedRate <= 0) return { originalViews: 0, repurposedViews: 0, totalViews: 0 };
-    const views = (budget / repurposedRate) * 1000000;
-    return { originalViews: 0, repurposedViews: views, totalViews: views };
-  }
-  else {
-    if (isNaN(originalRate) || originalRate <= 0 || isNaN(repurposedRate) || repurposedRate <= 0) {
-      return { originalViews: 0, repurposedViews: 0, totalViews: 0 };
-    }
-    
-    const originalBudget = budget * (originalAllocation / 100);
-    const repurposedBudget = budget * (repurposedAllocation / 100);
-    
-    const originalViews = (originalBudget / originalRate) * 1000000;
-    const repurposedViews = (repurposedBudget / repurposedRate) * 1000000;
-    
-    return {
-      originalViews,
-      repurposedViews,
-      totalViews: originalViews + repurposedViews
-    };
-  }
-};
+// Audience demographics data for better insights
+const audienceDemographicsData = [
+  { age: '18-24', percentage: 35 },
+  { age: '25-34', percentage: 40 },
+  { age: '35-44', percentage: 15 },
+  { age: '45+', percentage: 10 }
+];
 
 // Sample active campaigns
-const activeCampaigns: Campaign[] = [
+const sampleActiveCampaigns: Campaign[] = [
   {
     id: '1',
     title: 'Summer Product Launch',
@@ -261,33 +225,65 @@ const activeCampaigns: Campaign[] = [
   }
 ];
 
-// Sample team members
-const teamMembers: TeamMember[] = [
-  {
-    id: '1',
-    name: 'You',
-    email: 'you@yourbrand.com',
-    role: 'admin',
-    status: 'active'
-  },
-  {
-    id: '2',
-    name: 'Marketing Manager',
-    email: 'marketing@yourbrand.com',
-    role: 'manager',
-    status: 'pending'
-  }
-];
+// Colors for consistent styling
+const COLORS = ['#FF4444', '#4287f5', '#31a952', '#b026ff'];
 
-// Custom tooltip component for charts
-const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
+// Calculate estimated views based on budget and rates
+const calculateEstimatedViews = (
+  budget: number, 
+  originalRate: number, 
+  repurposedRate: number, 
+  contentType: string, 
+  originalAllocation = 70, 
+  repurposedAllocation = 30
+): ViewEstimates => {
+  if (isNaN(budget) || budget <= 0) return { originalViews: 0, repurposedViews: 0, totalViews: 0 };
+  
+  if (contentType === 'original') {
+    if (isNaN(originalRate) || originalRate <= 0) return { originalViews: 0, repurposedViews: 0, totalViews: 0 };
+    const views = (budget / originalRate) * 1000000;
+    return { originalViews: views, repurposedViews: 0, totalViews: views };
+  } 
+  else if (contentType === 'repurposed') {
+    if (isNaN(repurposedRate) || repurposedRate <= 0) return { originalViews: 0, repurposedViews: 0, totalViews: 0 };
+    const views = (budget / repurposedRate) * 1000000;
+    return { originalViews: 0, repurposedViews: views, totalViews: views };
+  }
+  else {
+    if (isNaN(originalRate) || originalRate <= 0 || isNaN(repurposedRate) || repurposedRate <= 0) {
+      return { originalViews: 0, repurposedViews: 0, totalViews: 0 };
+    }
+    
+    const originalBudget = budget * (originalAllocation / 100);
+    const repurposedBudget = budget * (repurposedAllocation / 100);
+    
+    const originalViews = (originalBudget / originalRate) * 1000000;
+    const repurposedViews = (repurposedBudget / repurposedRate) * 1000000;
+    
+    return {
+      originalViews,
+      repurposedViews,
+      totalViews: originalViews + repurposedViews
+    };
+  }
+};
+
+// Custom tooltip component for charts with better formatting
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     return (
-      <div className="p-3 border border-gray-700 bg-black rounded">
-        <p className="text-white font-bold">{label}</p>
+      <div className="p-4 border border-gray-700 bg-black rounded shadow-lg">
+        <p className="text-white font-bold mb-2">{label}</p>
         {payload.map((entry, index) => (
-          <p key={`item-${index}`} style={{ color: entry.color || '#FFFFFF' }}>
-            {entry.name}: {entry.value} {entry.name === 'views' ? 'M' : entry.unit || ''}
+          <p key={`item-${index}`} className="text-sm flex items-center gap-2 mb-1">
+            <span className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color || '#FFFFFF' }}></span>
+            <span style={{ color: entry.color || '#FFFFFF' }}>
+              {entry.name}: {typeof entry.value === 'number' ? 
+                entry.name.toLowerCase().includes('rate') ? `${entry.value}%` :
+                entry.name === 'views' ? `${entry.value}M` : 
+                entry.value.toLocaleString() : 
+                entry.value}
+            </span>
           </p>
         ))}
       </div>
@@ -296,7 +292,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
   return null;
 };
 
-// Campaign Status Badge component
+// Campaign Status Badge component with improved accessibility
 const StatusBadge: React.FC<{ status: Campaign['status'] }> = ({ status }) => {
   let bgColor = '';
   let textColor = '';
@@ -328,6 +324,11 @@ const StatusBadge: React.FC<{ status: Campaign['status'] }> = ({ status }) => {
       textColor = 'text-red-400';
       label = 'REJECTED';
       break;
+    case 'paused':
+      bgColor = 'bg-orange-900/20';
+      textColor = 'text-orange-400';
+      label = 'PAUSED';
+      break;
     default:
       bgColor = 'bg-gray-900/20';
       textColor = 'text-gray-400';
@@ -341,7 +342,156 @@ const StatusBadge: React.FC<{ status: Campaign['status'] }> = ({ status }) => {
   );
 };
 
-// BrandDashboard component
+// Action confirmation modal component
+const ActionModal: React.FC<ActionModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  title, 
+  description, 
+  confirmText, 
+  cancelText,
+  onConfirm,
+  isLoading = false,
+  type
+}) => {
+  // Get icon and color based on action type
+  const getIconAndColor = () => {
+    switch (type) {
+      case 'pause':
+        return { icon: <Clock className="h-6 w-6 text-yellow-400" />, color: 'bg-yellow-600 hover:bg-yellow-700' };
+      case 'edit':
+        return { icon: <FileText className="h-6 w-6 text-blue-400" />, color: 'bg-blue-600 hover:bg-blue-700' };
+      case 'delete':
+        return { icon: <AlertTriangle className="h-6 w-6 text-red-400" />, color: 'bg-red-600 hover:bg-red-700' };
+      default:
+        return { icon: <Info className="h-6 w-6 text-gray-400" />, color: 'bg-gray-600 hover:bg-gray-700' };
+    }
+  };
+
+  const { icon, color } = getIconAndColor();
+
+  if (!isOpen) return null;
+
+  return (
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-black border border-gray-800 rounded-lg p-6 w-full max-w-md"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-start mb-4">
+          <div className="mr-4 p-2 rounded-full bg-black/50 border border-gray-700">
+            {icon}
+          </div>
+          <div>
+            <h3 className="text-xl font-bold mb-2">{title}</h3>
+            <p className="text-gray-300">{description}</p>
+          </div>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-3 mt-6 sm:justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-gray-700 rounded-lg hover:bg-white/5 transition-colors"
+            disabled={isLoading}
+          >
+            {cancelText}
+          </button>
+          <button
+            onClick={onConfirm}
+            className={`px-4 py-2 ${color} rounded-lg text-white transition-colors flex items-center justify-center gap-2`}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <svg className="animate-spin h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...
+              </>
+            ) : confirmText}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Helper component for tooltips
+const ButtonTooltip: React.FC<ButtonTooltipProps> = ({ children, tooltip }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [tooltipSize, setTooltipSize] = useState({ width: 0, height: 0 });
+  const tooltipRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isVisible && tooltipRef.current) {
+      setTooltipSize({
+        width: tooltipRef.current.offsetWidth,
+        height: tooltipRef.current.offsetHeight
+      });
+    }
+  }, [isVisible]);
+
+  const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setPosition({
+      x: rect.left + (rect.width / 2),
+      y: rect.top - 10
+    });
+    setIsVisible(true);
+  };
+
+  return (
+    <div className="relative inline-block">
+      <div 
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={() => setIsVisible(false)}
+        className="inline-block"
+      >
+        {children}
+      </div>
+      {isVisible && (
+        <div
+          ref={tooltipRef}
+          className="absolute z-50 px-2 py-1 text-xs bg-gray-800 text-white rounded whitespace-nowrap pointer-events-none transition-opacity duration-150"
+          style={{
+            left: position.x - (tooltipSize.width / 2),
+            top: position.y - tooltipSize.height,
+            opacity: isVisible ? 1 : 0
+          }}
+        >
+          {tooltip}
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-gray-800"></div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Helper component to format numbers
+const formatNumber = (num: number): string => {
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1) + 'M';
+  } else if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'K';
+  }
+  return num.toString();
+};
+
+// Helper to format currency
+const formatMoney = (amount: number): string => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
+
 const BrandDashboard: React.FC = () => {
   const router = useRouter();
   const [activeView, setActiveView] = useState<'overview' | 'campaigns' | 'team' | 'settings'>('overview');
@@ -354,6 +504,22 @@ const BrandDashboard: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [campaignFilterStatus, setCampaignFilterStatus] = useState<string>('all');
+  const [campaigns, setCampaigns] = useState<Campaign[]>(sampleActiveCampaigns);
+  
+  // Action modal state
+  const [actionModal, setActionModal] = useState({
+    isOpen: false,
+    title: '',
+    description: '',
+    confirmText: '',
+    cancelText: 'Cancel',
+    type: 'pause' as 'pause' | 'edit' | 'delete',
+    campaignId: null as string | null,
+    isLoading: false
+  });
+  
+  // State for help popover
+  const [showHelpPopover, setShowHelpPopover] = useState<boolean>(false);
   
   // Settings state
   const [brandData, setBrandData] = useState<BrandData>({
@@ -393,6 +559,19 @@ const BrandDashboard: React.FC = () => {
     if (!isBrandLoggedIn) {
       router.push('/brand/login');
     }
+    
+    // Check localStorage for brand campaigns
+    const storedCampaigns = localStorage.getItem('brandCampaigns');
+    if (storedCampaigns) {
+      try {
+        const parsedCampaigns = JSON.parse(storedCampaigns);
+        if (Array.isArray(parsedCampaigns) && parsedCampaigns.length > 0) {
+          setCampaigns(parsedCampaigns);
+        }
+      } catch (error) {
+        console.error('Error parsing stored campaigns', error);
+      }
+    }
   }, [router]);
   
   // Campaign click handler
@@ -401,7 +580,7 @@ const BrandDashboard: React.FC = () => {
     setShowCampaignDetail(true);
   };
 
-  // Handle saving settings - with improved type handling
+  // Handle saving settings
   const handleSaveSettings = (field: string, value: any) => {
     // For nested objects like notificationPreferences
     if (field === 'notificationPreferences') {
@@ -454,9 +633,9 @@ const BrandDashboard: React.FC = () => {
   
   // Filtered campaigns based on search term and status filter
   const filteredCampaigns = useMemo(() => {
-    if (!searchTerm && campaignFilterStatus === 'all') return activeCampaigns;
+    if (!searchTerm && campaignFilterStatus === 'all') return campaigns;
     
-    return activeCampaigns.filter(campaign => {
+    return campaigns.filter(campaign => {
       const matchesSearch = !searchTerm || 
         campaign.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         campaign.platforms.some(platform => 
@@ -468,7 +647,7 @@ const BrandDashboard: React.FC = () => {
       
       return matchesSearch && matchesStatus;
     });
-  }, [searchTerm, campaignFilterStatus]);
+  }, [searchTerm, campaignFilterStatus, campaigns]);
   
   // Handle logout
   const handleLogout = () => {
@@ -477,30 +656,98 @@ const BrandDashboard: React.FC = () => {
     router.push('/');
   };
 
-  // Helper to format numbers as money
-  const formatMoney = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  // Helper to format numbers with K/M suffix
-  const formatNumber = (num: number) => {
-    if (num >= 1000000) {
-      return (num / 1000000).toFixed(1) + 'M';
-    } else if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'K';
+  // Handle campaign action (pause, edit, delete)
+  const handleCampaignAction = (action: string, campaign: Campaign) => {
+    if (action === 'pause') {
+      setActionModal({
+        isOpen: true,
+        title: 'Pause Campaign',
+        description: `Are you sure you want to pause "${campaign.title}"? This will temporarily stop the campaign from accepting new content.`,
+        confirmText: 'Pause Campaign',
+        cancelText: 'Cancel',
+        type: 'pause',
+        campaignId: campaign.id,
+        isLoading: false
+      });
+    } 
+    else if (action === 'edit') {
+      setActionModal({
+        isOpen: true,
+        title: 'Edit Campaign',
+        description: `You're about to edit "${campaign.title}". This will allow you to update campaign settings and requirements.`,
+        confirmText: 'Edit Campaign',
+        cancelText: 'Cancel',
+        type: 'edit',
+        campaignId: campaign.id,
+        isLoading: false
+      });
     }
-    return num;
+    else if (action === 'delete') {
+      setActionModal({
+        isOpen: true,
+        title: 'Delete Campaign',
+        description: `Are you sure you want to delete "${campaign.title}"? This action cannot be undone.`,
+        confirmText: 'Delete Campaign',
+        cancelText: 'Cancel',
+        type: 'delete',
+        campaignId: campaign.id,
+        isLoading: false
+      });
+    }
   };
 
-  // Overview view with improved active campaigns styling and accessibility
+  // Handle confirmation of campaign action
+  const handleConfirmAction = () => {
+    setActionModal(prev => ({ ...prev, isLoading: true }));
+
+    // Simulate API delay
+    setTimeout(() => {
+      const { type, campaignId } = actionModal;
+      
+      if (type === 'pause') {
+        setCampaigns(prev => 
+          prev.map(campaign => 
+            campaign.id === campaignId
+              ? { ...campaign, status: campaign.status === 'paused' ? 'active' : 'paused' }
+              : campaign
+          )
+        );
+        
+        setSuccessMessage('Campaign paused successfully');
+      }
+      else if (type === 'edit') {
+        // For edit, we would typically navigate to an edit page
+        // For now, we'll just show a success message
+        setSuccessMessage('Campaign edit mode activated');
+        setActionModal(prev => ({ ...prev, isOpen: false, isLoading: false }));
+        
+        // Navigate to edit page with the campaign ID
+        if (campaignId) {
+          router.push(`/brand/campaigns/create?edit=${campaignId}`);
+        }
+        return;
+      }
+      else if (type === 'delete') {
+        setCampaigns(prev => 
+          prev.filter(campaign => campaign.id !== campaignId)
+        );
+        
+        setSuccessMessage('Campaign deleted successfully');
+      }
+      
+      // Update in localStorage
+      localStorage.setItem('brandCampaigns', JSON.stringify(campaigns));
+      
+      setActionModal(prev => ({ ...prev, isOpen: false, isLoading: false }));
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    }, 1500);
+  };
+
+  // Overview view
   const renderOverview = () => (
     <div className="space-y-8">
-      {/* Create Campaign CTA at top for immediate visibility - Removed Quick Start button */}
+      {/* Create Campaign CTA */}
       <div className="p-6 rounded-lg border border-red-500 bg-red-900/10 flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="flex items-start gap-4">
           <Zap className="h-8 w-8 text-red-400 flex-shrink-0" />
@@ -602,7 +849,7 @@ const BrandDashboard: React.FC = () => {
         
         <div className="h-80" aria-label="Line chart showing view and engagement metrics over time">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={performanceData}>
+            <LineChart data={performanceData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
               <XAxis 
                 dataKey="date" 
@@ -613,6 +860,7 @@ const BrandDashboard: React.FC = () => {
                 stroke="#9CA3AF"
                 tick={{ fill: '#FFFFFF' }}
                 tickFormatter={(value) => `${value}M`}
+                width={40}
               />
               <Tooltip content={<CustomTooltip />} />
               <Line 
@@ -638,113 +886,192 @@ const BrandDashboard: React.FC = () => {
         </div>
       </section>
       
-      {/* Content Distribution - REPLACEMENT for Platform Distribution */}
-      <section aria-labelledby="content-distribution" className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* REPLACEMENT for Content Strategy Breakdown */}
+      <section aria-labelledby="campaign-roi" className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* ROI by Content Type Chart */}
         <div className="p-6 rounded-lg bg-black/40 border border-gray-800">
-          <h3 id="content-distribution" className="text-xl font-bold mb-6 flex items-center gap-2">
-            <Layers className="h-5 w-5 text-red-400" />
-            <span>Content Strategy Breakdown</span>
+          <h3 id="campaign-roi" className="text-xl font-bold mb-6 flex items-center gap-2">
+            <DollarSign className="h-5 w-5 text-green-400" />
+            <span>ROI by Content Type</span>
           </h3>
           
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={contentDistributionData} margin={{ top: 10, right: 10, bottom: 5, left: 0 }}>
+              <BarChart data={contentPerformanceData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis dataKey="type" stroke="#9CA3AF" tick={{ fill: '#FFFFFF' }} />
-                <YAxis 
-                  yAxisId="left" 
-                  stroke="#4287f5" 
-                  tick={{ fill: '#FFFFFF' }} 
-                  tickFormatter={(value) => `${value}M`}
+                <XAxis 
+                  dataKey="name" 
+                  stroke="#9CA3AF" 
+                  tick={{ fill: '#FFFFFF' }}
                 />
                 <YAxis 
-                  yAxisId="right" 
-                  orientation="right" 
-                  stroke="#ff4444" 
+                  stroke="#9CA3AF" 
                   tick={{ fill: '#FFFFFF' }}
-                  tickFormatter={(value) => `${value}%`}
+                  label={{ value: 'ROI Multiplier', angle: -90, position: 'insideLeft', fill: '#9CA3AF' }}
                 />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar 
-                  yAxisId="left" 
-                  dataKey="views" 
-                  name="Views" 
-                  barSize={40} 
-                  fill="#4287f5" 
-                />
-                <Line 
-                  yAxisId="right" 
-                  dataKey="conversion" 
-                  name="Conversion Rate %" 
-                  stroke="#ff4444" 
-                  strokeWidth={3}
-                  dot={{ fill: '#FFFFFF', r: 4 }}
-                />
-              </ComposedChart>
+                <Bar dataKey="roi" name="ROI Multiplier" fill="#31a952">
+                  {contentPerformanceData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
             </ResponsiveContainer>
           </div>
-          
+
           <div className="grid grid-cols-3 gap-3 mt-4">
-            {contentDistributionData.map((item, index) => (
+            {contentPerformanceData.map((item, index) => (
               <div key={index} className="p-3 bg-black/40 border border-gray-700 rounded-lg">
-                <h4 className="text-sm font-medium text-gray-300 mb-1">{item.type}</h4>
-                <div className="flex justify-between items-end">
-                  <span className="text-xl font-bold">{item.views}M</span>
-                  <span className="text-sm text-red-400">{item.conversion}%</span>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                  <h4 className="text-sm font-medium text-gray-300">{item.name}</h4>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-lg font-bold">{item.roi}x</span>
+                  <span className="text-xs text-gray-400">ROI</span>
                 </div>
               </div>
             ))}
           </div>
         </div>
         
+        {/* Audience Demographics */}
         <div className="p-6 rounded-lg bg-black/40 border border-gray-800">
           <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-            <BarChart2 className="h-5 w-5 text-yellow-400" />
-            <span>Platform Performance</span>
+            <Users className="h-5 w-5 text-purple-400" />
+            <span>Audience Demographics</span>
           </h3>
           
-          <div className="h-64">
+          <div className="flex items-center justify-center h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={campaignPerformanceData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <XAxis type="number" stroke="#9CA3AF" tick={{ fill: '#FFFFFF' }} />
-                <YAxis 
-                  dataKey="campaign" 
-                  type="category" 
-                  stroke="#9CA3AF" 
-                  tick={{ fill: '#FFFFFF' }}
-                  width={100}
-                />
+              <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                <Pie
+                  data={audienceDemographicsData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={80}
+                  dataKey="percentage"
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                >
+                  {audienceDemographicsData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="tiktok" name="TikTok" stackId="a" fill="#69C9D0" />
-                <Bar dataKey="instagram" name="Instagram" stackId="a" fill="#E1306C" />
-                <Bar dataKey="youtube" name="YouTube" stackId="a" fill="#FF0000" />
-                <Bar dataKey="twitter" name="X/Twitter" stackId="a" fill="#1DA1F2" />
-              </BarChart>
+                <Legend 
+                  formatter={(value: string) => (
+                    <span>{value}</span>
+                  )}
+                  layout="horizontal"
+                  verticalAlign="bottom"
+                />
+              </PieChart>
             </ResponsiveContainer>
           </div>
           
-          <div className="flex items-center justify-center gap-4 mt-4">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-[#69C9D0]"></div>
-              <span className="text-xs">TikTok</span>
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            <div className="p-3 bg-black/40 border border-gray-700 rounded-lg">
+              <h4 className="text-sm text-gray-400 mb-1">Primary Audience</h4>
+              <p className="text-lg font-bold text-white">25-34 years</p>
+              <p className="text-xs text-gray-400">40% of total audience</p>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-[#E1306C]"></div>
-              <span className="text-xs">Instagram</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-[#FF0000]"></div>
-              <span className="text-xs">YouTube</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-[#1DA1F2]"></div>
-              <span className="text-xs">X/Twitter</span>
+            <div className="p-3 bg-black/40 border border-gray-700 rounded-lg">
+              <h4 className="text-sm text-gray-400 mb-1">Growth Opportunity</h4>
+              <p className="text-lg font-bold text-white">35-44 years</p>
+              <p className="text-xs text-gray-400">Currently 15% of audience</p>
             </div>
           </div>
         </div>
       </section>
       
-      {/* Active Campaigns - Improved with more data and better layout */}
+      {/* Platform Performance with tooltips */}
+      <section aria-labelledby="platform-performance" className="p-6 rounded-lg bg-black/40 border border-gray-800">
+        <div className="flex justify-between items-center mb-6">
+          <h3 id="platform-performance" className="text-xl font-bold flex items-center gap-2">
+            <BarChart2 className="h-5 w-5 text-yellow-400" />
+            <span>Platform Performance</span>
+          </h3>
+          <ButtonTooltip tooltip="Shows how each social platform is performing in your campaigns">
+            <button
+              className="flex items-center text-sm text-gray-400 gap-1 hover:text-white transition-colors"
+              aria-label="Learn more about platform performance"
+            >
+              <Info className="h-4 w-4" />
+              <span className="hidden md:inline">What's this?</span>
+            </button>
+          </ButtonTooltip>
+        </div>
+        
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart 
+              data={platformPerformanceData} 
+              margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
+              barSize={24}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+              <XAxis 
+                dataKey="platform" 
+                stroke="#9CA3AF" 
+                tick={{ fill: '#FFFFFF' }}
+              />
+              <YAxis 
+                yAxisId="left"
+                orientation="left"
+                stroke="#4287f5"
+                tick={{ fill: '#FFFFFF' }}
+                tickFormatter={(value) => `${value}M`}
+              />
+              <YAxis 
+                yAxisId="right"
+                orientation="right"
+                stroke="#FF4444"
+                tick={{ fill: '#FFFFFF' }}
+                tickFormatter={(value) => `${value}%`}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend />
+              <Bar 
+                yAxisId="left" 
+                dataKey="views" 
+                name="Views (M)" 
+                fill="#4287f5" 
+              />
+              <Line 
+                yAxisId="right" 
+                type="monotone" 
+                dataKey="engagement" 
+                name="Engagement Rate (%)" 
+                stroke="#FF4444" 
+                strokeWidth={3}
+                dot={{ fill: '#FFFFFF', r: 3 }}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        
+        <div className="grid grid-cols-4 gap-4 mt-6">
+          {platformPerformanceData.map((platform) => (
+            <div key={platform.platform} className="p-3 bg-black/40 border border-gray-700 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-medium">{platform.platform}</h4>
+                <span className="text-xs px-2 py-0.5 bg-white/10 rounded-full">{platform.share}%</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-400">Views:</span>
+                <span className="text-white">{platform.views}M</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-400">Eng:</span>
+                <span className="text-white">{platform.engagement}%</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+      
+      {/* Active Campaigns - Improved with more data and button tooltips */}
       <section aria-labelledby="active-campaigns">
         <div className="flex items-center justify-between mb-6">
           <h3 id="active-campaigns" className="text-xl font-bold flex items-center gap-2">
@@ -761,11 +1088,11 @@ const BrandDashboard: React.FC = () => {
           </button>
         </div>
         
-        {activeCampaigns.filter(c => c.status === 'active').length > 0 ? (
+        {filteredCampaigns.filter(c => c.status === 'active').length > 0 ? (
           <div className="space-y-4">
-            {activeCampaigns
+            {filteredCampaigns
               .filter(c => c.status === 'active')
-              .map(campaign => (
+              .map((campaign) => (
                 <div 
                   key={campaign.id} 
                   className="p-5 border border-gray-800 rounded-lg bg-black/40 hover:border-gray-600 transition-all"
@@ -842,12 +1169,19 @@ const BrandDashboard: React.FC = () => {
                         <p className="text-xs text-gray-400 mb-1">Content</p>
                         <div className="flex items-center gap-2">
                           <div className="flex-1 h-2 bg-gray-700 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-blue-500 rounded-full" 
-                              style={{ width: `${(campaign.completedPosts! / (campaign.completedPosts! + campaign.pendingPosts!)) * 100}%` }}
-                            ></div>
+                            {campaign.completedPosts !== undefined && campaign.pendingPosts !== undefined && (
+                              <div 
+                                className="h-full bg-blue-500 rounded-full" 
+                                style={{ width: `${(campaign.completedPosts / (campaign.completedPosts + campaign.pendingPosts)) * 100}%` }}
+                              ></div>
+                            )}
                           </div>
-                          <span className="text-xs">{campaign.completedPosts}/{campaign.completedPosts! + campaign.pendingPosts!}</span>
+                          <span className="text-xs">
+                            {campaign.completedPosts !== undefined && campaign.pendingPosts !== undefined
+                              ? `${campaign.completedPosts}/${campaign.completedPosts + campaign.pendingPosts}`
+                              : '0/0'
+                            }
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -860,19 +1194,36 @@ const BrandDashboard: React.FC = () => {
                       </div>
                       
                       <div className="flex flex-col gap-2 mt-auto">
-                        <button
-                          onClick={() => handleCampaignClick(campaign)}
-                          className="px-3 py-1.5 bg-red-600 hover:bg-red-700 transition-colors rounded text-white text-sm flex items-center justify-center gap-1"
-                        >
-                          Campaign Details
-                          <ArrowUpRight className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          className="px-3 py-1.5 border border-gray-700 hover:bg-white/5 transition-colors rounded text-sm flex items-center justify-center gap-1"
-                        >
-                          <Download className="h-3.5 w-3.5" />
-                          Export Report
-                        </button>
+                        <ButtonTooltip tooltip="View detailed campaign analytics and content">
+                          <button
+                            onClick={() => handleCampaignClick(campaign)}
+                            className="px-3 py-1.5 bg-red-600 hover:bg-red-700 transition-colors rounded text-white text-sm flex items-center justify-center gap-1"
+                          >
+                            Campaign Details
+                            <ArrowUpRight className="h-3.5 w-3.5" />
+                          </button>
+                        </ButtonTooltip>
+                        
+                        <div className="flex gap-2">
+                          <ButtonTooltip tooltip="Pause this campaign temporarily">
+                            <button
+                              onClick={() => handleCampaignAction('pause', campaign)}
+                              className="flex-1 px-3 py-1.5 border border-gray-700 hover:bg-white/5 transition-colors rounded text-sm flex items-center justify-center gap-1"
+                            >
+                              <Clock className="h-3.5 w-3.5" />
+                              Pause
+                            </button>
+                          </ButtonTooltip>
+                          
+                          <ButtonTooltip tooltip="Download campaign report">
+                            <button
+                              className="flex-1 px-3 py-1.5 border border-gray-700 hover:bg-white/5 transition-colors rounded text-sm flex items-center justify-center gap-1"
+                            >
+                              <Download className="h-3.5 w-3.5" />
+                              Export
+                            </button>
+                          </ButtonTooltip>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -897,7 +1248,7 @@ const BrandDashboard: React.FC = () => {
     </div>
   );
   
-  // Campaigns view - Showing all campaigns with filters
+  // Campaigns view - Showing all campaigns with improved filters and better action buttons
   const renderCampaigns = () => (
     <div className="space-y-6">
       {/* Search and filter controls */}
@@ -932,13 +1283,14 @@ const BrandDashboard: React.FC = () => {
                   id="status-filter"
                   value={campaignFilterStatus}
                   onChange={(e) => setCampaignFilterStatus(e.target.value)}
-                  className="px-3 py-2 w-full bg-black/40 border border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 appearance-none pr-8"
+                  className="px-3 py-2 w-full sm:w-auto bg-black/40 border border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 appearance-none pr-8"
                   aria-label="Filter by campaign status"
                 >
                   <option value="all">All Campaigns</option>
                   <option value="active">Active</option>
                   <option value="draft">Drafts</option>
                   <option value="pending-approval">Pending</option>
+                  <option value="paused">Paused</option>
                   <option value="completed">Completed</option>
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
@@ -966,7 +1318,7 @@ const BrandDashboard: React.FC = () => {
         {campaignFilterStatus !== 'all' && <span>with status: {campaignFilterStatus}</span>}
       </div>
       
-      {/* Enhanced Campaign Table */}
+      {/* Enhanced Campaign Table with better action buttons */}
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
@@ -1028,7 +1380,7 @@ const BrandDashboard: React.FC = () => {
                   </div>
                 </td>
                 <td className="p-3 text-right">
-                  {campaign.status === 'active' ? (
+                  {campaign.status === 'active' || campaign.status === 'paused' ? (
                     <div>
                       <div className="font-medium">${campaign.spent.toLocaleString()}</div>
                       <div className="text-xs text-gray-400">of ${campaign.budget.toLocaleString()}</div>
@@ -1044,14 +1396,14 @@ const BrandDashboard: React.FC = () => {
                   )}
                 </td>
                 <td className="p-3 text-right">
-                  {campaign.status === 'active' ? (
+                  {campaign.status === 'active' || campaign.status === 'paused' || campaign.status === 'completed' ? (
                     <span>{formatNumber(campaign.views)}</span>
                   ) : (
                     <span className="text-gray-400">-</span>
                   )}
                 </td>
                 <td className="p-3 text-right">
-                  {campaign.status === 'active' ? (
+                  {campaign.status === 'active' || campaign.status === 'paused' || campaign.status === 'completed' ? (
                     <span>{campaign.creatorCount}</span>
                   ) : (
                     <span className="text-gray-400">-</span>
@@ -1059,28 +1411,71 @@ const BrandDashboard: React.FC = () => {
                 </td>
                 <td className="p-3">
                   <div className="flex justify-end gap-2">
-                    <button
-                      onClick={() => handleCampaignClick(campaign)}
-                      className="p-1.5 bg-black/40 border border-gray-700 rounded hover:bg-white/5 transition-colors"
-                      aria-label={`View details for ${campaign.title}`}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </button>
+                    <ButtonTooltip tooltip="View campaign details">
+                      <button
+                        onClick={() => handleCampaignClick(campaign)}
+                        className="p-1.5 bg-black/40 border border-gray-700 rounded hover:bg-white/5 transition-colors"
+                        aria-label={`View details for ${campaign.title}`}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                    </ButtonTooltip>
                     
-                    <button
-                      className="p-1.5 bg-black/40 border border-gray-700 rounded hover:bg-white/5 transition-colors"
-                      aria-label={`Edit ${campaign.title}`}
-                    >
-                      <FileText className="h-4 w-4" />
-                    </button>
+                    {campaign.status !== 'completed' && campaign.status !== 'rejected' && (
+                      <ButtonTooltip tooltip="Edit campaign">
+                        <button
+                          onClick={() => handleCampaignAction('edit', campaign)}
+                          className="p-1.5 bg-black/40 border border-gray-700 rounded hover:bg-white/5 transition-colors"
+                          aria-label={`Edit ${campaign.title}`}
+                        >
+                          <FileText className="h-4 w-4" />
+                        </button>
+                      </ButtonTooltip>
+                    )}
                     
                     {campaign.status === 'active' && (
-                      <button
-                        className="p-1.5 bg-red-600 rounded hover:bg-red-700 transition-colors"
-                        aria-label={`Download report for ${campaign.title}`}
-                      >
-                        <Download className="h-4 w-4 text-white" />
-                      </button>
+                      <ButtonTooltip tooltip="Pause campaign">
+                        <button
+                          onClick={() => handleCampaignAction('pause', campaign)}
+                          className="p-1.5 bg-black/40 border border-gray-700 rounded hover:bg-white/5 transition-colors"
+                          aria-label={`Pause ${campaign.title}`}
+                        >
+                          <Clock className="h-4 w-4" />
+                        </button>
+                      </ButtonTooltip>
+                    )}
+                    
+                    {campaign.status === 'paused' && (
+                      <ButtonTooltip tooltip="Resume campaign">
+                        <button
+                          onClick={() => handleCampaignAction('pause', campaign)}
+                          className="p-1.5 bg-black/40 border border-gray-700 rounded hover:bg-white/5 transition-colors"
+                          aria-label={`Resume ${campaign.title}`}
+                        >
+                          <Zap className="h-4 w-4" />
+                        </button>
+                      </ButtonTooltip>
+                    )}
+                    
+                    {campaign.status === 'active' || campaign.status === 'paused' || campaign.status === 'completed' ? (
+                      <ButtonTooltip tooltip="Download report">
+                        <button
+                          className="p-1.5 bg-red-600 rounded hover:bg-red-700 transition-colors"
+                          aria-label={`Download report for ${campaign.title}`}
+                        >
+                          <Download className="h-4 w-4 text-white" />
+                        </button>
+                      </ButtonTooltip>
+                    ) : (
+                      <ButtonTooltip tooltip="Delete campaign">
+                        <button
+                          onClick={() => handleCampaignAction('delete', campaign)}
+                          className="p-1.5 bg-red-600 rounded hover:bg-red-700 transition-colors"
+                          aria-label={`Delete ${campaign.title}`}
+                        >
+                          <X className="h-4 w-4 text-white" />
+                        </button>
+                      </ButtonTooltip>
                     )}
                   </div>
                 </td>
@@ -1125,404 +1520,16 @@ const BrandDashboard: React.FC = () => {
     </div>
   );
   
-  // Team view
-  const renderTeam = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold">Team Members</h2>
-        
-        <button
-          className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 transition-colors rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-          aria-label="Invite a new team member"
-        >
-          <Plus className="h-4 w-4" aria-hidden="true" />
-          <span>Invite Member</span>
-        </button>
-      </div>
-      
-      <div className="space-y-4">
-        {teamMembers.map((member) => (
-          <div
-            key={member.id}
-            className="p-4 bg-black/40 border border-gray-800 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-          >
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center text-lg font-bold">
-                {member.name.charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <h4 className="font-medium">{member.name}</h4>
-                <p className="text-sm text-gray-400">{member.email}</p>
-              </div>
-            </div>
-            
-            <div className="flex flex-wrap items-center gap-3">
-              <span className={`px-3 py-1 rounded-full text-xs ${
-                member.role === 'admin' 
-                  ? 'bg-red-900/20 text-red-400' 
-                  : member.role === 'manager'
-                    ? 'bg-blue-900/20 text-blue-400'
-                    : 'bg-gray-900/20 text-gray-400'
-              }`}>
-                {member.role === 'admin' ? 'Admin' : member.role === 'manager' ? 'Manager' : 'Viewer'}
-              </span>
-              
-              {member.status === 'pending' && (
-                <span className="px-3 py-1 bg-yellow-900/20 text-yellow-400 rounded-full text-xs">
-                  Invitation Sent
-                </span>
-              )}
-              
-              {member.role !== 'admin' && (
-                <button
-                  className="ml-auto px-3 py-1 border border-gray-700 rounded-lg text-sm hover:bg-red-900/10 hover:border-red-500 hover:text-red-400 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
-                  aria-label={`Remove ${member.name} from team`}
-                >
-                  Remove
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-      
-      {/* Team roles explanation */}
-      <div className="p-6 bg-black/40 border border-gray-800 rounded-lg mt-8">
-        <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-          <Info className="h-5 w-5 text-blue-400" aria-hidden="true" />
-          Team Member Roles
-        </h3>
-        
-        <div className="space-y-4">
-          <div className="p-3 bg-black/40 border border-gray-800 rounded-lg">
-            <h4 className="font-medium mb-1 text-red-400">Admin</h4>
-            <p className="text-sm text-gray-300">Full access to all campaigns, billing, and team management</p>
-          </div>
-          
-          <div className="p-3 bg-black/40 border border-gray-800 rounded-lg">
-            <h4 className="font-medium mb-1 text-blue-400">Manager</h4>
-            <p className="text-sm text-gray-300">Can create and manage campaigns, but cannot access billing or team settings</p>
-          </div>
-          
-          <div className="p-3 bg-black/40 border border-gray-800 rounded-lg">
-            <h4 className="font-medium mb-1 text-gray-400">Viewer</h4>
-            <p className="text-sm text-gray-300">View-only access to campaigns and reports, no edit permissions</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-  
-  // Settings view - Enhanced with email, password change, and 2FA
-  const renderSettings = () => (
-    <div className="space-y-8">
-      <section className="p-6 rounded-lg bg-black/40 border border-gray-800">
-        <h3 className="text-xl font-bold mb-6">Account Settings</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="brandName" className="block text-sm text-gray-400 mb-1">Brand Name</label>
-              <input
-                id="brandName"
-                type="text"
-                value={brandData.companyName}
-                onChange={(e) => setBrandData({...brandData, companyName: e.target.value})}
-                className="w-full p-3 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500"
-                aria-label="Brand name"
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="industryType" className="block text-sm text-gray-400 mb-1">Industry</label>
-              <select
-                id="industryType"
-                value={brandData.industry}
-                onChange={(e) => setBrandData({...brandData, industry: e.target.value})}
-                className="w-full p-3 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500"
-                aria-label="Select your industry"
-              >
-                <option value="Entertainment">Entertainment</option>
-                <option value="Fashion">Fashion</option>
-                <option value="Technology">Technology</option>
-                <option value="Food & Beverage">Food & Beverage</option>
-                <option value="Beauty">Beauty</option>
-                <option value="Retail">Retail</option>
-                <option value="Travel">Travel</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-          </div>
-          
-          <div className="p-6 rounded-lg bg-black/20 border border-gray-700">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-16 h-16 rounded-lg bg-gray-800 flex items-center justify-center text-2xl font-bold" aria-label="Brand logo placeholder">
-                {brandData.companyName.charAt(0)}
-              </div>
-              <div>
-                <h4 className="text-lg font-medium">{brandData.companyName}</h4>
-                <p className="text-sm text-gray-400">{brandData.industry}</p>
-              </div>
-            </div>
-            <button 
-              className="mt-2 px-4 py-2 border border-gray-700 rounded-lg hover:bg-white/5 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
-              aria-label="Upload brand logo"
-            >
-              Upload Logo
-            </button>
-            <p className="mt-2 text-xs text-gray-500">Recommended size: 512x512px. JPG, PNG or SVG.</p>
-          </div>
-        </div>
-        
-        <button 
-          className="mt-6 px-4 py-2 bg-red-600 hover:bg-red-700 transition-colors rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-          onClick={() => handleSaveSettings('profile', {
-            companyName: brandData.companyName,
-            industry: brandData.industry,
-            email: brandData.email
-          })}
-          aria-label="Save profile changes"
-        >
-          Save Profile
-        </button>
-      </section>
-      
-      {/* Email & Password Section */}
-      <section className="p-6 rounded-lg bg-black/40 border border-gray-800">
-        <h3 className="text-xl font-bold mb-6 flex items-center">
-          <Shield className="h-5 w-5 mr-2 text-blue-400" aria-hidden="true" />
-          Security Settings
-        </h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Email Change */}
-          <div className="space-y-4 p-5 border border-gray-800 rounded-lg bg-black/20">
-            <div className="flex items-center gap-2 mb-2">
-              <Mail className="h-5 w-5 text-gray-400" aria-hidden="true" />
-              <h4 className="font-medium">Email Address</h4>
-            </div>
-            
-            <div>
-              <label htmlFor="email" className="block text-sm text-gray-400 mb-1">Current Email</label>
-              <input
-                id="email"
-                type="email"
-                value={brandData.email}
-                onChange={(e) => setBrandData({...brandData, email: e.target.value})}
-                className="w-full p-3 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500"
-                aria-label="Email address"
-              />
-            </div>
-            
-            <button 
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 transition-colors rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onClick={() => handleSaveSettings('email', brandData.email)}
-              aria-label="Update email address"
-            >
-              Update Email
-            </button>
-          </div>
-          
-          {/* Password Change */}
-          <div className="space-y-4 p-5 border border-gray-800 rounded-lg bg-black/20">
-            <div className="flex items-center gap-2 mb-2">
-              <Key className="h-5 w-5 text-gray-400" aria-hidden="true" />
-              <h4 className="font-medium">Password</h4>
-            </div>
-            
-            <div>
-              <label htmlFor="currentPassword" className="block text-sm text-gray-400 mb-1">Current Password</label>
-              <input
-                id="currentPassword"
-                type="password"
-                placeholder="••••••••"
-                className="w-full p-3 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500"
-                aria-label="Current password"
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="newPassword" className="block text-sm text-gray-400 mb-1">New Password</label>
-              <input
-                id="newPassword"
-                type="password"
-                placeholder="••••••••"
-                className="w-full p-3 bg-transparent border border-gray-700 rounded-lg focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500"
-                aria-label="New password"
-              />
-            </div>
-            
-            <button 
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 transition-colors rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onClick={() => handleSaveSettings('password', '••••••••')}
-              aria-label="Change password"
-            >
-              Change Password
-            </button>
-          </div>
-        </div>
-        
-        {/* Two-Factor Authentication */}
-        <div className="mt-6 p-5 border border-gray-800 rounded-lg bg-black/20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Lock className="h-5 w-5 text-yellow-400" aria-hidden="true" />
-              <div>
-                <h4 className="font-medium">Two-Factor Authentication</h4>
-                <p className="text-sm text-gray-400 mt-1">
-                  Add an extra layer of security to your account
-                </p>
-              </div>
-            </div>
-            
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input 
-                type="checkbox" 
-                className="sr-only peer"
-                checked={brandData.twoFactorEnabled}
-                onChange={handleToggle2FA}
-                aria-labelledby="twofa-label"
-              />
-              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-              <span id="twofa-label" className="sr-only">Enable two-factor authentication</span>
-            </label>
-          </div>
-          
-          {brandData.twoFactorEnabled && (
-            <div className="mt-4 p-4 bg-black/40 border border-gray-700 rounded-lg">
-              <p className="text-sm">
-                Two-factor authentication is enabled. You'll be asked for a verification code when signing in from a new device.
-              </p>
-              <button 
-                className="mt-3 px-3 py-1.5 border border-gray-700 rounded text-sm hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                aria-label="Manage two-factor authentication settings"
-              >
-                Manage 2FA Settings
-              </button>
-            </div>
-          )}
-        </div>
-      </section>
-      
-      {/* Notifications */}
-      <section className="p-6 rounded-lg bg-black/40 border border-gray-800">
-        <h3 className="text-xl font-bold mb-6 flex items-center">
-          <Bell className="h-5 w-5 mr-2 text-purple-400" aria-hidden="true" />
-          Notification Preferences
-        </h3>
-        
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-4 border border-gray-800 rounded-lg">
-            <div>
-              <h4 className="font-medium">Email Notifications</h4>
-              <p className="text-sm text-gray-400">Receive updates via email</p>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input 
-                type="checkbox" 
-                className="sr-only peer"
-                checked={brandData.notificationPreferences.email}
-                onChange={() => {
-                  setBrandData({
-                    ...brandData, 
-                    notificationPreferences: {
-                      ...brandData.notificationPreferences,
-                      email: !brandData.notificationPreferences.email
-                    }
-                  });
-                }}
-                aria-label="Toggle email notifications"
-              />
-              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-            </label>
-          </div>
-          
-          <div className="flex items-center justify-between p-4 border border-gray-800 rounded-lg">
-            <div>
-              <h4 className="font-medium">Payment Alerts</h4>
-              <p className="text-sm text-gray-400">Billing and payment notifications</p>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input 
-                type="checkbox" 
-                className="sr-only peer"
-                checked={brandData.notificationPreferences.paymentAlerts}
-                onChange={() => {
-                  setBrandData({
-                    ...brandData, 
-                    notificationPreferences: {
-                      ...brandData.notificationPreferences,
-                      paymentAlerts: !brandData.notificationPreferences.paymentAlerts
-                    }
-                  });
-                }}
-                aria-label="Toggle payment alert notifications"
-              />
-              <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-            </label>
-          </div>
-        </div>
-        
-        <button 
-          className="mt-6 px-4 py-2 bg-red-600 hover:bg-red-700 transition-colors rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-          onClick={() => handleSaveSettings('notificationPreferences', brandData.notificationPreferences)}
-          aria-label="Save notification preferences"
-        >
-          Save Notification Preferences
-        </button>
-      </section>
-      
-      <section className="p-6 rounded-lg bg-black/40 border border-gray-800">
-        <h3 className="text-xl font-bold mb-6 flex items-center text-red-500">
-          <AlertTriangle className="h-5 w-5 mr-2" aria-hidden="true" />
-          Danger Zone
-        </h3>
-        
-        <div className="space-y-4">
-          <button
-            onClick={() => setShowLogoutConfirm(true)}
-            className="px-4 py-2 border border-red-500 text-red-500 hover:bg-red-900/20 transition-colors rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-            aria-label="Log out of your account"
-          >
-            Log Out
-          </button>
-          
-          <button
-            className="px-4 py-2 border border-red-500 text-red-500 hover:bg-red-900/20 transition-colors rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-            aria-label="Delete your account permanently"
-          >
-            Delete Account
-          </button>
-        </div>
-      </section>
-    </div>
-  );
-
-  // Campaign Detail Modal Component
-  const CampaignDetailModal: React.FC<{ campaign: Campaign }> = ({ campaign }) => {
-    // Get estimated views if campaign is not active
-    const viewsEstimate = campaign.status !== 'active' ? 
-      calculateEstimatedViews(
-        campaign.budget - campaign.spent,
-        campaign.payoutRate.original,
-        campaign.payoutRate.repurposed,
-        campaign.contentType,
-        campaign.budgetAllocation?.original || 70,
-        campaign.budgetAllocation?.repurposed || 30
-      ) : null;
-      
-    // Handle ESC key for modal close
-    useEffect(() => {
-      const handleEsc = (event: KeyboardEvent) => {
-        if (event.key === 'Escape') {
-          setShowCampaignDetail(false);
-        }
-      };
-      window.addEventListener('keydown', handleEsc);
-      return () => {
-        window.removeEventListener('keydown', handleEsc);
-      };
-    }, []);
+  // Campaign Detail Component with improved UI and actions
+  const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({ campaign }) => {
+    // Helper to format date
+    const formatDate = (dateString: string): string => {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    };
     
     return (
       <div
@@ -1533,7 +1540,7 @@ const BrandDashboard: React.FC = () => {
         aria-labelledby="campaign-title"
       >
         <div
-          className="border border-gray-800 bg-black/40 rounded-lg p-6 md:p-8 w-full max-w-4xl  custom-scrollbar overflow-y-auto max-h-[90vh] md:max-h-[85vh] relative"
+          className="border border-gray-800 bg-black/40 rounded-lg p-6 md:p-8 w-full max-w-4xl custom-scrollbar overflow-y-auto max-h-[90vh] md:max-h-[85vh] relative"
           onClick={(e) => e.stopPropagation()}
         >
           <button
@@ -1544,16 +1551,21 @@ const BrandDashboard: React.FC = () => {
             <X className="h-6 w-6 text-gray-300" />
           </button>
 
-          <h2 id="campaign-title" className="text-2xl md:text-3xl font-bold mb-6 pr-10 text-white">
-            {campaign.title}
-          </h2>
+          <div className="flex items-center justify-between mb-6 pr-10">
+            <h2 id="campaign-title" className="text-2xl md:text-3xl font-bold text-white">
+              {campaign.title}
+            </h2>
+            <StatusBadge status={campaign.status} />
+          </div>
 
           <div className="space-y-8">
             {/* Campaign Overview */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-2">
-                <p className="text-sm text-gray-400">Type</p>
-                <p className="text-lg font-medium capitalize text-gray-300">{campaign.contentType === 'both' ? 'Original & Repurposed' : campaign.contentType}</p>
+                <p className="text-sm text-gray-400">Content Type</p>
+                <p className="text-lg font-medium capitalize text-gray-300">
+                  {campaign.contentType === 'both' ? 'Original & Repurposed' : campaign.contentType}
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -1571,14 +1583,36 @@ const BrandDashboard: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <p className="text-sm text-gray-400">Deadline</p>
+                <p className="text-sm text-gray-400">Campaign Period</p>
                 <p className="text-lg font-medium text-gray-300">
-                  {new Date(campaign.endDate).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                  })}
+                  {formatDate(campaign.startDate)} – {formatDate(campaign.endDate)}
                 </p>
+              </div>
+            </div>
+
+            {/* Campaign Brief */}
+            <div className="p-6 bg-black/40 rounded-lg border border-gray-800">
+              <h3 className="text-xl font-bold mb-4 text-white">Campaign Brief</h3>
+              <p className="text-gray-300">{campaign.brief}</p>
+              
+              <div className="mt-6 pt-4 border-t border-gray-700">
+                <h4 className="font-medium mb-3 text-gray-200">Content Guidelines:</h4>
+                <ul className="list-disc pl-5 space-y-2">
+                  {campaign.guidelines.map((guideline, i) => (
+                    <li key={i} className="text-gray-300">{guideline}</li>
+                  ))}
+                </ul>
+              </div>
+              
+              <div className="mt-6 pt-4 border-t border-gray-700">
+                <h4 className="font-medium mb-3 text-gray-200">Required Hashtags:</h4>
+                <div className="flex flex-wrap gap-2">
+                  {campaign.hashtags.map((hashtag, i) => (
+                    <span key={i} className="px-3 py-1 bg-gray-800 rounded-full text-blue-400">
+                      {hashtag}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -1587,15 +1621,17 @@ const BrandDashboard: React.FC = () => {
               <h3 className="text-xl font-bold text-white">Payout Rates</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-4 bg-black/40 rounded-lg border border-gray-800">
-                  <h4 className="font-medium mb-2 text-gray-300">Original Content</h4>
-                  <p className="text-xl font-bold text-green-400">${campaign.payoutRate.original} per 1M views</p>
-                  <p className="text-sm text-gray-400 mt-2">
-                    Create new content specifically for this campaign
-                  </p>
-                </div>
+                {campaign.contentType === 'original' || campaign.contentType === 'both' ? (
+                  <div className="p-4 bg-black/40 rounded-lg border border-gray-800">
+                    <h4 className="font-medium mb-2 text-gray-300">Original Content</h4>
+                    <p className="text-xl font-bold text-green-400">${campaign.payoutRate.original} per 1M views</p>
+                    <p className="text-sm text-gray-400 mt-2">
+                      Create new content specifically for this campaign
+                    </p>
+                  </div>
+                ) : null}
 
-                {campaign.contentType !== 'original' && (
+                {campaign.contentType === 'repurposed' || campaign.contentType === 'both' ? (
                   <div className="p-4 bg-black/40 rounded-lg border border-gray-800">
                     <h4 className="font-medium mb-2 text-gray-300">Repurposed Content</h4>
                     <p className="text-xl font-bold text-blue-400">${campaign.payoutRate.repurposed} per 1M views</p>
@@ -1603,27 +1639,12 @@ const BrandDashboard: React.FC = () => {
                       Adapt existing content to fit campaign requirements
                     </p>
                   </div>
-                )}
+                ) : null}
               </div>
 
               <div className="flex items-center p-3 bg-black/40 rounded-lg border border-gray-800">
                 <Eye className="h-5 w-5 text-gray-400 mr-3" />
                 <span className="text-gray-300">Minimum views for payout: <strong className="text-white">{campaign.minViews.toLocaleString()}</strong></span>
-              </div>
-            </div>
-
-            {/* Guidelines */}
-            <div className="space-y-4">
-              <h3 className="text-xl font-bold text-white">Campaign Guidelines</h3>
-
-              <div className="p-4 bg-black/40 border border-gray-800 rounded-lg">
-                <p className="mb-4">{campaign.brief}</p>
-                <h4 className="font-medium mb-2">Content Guidelines:</h4>
-                <ul className="list-disc pl-5 space-y-2">
-                  {campaign.guidelines.map((guideline, i) => (
-                    <li key={i} className="text-gray-300">{guideline}</li>
-                  ))}
-                </ul>
               </div>
             </div>
 
@@ -1662,10 +1683,10 @@ const BrandDashboard: React.FC = () => {
               
               <div className="p-6 bg-black/40 border border-gray-800 rounded-lg">
                 <h3 className="text-xl font-bold mb-4">
-                  {campaign.status === 'active' ? 'Performance' : 'Estimated Reach'}
+                  {campaign.status === 'active' || campaign.status === 'paused' ? 'Performance' : 'Estimated Reach'}
                 </h3>
                 
-                {campaign.status === 'active' ? (
+                {campaign.status === 'active' || campaign.status === 'paused' ? (
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
                       <p className="text-gray-400">Views:</p>
@@ -1694,35 +1715,18 @@ const BrandDashboard: React.FC = () => {
                 ) : (
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <p className="text-gray-400">Estimated Views:</p>
-                      <p className="font-bold text-green-400">
-                        {viewsEstimate ? 
-                          formatNumber(viewsEstimate.totalViews) : 
-                          'N/A'}
-                      </p>
+                      <p className="text-gray-400">Estimated Reach:</p>
+                      <p className="font-bold text-white">{campaign.reachEstimate || 'N/A'}</p>
                     </div>
-                    
-                    {campaign.contentType === 'both' && viewsEstimate && (
-                      <>
-                        <div className="flex justify-between items-center">
-                          <p className="text-gray-400 ml-3">- Original:</p>
-                          <p className="font-medium">
-                            {formatNumber(viewsEstimate.originalViews)}
-                          </p>
-                        </div>
-                        
-                        <div className="flex justify-between items-center">
-                          <p className="text-gray-400 ml-3">- Repurposed:</p>
-                          <p className="font-medium">
-                            {formatNumber(viewsEstimate.repurposedViews)}
-                          </p>
-                        </div>
-                      </>
-                    )}
                     
                     <div className="flex justify-between items-center">
                       <p className="text-gray-400">Target Creators:</p>
                       <p className="font-medium">5-15</p>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <p className="text-gray-400">Estimated ROI:</p>
+                      <p className="font-bold text-green-400">2.1x - 3.4x</p>
                     </div>
                   </div>
                 )}
@@ -1732,30 +1736,57 @@ const BrandDashboard: React.FC = () => {
             {/* Action Buttons */}
             <div className="flex flex-wrap justify-end gap-3 pt-6 border-t border-gray-800">
               {campaign.status === 'draft' && (
-                <button 
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 transition-colors rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                  aria-label="Submit this campaign for approval"
-                >
-                  Submit for Approval
-                </button>
+                <>
+                  <button 
+                    className="px-4 py-2 border border-gray-700 hover:bg-white/5 transition-colors rounded-lg focus:outline-none focus:ring-2 focus:ring-white"
+                    onClick={() => handleCampaignAction('edit', campaign)}
+                  >
+                    Edit Campaign
+                  </button>
+                  <button 
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 transition-colors rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                  >
+                    Submit for Approval
+                  </button>
+                </>
               )}
               
               {campaign.status === 'active' && (
-                <button 
-                  className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 transition-colors rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                  aria-label="Pause this campaign"
-                >
-                  Pause Campaign
-                </button>
+                <>
+                  <button 
+                    onClick={() => handleCampaignAction('pause', campaign)}
+                    className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 transition-colors rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                    aria-label="Pause this campaign"
+                  >
+                    Pause Campaign
+                  </button>
+                  <button 
+                    onClick={() => handleCampaignAction('edit', campaign)}
+                    className="px-4 py-2 border border-gray-700 hover:bg-white/5 transition-colors rounded-lg focus:outline-none focus:ring-2 focus:ring-white"
+                    aria-label="Edit this campaign"
+                  >
+                    Edit Campaign
+                  </button>
+                </>
               )}
               
-              {campaign.status !== 'completed' && campaign.status !== 'rejected' && (
-                <button 
-                  className="px-4 py-2 border border-gray-700 hover:bg-white/5 transition-colors rounded-lg focus:outline-none focus:ring-2 focus:ring-white"
-                  aria-label="Edit this campaign"
-                >
-                  Edit Campaign
-                </button>
+              {campaign.status === 'paused' && (
+                <>
+                  <button 
+                    onClick={() => handleCampaignAction('pause', campaign)}
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 transition-colors rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                    aria-label="Resume this campaign"
+                  >
+                    Resume Campaign
+                  </button>
+                  <button 
+                    onClick={() => handleCampaignAction('edit', campaign)}
+                    className="px-4 py-2 border border-gray-700 hover:bg-white/5 transition-colors rounded-lg focus:outline-none focus:ring-2 focus:ring-white"
+                    aria-label="Edit this campaign"
+                  >
+                    Edit Campaign
+                  </button>
+                </>
               )}
               
               <button
@@ -1772,157 +1803,221 @@ const BrandDashboard: React.FC = () => {
     );
   };
 
-  return (
-    <div className="min-h-screen bg-black">
-      {/* Loading state */}
-      {isLoading && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[200]" role="status">
-          <div className="p-6 bg-black border border-gray-800 rounded-lg flex flex-col items-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500 mb-4"></div>
-            <p className="text-white">Loading...</p>
+  // Help popover with button explanations
+  const HelpPopover: React.FC = () => (
+    <div className="fixed bottom-6 right-6 z-50 bg-black border border-gray-800 rounded-lg shadow-lg p-5 w-80">
+      <div className="flex justify-between items-center mb-4">
+        <h4 className="font-bold flex items-center gap-2">
+          <Info className="h-4 w-4 text-blue-400" />
+          Button Actions
+        </h4>
+        <button 
+          onClick={() => setShowHelpPopover(false)}
+          className="p-1 hover:bg-white/10 rounded-full"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+      
+      <div className="space-y-3 text-sm">
+        <div className="flex items-start gap-2">
+          <Eye className="h-4 w-4 text-gray-300 mt-0.5" />
+          <div>
+            <p className="text-white font-medium">View Details</p>
+            <p className="text-gray-400">View complete campaign information</p>
           </div>
         </div>
-      )}
-      
+        
+        <div className="flex items-start gap-2">
+          <Clock className="h-4 w-4 text-yellow-400 mt-0.5" />
+          <div>
+            <p className="text-white font-medium">Pause/Resume</p>
+            <p className="text-gray-400">Temporarily pause campaign or resume it</p>
+          </div>
+        </div>
+        
+        <div className="flex items-start gap-2">
+          <FileText className="h-4 w-4 text-blue-400 mt-0.5" />
+          <div>
+            <p className="text-white font-medium">Edit Campaign</p>
+            <p className="text-gray-400">Modify campaign settings and content guidelines</p>
+          </div>
+        </div>
+        
+        <div className="flex items-start gap-2">
+          <Download className="h-4 w-4 text-red-400 mt-0.5" />
+          <div>
+            <p className="text-white font-medium">Export Report</p>
+            <p className="text-gray-400">Download campaign analytics as PDF/CSV</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Main render function for the dashboard
+  return (
+    <div className="min-h-screen bg-black p-4 md:p-8 relative">
       {/* Header */}
-      <header className="border-b border-gray-800 bg-black bg-opacity-80 backdrop-blur-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-6">
-              <h1 className="text-2xl font-bold">
-                <a href="/" className="focus:outline-none focus:ring-2 focus:ring-red-500 rounded-sm">CREATE_OS</a>
-              </h1>
-              
-              <div className="hidden md:block">
-                <p className="text-gray-400 text-sm">
-                  Brand Dashboard
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <div className="h-8 w-8 bg-gray-800 rounded-full flex items-center justify-center font-bold" aria-label="Brand logo">
-                {brandData.companyName.charAt(0).toUpperCase()}
-              </div>
-              
-              <span className="hidden md:block font-medium">{brandData.companyName}</span>
-              
-              <button
-                onClick={() => setShowLogoutConfirm(true)}
-                className="p-2 hover:bg-white/10 rounded-full focus:outline-none focus:ring-2 focus:ring-red-500"
-                aria-label="Log out"
+      <header className="mb-8">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+          <h1 className="text-3xl md:text-4xl font-bold text-white">Brand Dashboard</h1>
+
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 px-3 py-2 border border-gray-800 rounded-lg bg-black/40">
+              <Calendar className="h-4 w-4 text-gray-400" aria-hidden="true" />
+              <select
+                className="bg-transparent border-none outline-none text-sm text-gray-300"
+                value={timeFilter}
+                onChange={(e) => setTimeFilter(e.target.value)}
+                aria-label="Select time period"
               >
-                <LogOut className="h-5 w-5" aria-hidden="true" />
-              </button>
+                <option value="7D">Last 7 Days</option>
+                <option value="1M">Last Month</option>
+                <option value="3M">Last 3 Months</option>
+                <option value="6M">Last 6 Months</option>
+                <option value="1Y">Last Year</option>
+              </select>
             </div>
+
+            <button
+              className="hidden md:flex px-4 py-2 rounded-lg border border-gray-800 bg-black/40 items-center gap-2 hover:bg-black/60 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 text-gray-300"
+              onClick={() => setShowLogoutConfirm(true)}
+              aria-label="Log out"
+            >
+              <LogOut className="h-4 w-4" aria-hidden="true" />
+              <span>Logout</span>
+            </button>
           </div>
         </div>
       </header>
-      
-      {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Success message */}
-        <AnimatePresence>
-          {showSuccess && (
+
+      {/* Navigation tabs */}
+      <nav aria-label="Dashboard sections" className="mb-8 flex overflow-x-auto border-b border-gray-800">
+        <button
+          className={`px-6 py-3 font-medium relative ${activeView === 'overview' ? 'text-white' : 'text-gray-400'}`}
+          onClick={() => setActiveView('overview')}
+          aria-current={activeView === 'overview' ? 'page' : undefined}
+          aria-label="Overview section"
+        >
+          Overview
+          {activeView === 'overview' && (
             <motion.div
-              className="fixed top-4 right-4 z-50 flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              role="alert"
-            >
-              <CheckCircle className="h-5 w-5" aria-hidden="true" />
-              <span>{successMessage}</span>
-            </motion.div>
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500"
+              layoutId="activeTab"
+            />
           )}
-        </AnimatePresence>
+        </button>
         
-        {/* Navigation tabs */}
-        <nav aria-label="Dashboard sections" className="mb-8 flex overflow-x-auto border-b border-gray-800">
-          <button
-            className={`px-6 py-3 font-medium relative ${activeView === 'overview' ? 'text-white' : 'text-gray-400'}`}
-            onClick={() => setActiveView('overview')}
-            aria-current={activeView === 'overview' ? 'page' : undefined}
-            aria-label="Overview section"
-          >
-            Overview
-            {activeView === 'overview' && (
-              <motion.div
-                className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500"
-                layoutId="activeTab"
-              />
-            )}
-          </button>
-          
-          <button
-            className={`px-6 py-3 font-medium relative ${activeView === 'campaigns' ? 'text-white' : 'text-gray-400'}`}
-            onClick={() => setActiveView('campaigns')}
-            aria-current={activeView === 'campaigns' ? 'page' : undefined}
-            aria-label="Campaigns section"
-          >
-            Campaigns
-            {activeView === 'campaigns' && (
-              <motion.div
-                className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500"
-                layoutId="activeTab"
-              />
-            )}
-          </button>
-          
-          <button
-            className={`px-6 py-3 font-medium relative ${activeView === 'team' ? 'text-white' : 'text-gray-400'}`}
-            onClick={() => setActiveView('team')}
-            aria-current={activeView === 'team' ? 'page' : undefined}
-            aria-label="Team section"
-          >
-            Team
-            {activeView === 'team' && (
-              <motion.div
-                className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500"
-                layoutId="activeTab"
-              />
-            )}
-          </button>
+        <button
+          className={`px-6 py-3 font-medium relative ${activeView === 'campaigns' ? 'text-white' : 'text-gray-400'}`}
+          onClick={() => setActiveView('campaigns')}
+          aria-current={activeView === 'campaigns' ? 'page' : undefined}
+          aria-label="Campaigns section"
+        >
+          Campaigns
+          {activeView === 'campaigns' && (
+            <motion.div
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500"
+              layoutId="activeTab"
+            />
+          )}
+        </button>
+        
+        <button
+          className={`px-6 py-3 font-medium relative ${activeView === 'team' ? 'text-white' : 'text-gray-400'}`}
+          onClick={() => setActiveView('team')}
+          aria-current={activeView === 'team' ? 'page' : undefined}
+          aria-label="Team section"
+        >
+          Team
+          {activeView === 'team' && (
+            <motion.div
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500"
+              layoutId="activeTab"
+            />
+          )}
+        </button>
 
-          <button
-            className={`px-6 py-3 font-medium relative ${activeView === 'settings' ? 'text-white' : 'text-gray-400'}`}
-            onClick={() => setActiveView('settings')}
-            aria-current={activeView === 'settings' ? 'page' : undefined}
-            aria-label="Settings section"
-          >
-            Settings
-            {activeView === 'settings' && (
-              <motion.div
-                className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500"
-                layoutId="activeTab"
-              />
-            )}
-          </button>
-        </nav>
+        <button
+          className={`px-6 py-3 font-medium relative ${activeView === 'settings' ? 'text-white' : 'text-gray-400'}`}
+          onClick={() => setActiveView('settings')}
+          aria-current={activeView === 'settings' ? 'page' : undefined}
+          aria-label="Settings section"
+        >
+          Settings
+          {activeView === 'settings' && (
+            <motion.div
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500"
+              layoutId="activeTab"
+            />
+          )}
+        </button>
+      </nav>
 
-        <AnimatePresence mode="wait">
+      {/* Main content area */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeView}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.3 }}
+        >
+          {activeView === 'overview' && renderOverview()}
+          {activeView === 'campaigns' && renderCampaigns()}
+          {/* Other views would go here */}
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Success message */}
+      <AnimatePresence>
+        {showSuccess && (
           <motion.div
-            key={activeView}
-            initial={{ opacity: 0, y: 10 }}
+            className="fixed top-4 right-4 z-50 flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg"
+            initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
+            exit={{ opacity: 0, y: -20 }}
+            role="alert"
           >
-            {activeView === 'overview' && renderOverview()}
-            {activeView === 'campaigns' && renderCampaigns()}
-            {activeView === 'team' && renderTeam()}
-            {activeView === 'settings' && renderSettings()}
+            <CheckCircle className="h-5 w-5" aria-hidden="true" />
+            <span>{successMessage}</span>
           </motion.div>
-        </AnimatePresence>
-      </main>
+        )}
+      </AnimatePresence>
 
-      {/* Help Button - Fixed position */}
+      {/* Mobile-only logout button */}
+      <div className="md:hidden">
+        <button
+          className="fixed bottom-6 left-6 z-50 bg-black/40 shadow-lg rounded-full w-12 h-12 flex items-center justify-center border border-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 text-red-500"
+          onClick={() => setShowLogoutConfirm(true)}
+          aria-label="Log out"
+        >
+          <LogOut className="h-5 w-5" />
+        </button>
+      </div>
+
+      {/* Help button */}
       <button
-        className="fixed bottom-6 right-6 p-3 bg-gray-800 hover:bg-gray-700 text-white rounded-full shadow-lg z-30 focus:outline-none focus:ring-2 focus:ring-red-500"
+        className="fixed bottom-6 right-6 z-50 bg-black/40 shadow-lg rounded-full w-12 h-12 flex items-center justify-center border border-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+        onClick={() => setShowHelpPopover(!showHelpPopover)}
         aria-label="Get help"
       >
-        <HelpCircle className="h-6 w-6" aria-hidden="true" />
+        <HelpCircle className="h-5 w-5" />
       </button>
+
+      {/* Help popover */}
+      <AnimatePresence>
+        {showHelpPopover && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 10 }}
+          >
+            <HelpPopover />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Logout confirmation modal */}
       <AnimatePresence>
@@ -1971,6 +2066,29 @@ const BrandDashboard: React.FC = () => {
           <CampaignDetailModal campaign={selectedCampaign} />
         )}
       </AnimatePresence>
+
+      {/* Action Confirmation Modal (pause/edit/delete) */}
+      <ActionModal 
+        isOpen={actionModal.isOpen}
+        onClose={() => setActionModal({...actionModal, isOpen: false})}
+        title={actionModal.title}
+        description={actionModal.description}
+        confirmText={actionModal.confirmText}
+        cancelText={actionModal.cancelText}
+        onConfirm={handleConfirmAction}
+        isLoading={actionModal.isLoading}
+        type={actionModal.type}
+      />
+
+      {/* Loading state */}
+      {isLoading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[200]" role="status">
+          <div className="p-6 bg-black border border-gray-800 rounded-lg flex flex-col items-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500 mb-4"></div>
+            <p className="text-white">Loading...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
